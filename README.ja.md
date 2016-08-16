@@ -1,95 +1,93 @@
 # Markdown PDF
 
-This extension convert Markdown file to pdf, html, png or jpeg file.
+この拡張機能は Markdown ファイルを PDF、html、png、jpeg ファイルに変換します。
 
-[Japanease README](https://github.com/yzane/vscode-markdown-pdf/blob/master/README.ja.md)
+## 機能
 
-## Features
-
-Supports the following features.
+以下の機能をサポートしています。
 * [Syntax highlighting](https://highlightjs.org/static/demo/)
 * [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
 * checkbox
 
-## Usage
+## 使い方
 
-1. Open the Markdown file.
-1. Press `F1` or `Ctrl+Shift+P`.
-1. Type `pdf` and select `Convert Markdown to PDF`
+1. Markdown ファイルを開きます
+1. `F1`キーを押すか、`Ctrl+Shift+P`キーを入力します
+1. `pdf`と入力し、`Convert Markdown to PDF`を選択します。
 
 ![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage.gif)
 
-## Extension Settings
+## 拡張機能 設定方法
 
 [Visual Studio Code User and Workspace Settings](https://code.visualstudio.com/docs/customization/userandworkspace)
 
-1. Select **File > Preferences > UserSettings or Workspace Settings**
-1. Find markdown-pdf settings in the **Default Settings**
-1. Copy `markdown-pdf.*` settings
-1. Paste to the **settings.json**, and change the value
+1. メニューから **ファイル > 基本設定 > ユーザー設定 か ワークスペース設定** を選択します
+1. **既定の設定** から markdown-pdf の設定を探します
+1. `markdown-pdf.*` の設定をコピーします
+1. **settings.json** に貼り付け、値を変更します
 
 ![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/settings.gif)
 
-## Options
+## オプション
 
 ```javascript
 {
-	// A list of local paths to the stylesheets to use from the markdown-pdf
+	// markdown-pdf で使用するスタイルシートのパスを指定します
 	"markdown-pdf.styles": [
 		"C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK
 		"C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK
 		"/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-		"C:\Users\<USERNAME>\Documents\markdown-pdf.css"       // N/A. All '\' need to be written as '\\'.
+		"C:\Users\<USERNAME>\Documents\markdown-pdf.css"       // NG : \ は \\ と記述する必要があります。
 	],
 
-	// Set the style file name. for example: github.css, monokai.css ...
-	// fine name list : https://github.com/isagalaev/highlight.js/tree/master/src/styles
-	// demo site : https://highlightjs.org/static/demo/
+	// スタイルシートのファイル名を指定します。例: github.css, monokai.css ...
+	// ファイル名のリスト : https://github.com/isagalaev/highlight.js/tree/master/src/styles
+	// デモサイト : https://highlightjs.org/static/demo/
 	"markdown-pdf.highlightStyle": "github.css",
 
-	// Enable Syntax highlighting
+	// Syntax highlighting を有効にします
 	"markdown-pdf.highlight": true,
 
-	// Enable line breaks
+	// 改行を有効にします
 	"markdown-pdf.breaks": false,
 
-	// Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/
+	// 絵文字を有効にします http://www.webpagefx.com/tools/emoji-cheat-sheet/
 	"markdown-pdf.emoji": true,
 
-	// Output format: pdf, html, png, jpeg
+	// 出力フォーマット: pdf , html, png, jpeg
 	"markdown-pdf.type": "pdf",
 
-	// Only used for types png & jpeg
+	// png と jpeg の場合のみ有効です
 	"markdown-pdf.quality": 90,
 
-	// Page Option. Page size: A3, A4, A5, Legal, Letter, Tabloid
+	// ページオプション。 ページサイズ : A3, A4, A5, Legal, Letter, Tabloid
 	"markdown-pdf.format": "A4",
 
-	// Page Option. portrait or landscape
+	// ページオプション。 portrait（縦向き）、landscape（横向き）
 	"markdown-pdf.orientation": "portrait",
 
-	// Page Option. Border Top. units: mm, cm, in, px
+	// ページオプション。 上ボーダー. 単位: mm, cm, in, px
 	"markdown-pdf.border.top": "0.1cm",
 
-	// Page Option. Border bottom. units: mm, cm, in, px
+	// ページオプション。下ボーター. 単位: mm, cm, in, px
 	"markdown-pdf.border.bottom": "0.1cm",
 
-	// Page Option. Border right. units: mm, cm, in, px
+	// ページオプション。 右ボーダー. 単位: mm, cm, in, px
 	"markdown-pdf.border.right": "0.1cm",
 
-	// Page Option. Border left. units: mm, cm, in, px
+	// ページオプション。 左ボーダー. 単位: mm, cm, in, px
 	"markdown-pdf.border.left": "0.1cm",
 
-	// Header contents
+	// ヘッダー コンテンツ
 	"markdown-pdf.header.contents": "",
 
-	// Header height. units: mm, cm, in, px
+	// ヘッダーの高さ. 単位: mm, cm, in, px
 	"markdown-pdf.header.height": "",
 
-	// Footer contents
+	// フッター コンテンツ
 	"markdown-pdf.footer.contents": "<div style=\"text-align: center;\">{{page}}/{{pages}}</div>",
 
-	// Footer height. units: mm, cm, in, px
+	// フッターの高さ. 単位: mm, cm, in, px
 	"markdown-pdf.footer.height": ""
 
 }
@@ -98,9 +96,9 @@ Supports the following features.
 
 ## F.A.Q.
 
-### How can I change emoji size ?
+### 絵文字 サイズの変更方法は？
 
-1. Add the following to your stylesheet which was specified in the markdown-pdf.styles.
+1. 以下の設定を markdown-pdf.styles で指定したスタイルシートに追加します。
 
 ```css
 .emoji {

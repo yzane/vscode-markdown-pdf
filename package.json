@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -77,7 +77,7 @@
             "null"
           ],
           "default": "pdf",
-          "description": "Allowed file types: pdf , html, png, jpeg"
+          "description": "Output format: pdf, html, png, jpeg"
         },
         "markdown-pdf.quality": {
           "type": "number",
@@ -90,7 +90,7 @@
             "null"
           ],
           "default": "A4",
-          "description": "Page Option. allowed units: A3, A4, A5, Legal, Letter, Tabloid"
+          "description": "Page Option. Page size: A3, A4, A5, Legal, Letter, Tabloid"
         },
         "markdown-pdf.orientation": {
           "type": [
