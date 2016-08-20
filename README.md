@@ -13,11 +13,20 @@ Supports the following features.
 
 ## Usage
 
+### Command Palette
+
 1. Open the Markdown file.
 1. Press `F1` or `Ctrl+Shift+P`.
 1. Type `pdf` and select `Convert Markdown to PDF`
 
-![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage.gif)
+![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage1.gif)
+
+### Menu
+
+1. Open the Markdown file.
+1. Right click and select `Convert Markdown to PDF`
+
+![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage2.gif)
 
 ## Extension Settings
 
@@ -110,6 +119,11 @@ Supports the following features.
 
 
 ## Release Notes
+
+### 0.1.2 (2016/08/20)
+
+* Add: Ability to convert markdown file from editor context
+* Update: README
 
 ### 0.1.1 (2016/08/16)
 

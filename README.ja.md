@@ -11,11 +11,20 @@
 
 ## 使い方
 
+### コマンド パレット
+
 1. Markdown ファイルを開きます
 1. `F1`キーを押すか、`Ctrl+Shift+P`キーを入力します
-1. `pdf`と入力し、`Convert Markdown to PDF`を選択します。
+1. `pdf`と入力し、`Convert Markdown to PDF` を選択します
 
-![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage.gif)
+![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage1.gif)
+
+### メニュー
+
+1. Markdown ファイルを開きます
+1. 右クリックして `Convert Markdown to PDF` を選択します
+
+![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage2.gif)
 
 ## 拡張機能 設定方法
 
@@ -108,6 +117,11 @@
 
 
 ## Release Notes
+
+### 0.1.2 (2016/08/20)
+
+* Add: Ability to convert markdown file from editor context
+* Update: README
 
 ### 0.1.1 (2016/08/16)
 
