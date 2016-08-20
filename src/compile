@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+
+var fs  = require('fs');
+var path = require('path');
+
+// Delete the unnecessary files in order to reduce the size of the package
+console.log('delete file...');
+deleteFile(path.join(__dirname, '..', 'node_modules', 'emoji-images', 'json'));
+deleteFile(path.join(__dirname, '..', 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantom', 'bin'));
+
+function deleteFile (dir) {
+	fs.readdir(dir, function(err, files) {
+		if (err) return;
+		files.forEach(function (file) {
+			var file = path.join(dir, file);
+			fs.unlink(file, function (err){
+				if (err) throw err;
+				console.log(file);
+			});
+		});
+	});
+}

@@ -168,6 +168,7 @@
     }
   },
   "scripts": {
+    "vscode:prepublish": "node ./src/compile",
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
