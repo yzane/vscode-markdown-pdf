@@ -118,6 +118,10 @@
 
 ## Release Notes
 
+### 0.1.3 (2016/08/29)
+
+* Fix: Color of the inline code (`)
+
 ### 0.1.2 (2016/08/20)
 
 * Add: Ability to convert markdown file from editor context
