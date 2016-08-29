@@ -20,3 +20,9 @@ blockquote {
 .emoji {
 	height: 1.4em;
 }
+
+:not(pre):not(.hljs) > code {
+	color: #A31515;
+	font-size: inherit;
+	font-family: inherit;
+}
