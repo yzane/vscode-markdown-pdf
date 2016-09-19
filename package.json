@@ -46,6 +46,13 @@
       "type": "object",
       "title": "markdown-pdf configuration",
       "properties": {
+        "markdown-pdf.convertOnSave": {
+          "type": [
+            "boolean"
+          ],
+          "default": false,
+          "description": "Enable Auto convert on save"
+        },
         "markdown-pdf.styles": {
           "type": [
             "array"
