@@ -5,65 +5,9 @@ var fs = require('fs');
 var url = require('url');
 
 function activate(context) {
-	var disposable = vscode.commands.registerCommand('extension.markdown-pdf', function () {
-		// check active window
-		var editor = vscode.window.activeTextEditor;
-		if (!editor) {
-			vscode.window.showWarningMessage('No active Editor!');
-			return;
-		}
-
-		// check markdown mode
-		var mode = editor.document.languageId;
-		if (mode != 'markdown') {
-			vscode.window.showWarningMessage('It is not a markdown mode!');
-			return;
-		}
-
-		var mdfilename = editor.document.fileName;
-		var ext = path.extname(mdfilename);
-		if (!isExistsFile(mdfilename)) {
-			if (editor.document.isUntitled) {
-				vscode.window.showWarningMessage('Please save the file!');
-				return;
-			}
-			vscode.window.showWarningMessage('File name does not get!');
-			return;
-		}
-
-		vscode.window.setStatusBarMessage('$(markdown) Converting...');
-
-		// convert markdown to html
-		var content = convertMarkdownToHtml(mdfilename);
-
-		// make html
-		var html = makeHtml(content);
-
-		var type = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
-		var types = ['html', 'pdf', 'png', 'jpeg'];
-		var filename = '';
-		// export html
-		if (type == 'html') {
-			filename = mdfilename.replace(ext, '.' + type);
-			exportHtml(html, filename);
-		// export pdf/png/jpeg
-		} else if (types.indexOf(type) >= 1) {
-			filename = mdfilename.replace(ext, '.' + type);
-			exportPdf(html, filename);
-
-			var debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
-			if (debug) {
-				var f = path.parse(mdfilename);
-				filename = path.join(f.dir, f.name + '_debug.html');
-				exportHtml(html, filename);
-			}
-		} else {
-			vscode.window.showErrorMessage('ERROR: Supported formats: html, pdf, png, jpeg.');
-			return;
-		}
-	});
-	context.subscriptions.push(disposable);
 	init();
+	var disposable_command = vscode.commands.registerCommand('extension.markdown-pdf', function () { MarkdownPdf(); });
+	context.subscriptions.push(disposable_command);
 }
 exports.activate = activate;
 
@@ -71,6 +15,64 @@ exports.activate = activate;
 function deactivate() {
 }
 exports.deactivate = deactivate;
+
+function MarkdownPdf() {
+	// check active window
+	var editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		vscode.window.showWarningMessage('No active Editor!');
+		return;
+	}
+
+	// check markdown mode
+	var mode = editor.document.languageId;
+	if (mode != 'markdown') {
+		vscode.window.showWarningMessage('It is not a markdown mode!');
+		return;
+	}
+
+	var mdfilename = editor.document.fileName;
+	var ext = path.extname(mdfilename);
+	if (!isExistsFile(mdfilename)) {
+		if (editor.document.isUntitled) {
+			vscode.window.showWarningMessage('Please save the file!');
+			return;
+		}
+		vscode.window.showWarningMessage('File name does not get!');
+		return;
+	}
+
+	vscode.window.setStatusBarMessage('$(markdown) Converting...');
+
+	// convert markdown to html
+	var content = convertMarkdownToHtml(mdfilename);
+
+	// make html
+	var html = makeHtml(content);
+
+	var type = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
+	var types = ['html', 'pdf', 'png', 'jpeg'];
+	var filename = '';
+	// export html
+	if (type == 'html') {
+		filename = mdfilename.replace(ext, '.' + type);
+		exportHtml(html, filename);
+	// export pdf/png/jpeg
+	} else if (types.indexOf(type) >= 1) {
+		filename = mdfilename.replace(ext, '.' + type);
+		exportPdf(html, filename);
+
+		var debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
+		if (debug) {
+			var f = path.parse(mdfilename);
+			filename = path.join(f.dir, f.name + '_debug.html');
+			exportHtml(html, filename);
+		}
+	} else {
+		vscode.window.showErrorMessage('ERROR: Supported formats: html, pdf, png, jpeg.');
+		return;
+	}
+}
 
 /*
  * convert markdown to html (markdown-it)
