@@ -8,6 +8,12 @@ function activate(context) {
   init();
   var disposable_command = vscode.commands.registerCommand('extension.markdown-pdf', function () { MarkdownPdf(); });
   context.subscriptions.push(disposable_command);
+
+  var isConvertOnSave = vscode.workspace.getConfiguration('markdown-pdf')['convertOnSave'];
+  if (isConvertOnSave) {
+    var disposable_onsave = vscode.workspace.onDidSaveTextDocument(function () { MarkdownPdfOnSave(); });
+    context.subscriptions.push(disposable_onsave);
+  }
 }
 exports.activate = activate;
 
@@ -72,6 +78,15 @@ function MarkdownPdf() {
     vscode.window.showErrorMessage('ERROR: Supported formats: html, pdf, png, jpeg.');
     return;
   }
+}
+
+function MarkdownPdfOnSave () {
+  var editor = vscode.window.activeTextEditor;
+  var mode = editor.document.languageId;
+  if (mode != 'markdown') {
+    return;
+  }
+  MarkdownPdf();
 }
 
 /*
