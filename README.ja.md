@@ -26,6 +26,13 @@
 
 ![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage2.gif)
 
+### 自動変換
+
+1. **settings.json** に `"markdown-pdf.convertOnSave": true` オプションを追加します
+1. Visual Studio Code を再起動します
+1. Markdown ファイルを開きます
+1. 保存時に自動変換します
+
 ## 拡張機能 設定方法
 
 [Visual Studio Code User and Workspace Settings](https://code.visualstudio.com/docs/customization/userandworkspace)
@@ -41,6 +48,9 @@
 
 ```javascript
 {
+	// 保存時に自動変換します
+	"markdown-pdf.convertOnSave": false,
+
 	// markdown-pdf で使用するスタイルシートのパスを指定します
 	"markdown-pdf.styles": [
 		"C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK
@@ -76,16 +86,16 @@
 	"markdown-pdf.orientation": "portrait",
 
 	// ページオプション。 上ボーダー. 単位: mm, cm, in, px
-	"markdown-pdf.border.top": "0.1cm",
+	"markdown-pdf.border.top": "1.5cm",
 
 	// ページオプション。下ボーター. 単位: mm, cm, in, px
-	"markdown-pdf.border.bottom": "0.1cm",
+	"markdown-pdf.border.bottom": "1cm",
 
 	// ページオプション。 右ボーダー. 単位: mm, cm, in, px
-	"markdown-pdf.border.right": "0.1cm",
+	"markdown-pdf.border.right": "1cm",
 
 	// ページオプション。 左ボーダー. 単位: mm, cm, in, px
-	"markdown-pdf.border.left": "0.1cm",
+	"markdown-pdf.border.left": "1cm",
 
 	// ヘッダー コンテンツ
 	"markdown-pdf.header.contents": "",
@@ -97,7 +107,7 @@
 	"markdown-pdf.footer.contents": "<div style=\"text-align: center;\">{{page}}/{{pages}}</div>",
 
 	// フッターの高さ. 単位: mm, cm, in, px
-	"markdown-pdf.footer.height": ""
+	"markdown-pdf.footer.height": "0.8cm"
 
 }
 ```
@@ -117,6 +127,10 @@
 
 
 ## Release Notes
+
+### 0.1.4 (2016/09/19)
+
+* Add: markdown-pdf.convertOnSave option
 
 ### 0.1.3 (2016/08/29)
 

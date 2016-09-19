@@ -15,18 +15,25 @@ Supports the following features.
 
 ### Command Palette
 
-1. Open the Markdown file.
-1. Press `F1` or `Ctrl+Shift+P`.
+1. Open the Markdown file
+1. Press `F1` or `Ctrl+Shift+P`
 1. Type `pdf` and select `Convert Markdown to PDF`
 
 ![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage1.gif)
 
 ### Menu
 
-1. Open the Markdown file.
+1. Open the Markdown file
 1. Right click and select `Convert Markdown to PDF`
 
 ![demo](https://raw.githubusercontent.com/yzane/vscode-markdown-pdf/master/images/usage2.gif)
+
+### Auto convert
+
+1. Add `"markdown-pdf.convertOnSave": true` option to **settings.json**
+1. Restart Visual Studio Code
+1. Open the Markdown file
+1. Auto convert on save
 
 ## Extension Settings
 
@@ -43,6 +50,9 @@ Supports the following features.
 
 ```javascript
 {
+	// Enable Auto convert on save
+	"markdown-pdf.convertOnSave": false,
+
 	// A list of local paths to the stylesheets to use from the markdown-pdf
 	"markdown-pdf.styles": [
 		"C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK
@@ -78,16 +88,16 @@ Supports the following features.
 	"markdown-pdf.orientation": "portrait",
 
 	// Page Option. Border Top. units: mm, cm, in, px
-	"markdown-pdf.border.top": "0.1cm",
+	"markdown-pdf.border.top": "1.5cm",
 
 	// Page Option. Border bottom. units: mm, cm, in, px
-	"markdown-pdf.border.bottom": "0.1cm",
+	"markdown-pdf.border.bottom": "1cm",
 
 	// Page Option. Border right. units: mm, cm, in, px
-	"markdown-pdf.border.right": "0.1cm",
+	"markdown-pdf.border.right": "1cm",
 
 	// Page Option. Border left. units: mm, cm, in, px
-	"markdown-pdf.border.left": "0.1cm",
+	"markdown-pdf.border.left": "1cm",
 
 	// Header contents
 	"markdown-pdf.header.contents": "",
@@ -99,7 +109,7 @@ Supports the following features.
 	"markdown-pdf.footer.contents": "<div style=\"text-align: center;\">{{page}}/{{pages}}</div>",
 
 	// Footer height. units: mm, cm, in, px
-	"markdown-pdf.footer.height": ""
+	"markdown-pdf.footer.height": "0.8cm"
 
 }
 ```
@@ -119,6 +129,10 @@ Supports the following features.
 
 
 ## Release Notes
+
+### 0.1.4 (2016/09/19)
+
+* Add: markdown-pdf.convertOnSave option
 
 ### 0.1.3 (2016/08/29)
 
