@@ -397,6 +397,9 @@ function readStyles() {
   if (styles && Array.isArray(styles) && styles.length > 0) {
     for (i = 0; i < styles.length; i++) {
       filename = styles[i];
+      if (!path.isAbsolute(filename)){
+        filename = path.join(vscode.workspace.rootPath,filename);
+	    }
       style += makeCss(filename);
     }
   }
