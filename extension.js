@@ -231,7 +231,7 @@ function exportPdf(data, filename) {
 
   var phantomPath = getPhantomjsPath();
   if (!checkPhantomjs()) {
-    getPhantomjsBinary();
+    installPhantomjsBinary();
   }
   if (!checkPhantomjs()) {
     vscode.window.showErrorMessage('ERROR: phantomjs binary does not exist: ' + phantomPath);
@@ -425,7 +425,7 @@ function checkPhantomjs () {
   }
 }
 
-function getPhantomjsBinary() {
+function installPhantomjsBinary() {
   // which npm
   var which = require('which');
   var npm = '';
@@ -472,7 +472,7 @@ function getPhantomjsBinary() {
 
 function init () {
   if (!checkPhantomjs()) {
-    getPhantomjsBinary();
+    installPhantomjsBinary();
   }
 }
 
