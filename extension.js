@@ -408,9 +408,11 @@ function readStyles() {
 }
 
 function getPhantomjsPath () {
-  var phantomPath = process.platform === 'win32' ?
-    path.join(__dirname, 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantom', 'bin', 'phantomjs.exe') :
-    path.join(__dirname, 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantom', 'bin', 'phantomjs');
+  // for reload phantomjs binary path
+  delete require.cache[path.join(__dirname, 'node_modules', 'phantomjs-prebuilt', 'lib', 'location.js')];
+  delete require.cache[path.join(__dirname, 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantomjs.js')];
+  // load phantomjs binary path
+  var phantomPath = require(path.join(__dirname, 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantomjs')).path;
   return phantomPath;
 }
 
