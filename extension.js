@@ -471,7 +471,6 @@ function getPhantomjsBinary() {
 }
 
 function init () {
-  // var phantomPath = getPhantomjsPath();
   if (!checkPhantomjs()) {
     getPhantomjsBinary();
   }
