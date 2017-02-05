@@ -3,6 +3,7 @@ var vscode = require('vscode');
 var path = require('path');
 var fs = require('fs');
 var url = require('url');
+var mdfilename = '';
 
 function activate(context) {
   init();
@@ -37,7 +38,7 @@ function MarkdownPdf() {
     return;
   }
 
-  var mdfilename = editor.document.fileName;
+  mdfilename = editor.document.fileName;
   var ext = path.extname(mdfilename);
   if (!isExistsFile(mdfilename)) {
     if (editor.document.isUntitled) {
@@ -398,7 +399,11 @@ function readStyles() {
     for (i = 0; i < styles.length; i++) {
       filename = styles[i];
       if (!path.isAbsolute(filename)) {
-        filename = path.join(vscode.workspace.rootPath, filename);
+        if (vscode.workspace.rootPath == undefined) {
+          filename = path.join(path.dirname(mdfilename), filename);
+        } else {
+          filename = path.join(vscode.workspace.rootPath, filename);         
+        }
       }
       style += makeCss(filename);
     }
