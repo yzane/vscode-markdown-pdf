@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.1.6 (2017/02/05)
+* Fix: Relative path error of markdown-pdf.styles [#9](https://github.com/yzane/vscode-markdown-pdf/issues/9)
+* Fix: Output file is not created [#10](https://github.com/yzane/vscode-markdown-pdf/issues/10)
+* Add: markdown-pdf.outputDirectory option
+
 ## 0.1.5 (2017/01/09)
 
 * Add: Support for relative path in markdown-pdf.styles option [#5](https://github.com/yzane/vscode-markdown-pdf/issues/5)

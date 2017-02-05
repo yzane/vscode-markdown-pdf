@@ -51,6 +51,9 @@
 	// 保存時に自動変換します
 	"markdown-pdf.convertOnSave": false,
 
+	// 出力ディレクトリ
+	"markdown-pdf.outputDirectory": "C:\\work",
+
 	// markdown-pdf で使用するスタイルシートのパスを指定します
 	"markdown-pdf.styles": [
 		"C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK (Windows)
@@ -131,13 +134,10 @@
 
 ## [Release Notes](https://github.com/yzane/vscode-markdown-pdf/blob/master/CHANGELOG.md)
 
-### 0.1.5 (2017/01/09)
-
-* Add: Support for relative path in markdown-pdf.styles option [#5](https://github.com/yzane/vscode-markdown-pdf/issues/5)
-* Fix: ERROR: phantomjs binary does not exist [#2](https://github.com/yzane/vscode-markdown-pdf/issues/2)
-* Update: README
-* Add: CHANGELOG
-* Update: dependencies packages
+### 0.1.6 (2017/02/05)
+* Fix: Relative path error of markdown-pdf.styles [#9](https://github.com/yzane/vscode-markdown-pdf/issues/9)
+* Fix: Output file is not created [#10](https://github.com/yzane/vscode-markdown-pdf/issues/10)
+* Add: markdown-pdf.outputDirectory option
 
 
 ## License
