@@ -53,6 +53,14 @@
           "default": false,
           "description": "Enable Auto convert on save"
         },
+        "markdown-pdf.outputDirectory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": "",
+          "description": "Output Directory"
+        },
         "markdown-pdf.styles": {
           "type": [
             "array"

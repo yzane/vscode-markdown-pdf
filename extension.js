@@ -63,16 +63,19 @@ function MarkdownPdf() {
   // export html
   if (type == 'html') {
     filename = mdfilename.replace(ext, '.' + type);
+    filename = getOutputDir(filename);
     exportHtml(html, filename);
   // export pdf/png/jpeg
   } else if (types.indexOf(type) >= 1) {
     filename = mdfilename.replace(ext, '.' + type);
+    filename = getOutputDir(filename);
     exportPdf(html, filename);
 
     var debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
     if (debug) {
       var f = path.parse(mdfilename);
       filename = path.join(f.dir, f.name + '_debug.html');
+      filename = getOutputDir(filename);
       exportHtml(html, filename);
     }
   } else {
@@ -297,6 +300,36 @@ function isExistsFile(filename) {
     console.warn(e.message);
     return false;
   }
+}
+
+function isExistsDir(dirname) {
+  if (dirname.length === 0) {
+    return false;
+  }
+  try {
+    if (fs.statSync(dirname).isDirectory()) {
+      return true;
+    } else {
+      console.warn('undefined') ;
+      return false;
+    }
+  } catch (e) {
+    console.warn('false : ' + e.message);
+    return false;
+  }
+}
+
+function getOutputDir(filename) {
+  var output_dir = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
+  if (output_dir.length !== 0) {
+    if (isExistsDir(output_dir)) {
+      return path.join(output_dir, path.basename(filename));
+    } else {
+      vscode.window.showWarningMessage('Output directory does not exist! (markdown-pdf.outputDirectory) : ' + output_dir);
+      return filename;
+    }
+  }
+  return filename;
 }
 
 function readFile(filename, encode) {
