@@ -268,15 +268,17 @@ function exportPdf(data, filename) {
   }
 
   try {
-    htmlpdf.create(data, options).toFile(filename, function(error) {
-      if (error) {
-        vscode.window.showErrorMessage('ERROR: htmlpdf.create()');
-        vscode.window.showErrorMessage(error.message);
-        return;
-      }
-      vscode.window.showInformationMessage('OUTPUT: ' + filename);
-      vscode.window.setStatusBarMessage('');
-    });    
+    htmlpdf.create(data, options).toBuffer(function(err, buffer) {
+      fs.writeFile(filename, buffer, function(err) {
+        if (err) {
+          vscode.window.showErrorMessage('ERROR: exportHtml()');
+          vscode.window.showErrorMessage(err.message);
+          return;
+        }
+        vscode.window.showInformationMessage('OUTPUT: ' + filename);
+        vscode.window.setStatusBarMessage('');
+      });
+    });
   } catch (e) {
     vscode.window.showErrorMessage('ERROR: htmlpdf.create()');
     vscode.window.showErrorMessage(e.message);
