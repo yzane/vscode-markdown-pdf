@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.1.7 (2017/xx/xx)
+* Fix: broken code-blocks [#18](https://github.com/yzane/vscode-markdown-pdf/pull/18)
+
 ## 0.1.6 (2017/02/05)
 * Fix: Relative path error of markdown-pdf.styles [#9](https://github.com/yzane/vscode-markdown-pdf/issues/9)
 * Fix: Output file is not created [#10](https://github.com/yzane/vscode-markdown-pdf/issues/10)
