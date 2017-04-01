@@ -21,6 +21,7 @@ blockquote {
 	height: 1.4em;
 }
 
+/* for inline code */
 :not(pre):not(.hljs) > code {
 	color: #A31515;
 	font-size: inherit;
