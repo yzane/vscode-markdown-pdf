@@ -105,8 +105,7 @@ function convertMarkdownToHtml(filename) {
       html: true,
       breaks: breaks,
       highlight: function (str, lang) {
-        if (lang && hljs.getLanguage(lang))
-        {
+        if (lang && hljs.getLanguage(lang)) {
           try {
             str = hljs.highlight(lang, str, true).value;
           } catch (e) {
@@ -115,12 +114,9 @@ function convertMarkdownToHtml(filename) {
             vscode.window.showErrorMessage('ERROR: markdown-it:highlight');
             vscode.window.showErrorMessage(e.message);
           }
+        } else {
+          str = md.utils.escapeHtml(str);
         }
-        else
-        {
-          str = md.utils.excapeHtml(str);
-        }
-        
         return '<pre class="hljs"><code><div>' + str + '</div></code></pre>';
       }
     });
