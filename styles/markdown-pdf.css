@@ -8,8 +8,12 @@ pre {
 	border-radius: 3px;
 	overflow-x: auto;
 	white-space: pre-wrap;
-	padding: 10px;
 	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
 }
 
 blockquote {
