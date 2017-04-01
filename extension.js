@@ -105,17 +105,23 @@ function convertMarkdownToHtml(filename) {
       html: true,
       breaks: breaks,
       highlight: function (str, lang) {
-        if (lang && hljs.getLanguage(lang)) {
+        if (lang && hljs.getLanguage(lang))
+        {
           try {
-            return '<pre class="hljs"><code>' +
-                hljs.highlight(lang, str, true).value +
-                '</code></pre>';
+            str = hljs.highlight(lang, str, true).value;
           } catch (e) {
+            str = md.utils.escapeHtml(str);
+
             vscode.window.showErrorMessage('ERROR: markdown-it:highlight');
             vscode.window.showErrorMessage(e.message);
           }
         }
-        return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+        else
+        {
+          str = md.utils.excapeHtml(str);
+        }
+        
+        return '<pre class="hljs"><code><div>' + str + '</div></code></pre>';
       }
     });
   } catch (e) {
