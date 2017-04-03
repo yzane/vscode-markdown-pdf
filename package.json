@@ -25,7 +25,7 @@
   },
   "activationEvents": [
     "onCommand:extension.markdown-pdf",
-	"onLanguage:markdown"
+	  "onLanguage:markdown"
   ],
   "main": "./extension",
   "contributes": {
