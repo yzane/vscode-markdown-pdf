@@ -53,6 +53,13 @@
           "default": false,
           "description": "Enable Auto convert on save"
         },
+        "markdown-pdf.convertOnSaveExclude": {
+          "type": [
+            "array"
+          ],
+          "default": [],
+          "description": "Excluded file name of convertOnSave option"
+        },
         "markdown-pdf.outputDirectory": {
           "type": [
             "string",
