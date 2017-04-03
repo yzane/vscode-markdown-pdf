@@ -185,6 +185,11 @@
           ],
           "default": "0.8cm",
           "description": "Footer height. units: mm, cm, in, px"
+        },
+        "markdown-pdf.StatusbarMessageTimeout": {
+          "type": "number",
+          "default": 10000,
+          "description": "Statusbar message timeout [milliseconds]"
         }
       }
     }

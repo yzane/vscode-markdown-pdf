@@ -219,14 +219,15 @@ function makeHtml(data) {
  * export a html to a html file
  */
 function exportHtml(data, filename) {
+  var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   fs.writeFile(filename, data, 'utf-8', function(err) {
     if (err) {
       vscode.window.showErrorMessage('ERROR: exportHtml()');
       vscode.window.showErrorMessage(err.message);
       return;
     }
-    vscode.window.showInformationMessage('OUTPUT: ' + filename);
     vscode.window.setStatusBarMessage('');
+    vscode.window.setStatusBarMessage('$(markdown) OUTPUT : ' + filename, StatusbarMessageTimeout);
   });
 }
 
@@ -234,7 +235,7 @@ function exportHtml(data, filename) {
  * export a html to a pdf file (html-pdf)
  */
 function exportPdf(data, filename) {
-
+  var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   var phantomPath = getPhantomjsPath();
   if (!checkPhantomjs()) {
     installPhantomjsBinary();
@@ -280,8 +281,8 @@ function exportPdf(data, filename) {
           vscode.window.showErrorMessage(err.message);
           return;
         }
-        vscode.window.showInformationMessage('OUTPUT: ' + filename);
         vscode.window.setStatusBarMessage('');
+        vscode.window.setStatusBarMessage('$(markdown) OUTPUT : ' + filename, StatusbarMessageTimeout);
       });
     });
   } catch (e) {
