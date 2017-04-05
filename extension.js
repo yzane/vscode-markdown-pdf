@@ -80,6 +80,7 @@ function MarkdownPdf() {
     }
   } else {
     vscode.window.showErrorMessage('ERROR: Supported formats: html, pdf, png, jpeg.');
+    vscode.window.setStatusBarMessage('');
     return;
   }
 }
@@ -117,7 +118,7 @@ function isMarkdownPdfOnSaveExclude () {
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename) {
-
+  vscode.window.setStatusBarMessage('$(markdown) Converting...');
   var hljs = require('highlight.js');
   var breaks = vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
   try {
@@ -133,6 +134,7 @@ function convertMarkdownToHtml(filename) {
 
             vscode.window.showErrorMessage('ERROR: markdown-it:highlight');
             vscode.window.showErrorMessage(e.message);
+            vscode.window.setStatusBarMessage('');
           }
         } else {
           str = md.utils.escapeHtml(str);
@@ -143,6 +145,7 @@ function convertMarkdownToHtml(filename) {
   } catch (e) {
     vscode.window.showErrorMessage('ERROR: require(\'markdown-it\')');
     vscode.window.showErrorMessage(e.message);
+    vscode.window.setStatusBarMessage('');
   }
 
   // convert the img src of the markdown
@@ -190,6 +193,7 @@ function convertMarkdownToHtml(filename) {
     } catch (e) {
       vscode.window.showErrorMessage('ERROR: markdown-it-emoji:options');
       vscode.window.showErrorMessage(e.message);
+      vscode.window.setStatusBarMessage('');
     }
     md.use(require('markdown-it-emoji'), options);
     md.renderer.rules.emoji = function(token, idx) {
@@ -203,7 +207,7 @@ function convertMarkdownToHtml(filename) {
       }
     };
   }
-
+  vscode.window.setStatusBarMessage('');
   return md.render(fs.readFileSync(filename, 'utf-8'));
 }
 
@@ -244,6 +248,7 @@ function exportHtml(data, filename) {
     if (err) {
       vscode.window.showErrorMessage('ERROR: exportHtml()');
       vscode.window.showErrorMessage(err.message);
+      vscode.window.setStatusBarMessage('');
       return;
     }
     vscode.window.setStatusBarMessage('');
@@ -262,6 +267,7 @@ function exportPdf(data, filename) {
   }
   if (!checkPhantomjs()) {
     vscode.window.showErrorMessage('ERROR: phantomjs binary does not exist: ' + phantomPath);
+    vscode.window.setStatusBarMessage('');
     return;
   }
 
@@ -291,14 +297,16 @@ function exportPdf(data, filename) {
   } catch (e) {
     vscode.window.showErrorMessage('ERROR: html-pdf:options');
     vscode.window.showErrorMessage(e.message);
+    vscode.window.setStatusBarMessage('');
   }
 
   try {
     htmlpdf.create(data, options).toBuffer(function(err, buffer) {
       fs.writeFile(filename, buffer, function(err) {
         if (err) {
-          vscode.window.showErrorMessage('ERROR: exportHtml()');
+          vscode.window.showErrorMessage('ERROR: exportPdf()');
           vscode.window.showErrorMessage(err.message);
+          vscode.window.setStatusBarMessage('');
           return;
         }
         vscode.window.setStatusBarMessage('');
@@ -308,6 +316,7 @@ function exportPdf(data, filename) {
   } catch (e) {
     vscode.window.showErrorMessage('ERROR: htmlpdf.create()');
     vscode.window.showErrorMessage(e.message);
+    vscode.window.setStatusBarMessage('');
   }
 }
 
@@ -517,6 +526,7 @@ function installPhantomjsBinary() {
     } catch (e) {
       vscode.window.showErrorMessage('ERROR: "npm rebuild phantomjs-prebuilt"');
       vscode.window.showErrorMessage(e.message);
+      vscode.window.setStatusBarMessage('');
     }
   } else {
   // node_modules/phantomjs-prebuilt/install.js
