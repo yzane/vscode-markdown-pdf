@@ -118,7 +118,6 @@ function isMarkdownPdfOnSaveExclude () {
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename) {
-  vscode.window.setStatusBarMessage('$(markdown) Converting...');
   var hljs = require('highlight.js');
   var breaks = vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
   try {
@@ -207,7 +206,6 @@ function convertMarkdownToHtml(filename) {
       }
     };
   }
-  vscode.window.setStatusBarMessage('');
   return md.render(fs.readFileSync(filename, 'utf-8'));
 }
 
@@ -243,6 +241,7 @@ function makeHtml(data) {
  * export a html to a html file
  */
 function exportHtml(data, filename) {
+  vscode.window.setStatusBarMessage('$(markdown) Converting...');
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   fs.writeFile(filename, data, 'utf-8', function(err) {
     if (err) {
@@ -260,6 +259,7 @@ function exportHtml(data, filename) {
  * export a html to a pdf file (html-pdf)
  */
 function exportPdf(data, filename) {
+  vscode.window.setStatusBarMessage('$(markdown) Converting...');
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   var phantomPath = getPhantomjsPath();
   if (!checkPhantomjs()) {
