@@ -53,6 +53,15 @@ Supports the following features.
 	// Enable Auto convert on save
 	"markdown-pdf.convertOnSave": false,
 
+	// Excluded file name of convertOnSave option
+	"markdown-pdf.convertOnSaveExclude": [
+		"^work",
+		"work.md$",
+		"work|test",
+		"[0-9][0-9][0-9][0-9]-work",
+		"work\\d"  // \d -> \\d. All '\' need to be written as '\\'.
+	],
+
 	// Output Directory
 	"markdown-pdf.outputDirectory": "C:\\work",
 
@@ -62,9 +71,9 @@ Supports the following features.
 		"C:\Users\<USERNAME>\Documents\markdown-pdf.css",      // N/A. All '\' need to be written as '\\'. (Windows)
 		"C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK (Windows)
 		"/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-        ".vscode\\markdown-pdf.css",                           // OK. Relative path (Windows)
-        ".vscode/markdown-pdf.css",                            // OK. Relative path
-        "markdown-pdf.css.css"                                 // OK. Relative path
+		".vscode\\markdown-pdf.css",                           // OK. Relative path (Windows)
+		".vscode/markdown-pdf.css",                            // OK. Relative path
+		"markdown-pdf.css.css"                                 // OK. Relative path
 	],
 
 	// Set the style file name. for example: github.css, monokai.css ...
@@ -136,10 +145,13 @@ Supports the following features.
 
 ## [Release Notes](https://github.com/yzane/vscode-markdown-pdf/blob/master/CHANGELOG.md)
 
-### 0.1.6 (2017/02/05)
-* Fix: Relative path error of markdown-pdf.styles [#9](https://github.com/yzane/vscode-markdown-pdf/issues/9)
-* Fix: Output file is not created [#10](https://github.com/yzane/vscode-markdown-pdf/issues/10)
-* Add: markdown-pdf.outputDirectory option
+### 0.1.7 (2017/04/05)
+* Change: Display completion message on status bar [#19](https://github.com/yzane/vscode-markdown-pdf/issues/19)
+* Add: markdown-pdf.convertOnSaveExclude option [#16](https://github.com/yzane/vscode-markdown-pdf/issues/16)
+* Fix: broken code-blocks [#18](https://github.com/yzane/vscode-markdown-pdf/pull/18)
+* Fix: Image path error [#14](https://github.com/yzane/vscode-markdown-pdf/issues/14)
+* Update: [markdown.css](https://github.com/Microsoft/vscode/blob/master/extensions/markdown/media/markdown.css) of the vscode
+* Update: dependencies packages
 
 
 ## License

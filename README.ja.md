@@ -51,6 +51,15 @@
 	// 保存時に自動変換します
 	"markdown-pdf.convertOnSave": false,
 
+	// convertOnSave オプションの除外ファイル名
+	"markdown-pdf.convertOnSaveExclude": [
+		"^work",
+		"work.md$",
+		"work|test",
+		"[0-9][0-9][0-9][0-9]-work",
+		"work\\d"  // \d -> \\d。 \ は \\ と記述する必要があります。
+	],
+
 	// 出力ディレクトリ
 	"markdown-pdf.outputDirectory": "C:\\work",
 
@@ -60,9 +69,9 @@
 		"C:\Users\<USERNAME>\Documents\markdown-pdf.css",      // NG : \ は \\ と記述する必要があります。(Windows)
 		"C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK (Windows)
 		"/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-        ".vscode\\markdown-pdf.css",                           // OK. 相対パス (Windows)
-        ".vscode/markdown-pdf.css",                            // OK. 相対パス 
-        "markdown-pdf.css.css"                                 // OK. 相対パス
+		".vscode\\markdown-pdf.css",                           // OK. 相対パス (Windows)
+		".vscode/markdown-pdf.css",                            // OK. 相対パス 
+		"markdown-pdf.css.css"                                 // OK. 相対パス
 	],
 
 	// スタイルシートのファイル名を指定します。例: github.css, monokai.css ...
@@ -134,10 +143,13 @@
 
 ## [Release Notes](https://github.com/yzane/vscode-markdown-pdf/blob/master/CHANGELOG.md)
 
-### 0.1.6 (2017/02/05)
-* Fix: Relative path error of markdown-pdf.styles [#9](https://github.com/yzane/vscode-markdown-pdf/issues/9)
-* Fix: Output file is not created [#10](https://github.com/yzane/vscode-markdown-pdf/issues/10)
-* Add: markdown-pdf.outputDirectory option
+### 0.1.7 (2017/04/05)
+* Change: Display completion message on status bar [#19](https://github.com/yzane/vscode-markdown-pdf/issues/19)
+* Add: markdown-pdf.convertOnSaveExclude option [#16](https://github.com/yzane/vscode-markdown-pdf/issues/16)
+* Fix: broken code-blocks [#18](https://github.com/yzane/vscode-markdown-pdf/pull/18)
+* Fix: Image path error [#14](https://github.com/yzane/vscode-markdown-pdf/issues/14)
+* Update: [markdown.css](https://github.com/Microsoft/vscode/blob/master/extensions/markdown/media/markdown.css) of the vscode
+* Update: dependencies packages
 
 
 ## License

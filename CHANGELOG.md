@@ -1,10 +1,12 @@
 # Change Log
 
-## 0.1.7 (2017/xx/xx)
-* Fix: broken code-blocks [#18](https://github.com/yzane/vscode-markdown-pdf/pull/18)
-* Fix: Image path error [#14](https://github.com/yzane/vscode-markdown-pdf/issues/14)
+## 0.1.7 (2017/04/05)
 * Change: Display completion message on status bar [#19](https://github.com/yzane/vscode-markdown-pdf/issues/19)
 * Add: markdown-pdf.convertOnSaveExclude option [#16](https://github.com/yzane/vscode-markdown-pdf/issues/16)
+* Fix: broken code-blocks [#18](https://github.com/yzane/vscode-markdown-pdf/pull/18)
+* Fix: Image path error [#14](https://github.com/yzane/vscode-markdown-pdf/issues/14)
+* Update: [markdown.css](https://github.com/Microsoft/vscode/blob/master/extensions/markdown/media/markdown.css) of the vscode
+* Update: dependencies packages
 
 ## 0.1.6 (2017/02/05)
 * Fix: Relative path error of markdown-pdf.styles [#9](https://github.com/yzane/vscode-markdown-pdf/issues/9)
