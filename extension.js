@@ -292,7 +292,8 @@ function exportPdf(data, filename) {
         "height": vscode.workspace.getConfiguration('markdown-pdf')['footer']['height'] || '',
         "contents": vscode.workspace.getConfiguration('markdown-pdf')['footer']['contents'] || ''
       },
-      "phantomPath": phantomPath
+      "phantomPath": phantomPath,
+      "renderDelay": 1000
     };
   } catch (e) {
     vscode.window.showErrorMessage('ERROR: html-pdf:options');
@@ -420,6 +421,15 @@ function makeCss(filename) {
   }
 }
 
+function makeJs(filename) {
+  var js = readFile(filename);
+  if (js) {
+    return '\n<script>\n' + js + '\n</script>\n';
+  } else {
+    return '';
+  }
+}
+
 function readStyles() {
   var style = '';
   var styles = '';
@@ -427,9 +437,17 @@ function readStyles() {
   var i;
 
   // 1. read the style of the vscode.
+  //filename = path.join(__dirname, 'js', 'MathJax.js');
+  //style += makeJs(filename);
+  var type = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
+  style += '<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>\n';
+  style += '<script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [[\'$\',\'$\'], [\'\\\\(\',\'\\\\)\']]}});</script>\n';
+  if(type!='html'){
+    style += '<script type="text/x-mathjax-config">MathJax.Hub.Config({"HTML-CSS": {"availableFonts":["TeX"],"scale": 150}});</script>\n';
+  }
   filename = path.join(__dirname, 'styles', 'markdown.css');
   style += makeCss(filename);
-
+  
   // 2. read the style of the markdown.styles setting.
   styles = vscode.workspace.getConfiguration('markdown')['styles'];
   if (styles && Array.isArray(styles) && styles.length > 0) {
