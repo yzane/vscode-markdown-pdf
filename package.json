@@ -199,6 +199,11 @@
           "type": "number",
           "default": 10000,
           "description": "Statusbar message timeout [milliseconds]"
+        },
+        "markdown-pdf.renderDelay": {
+          "type": "number",
+          "default": 10000,
+          "description": "Statusbar message timeout [milliseconds]"
         }
       }
     }

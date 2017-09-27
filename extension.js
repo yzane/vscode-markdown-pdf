@@ -293,7 +293,7 @@ function exportPdf(data, filename) {
         "contents": vscode.workspace.getConfiguration('markdown-pdf')['footer']['contents'] || ''
       },
       "phantomPath": phantomPath,
-      "renderDelay": 1000
+      "renderDelay":  vscode.workspace.getConfiguration('markdown-pdf')['renderDelay'] || ''
     };
   } catch (e) {
     vscode.window.showErrorMessage('ERROR: html-pdf:options');
