@@ -353,6 +353,11 @@ function isExistsDir(dirname) {
 
 function getOutputDir(filename) {
   var output_dir = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
+  if(output_dir.includes('${workspaceRoot}')){
+    var resource = vscode.window.activeTextEditor.document.uri;
+    var fsPath = vscode.workspace.getWorkspaceFolder(resource).uri.fsPath;
+    output_dir = output_dir.replace('${workspaceRoot}', fsPath);
+  }  
   if (output_dir.length !== 0) {
     if (isExistsDir(output_dir)) {
       return path.join(output_dir, path.basename(filename));
