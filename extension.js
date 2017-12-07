@@ -181,6 +181,14 @@ function convertMarkdownToHtml(filename) {
   // checkbox
   md.use(require('markdown-it-checkbox'));
 
+  // Toc
+  var f = vscode.workspace.getConfiguration('markdown-pdf')['table-of-contents'];
+  if (f) {
+    md.use(require("markdown-it-anchor")); // Optional, but makes sense as you really want to link to something
+    md.use(require("markdown-it-table-of-contents"),f);
+  }
+
+
   // emoji
   var f = vscode.workspace.getConfiguration('markdown-pdf')['emoji'];
   if (f) {
