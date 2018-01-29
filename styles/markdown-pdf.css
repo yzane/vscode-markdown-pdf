@@ -27,7 +27,6 @@ blockquote {
 
 /* for inline code */
 :not(pre):not(.hljs) > code {
-	color: #A31515;
+	color: #C9AE75; /* Change the old color so it seems less like an error */
 	font-size: inherit;
-	font-family: inherit;
 }

@@ -1,222 +1,239 @@
 {
-  "name": "markdown-pdf",
-  "displayName": "Markdown PDF",
-  "description": "Convert Markdown to PDF",
-  "version": "0.1.7",
-  "publisher": "yzane",
-  "icon": "images/icon.png",
-  "engines": {
-    "vscode": "^1.0.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "license": "SEE LICENSE IN LICENSE.txt",
-  "keywords": [
-    "markdown",
-    "pdf",
-    "convert",
-    "export",
-    "html"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yzane/vscode-markdown-pdf.git"
-  },
-  "activationEvents": [
-    "onCommand:extension.markdown-pdf",
-	  "onLanguage:markdown"
-  ],
-  "main": "./extension",
-  "contributes": {
-    "commands": [
-      {
-        "command": "extension.markdown-pdf",
-        "title": "Convert Markdown to PDF"
-      }
-    ],
-  "menus": {
-    "editor/context": [{
-      "when": "resourceLangId == markdown",
-      "command": "extension.markdown-pdf",
-      "group": "markdown-pdf"
-    }]
-  },
-  "configuration": {
-      "type": "object",
-      "title": "markdown-pdf configuration",
-      "properties": {
-        "markdown-pdf.convertOnSave": {
-          "type": [
-            "boolean"
-          ],
-          "default": false,
-          "description": "Enable Auto convert on save"
-        },
-        "markdown-pdf.convertOnSaveExclude": {
-          "type": [
-            "array"
-          ],
-          "default": [],
-          "description": "Excluded file name of convertOnSave option"
-        },
-        "markdown-pdf.outputDirectory": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Output Directory"
-        },
-        "markdown-pdf.styles": {
-          "type": [
-            "array"
-          ],
-          "default": [],
-          "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
-        },
-        "markdown-pdf.highlightStyle": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Set the style file name. for example: github.css, monokai.css ... https://github.com/isagalaev/highlight.js/tree/master/src/styles"
-        },
-        "markdown-pdf.highlight": {
-          "type": [
-            "boolean"
-          ],
-          "default": true,
-          "description": "Enable Syntax highlighting"
-        },
-        "markdown-pdf.breaks": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable line breaks"
-        },
-        "markdown-pdf.emoji": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/"
-        },
-        "markdown-pdf.type": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "pdf",
-          "description": "Output format: pdf, html, png, jpeg"
-        },
-        "markdown-pdf.quality": {
-          "type": "number",
-          "default": 90,
-          "description": "Only used for types png & jpeg"
-        },
-        "markdown-pdf.format": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "A4",
-          "description": "Page Option. Page size: A3, A4, A5, Legal, Letter, Tabloid"
-        },
-        "markdown-pdf.orientation": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "portrait",
-          "description": "Page Option. portrait or landscape"
-        },
-        "markdown-pdf.border.top": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "1.5cm",
-          "description": "Page Option. Border Top. units: mm, cm, in, px"
-        },
-        "markdown-pdf.border.bottom": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "1cm",
-          "description": "Page Option. Border bottom. units: mm, cm, in, px"
-        },
-        "markdown-pdf.border.right": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "1cm",
-          "description": "Page Option. Border right. units: mm, cm, in, px"
-        },
-        "markdown-pdf.border.left": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "1cm",
-          "description": "Page Option. Border left. units: mm, cm, in, px"
-        },
-        "markdown-pdf.header.contents": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Header contents"
-        },
-        "markdown-pdf.header.height": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Header height. units: mm, cm, in, px"
-        },
-        "markdown-pdf.footer.contents": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "<div style=\"text-align: center; margin-top: 0.5cm;\">{{page}}/{{pages}}</div>",
-          "description": "Footer contents"
-        },
-        "markdown-pdf.footer.height": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "0.8cm",
-          "description": "Footer height. units: mm, cm, in, px"
-        },
-        "markdown-pdf.StatusbarMessageTimeout": {
-          "type": "number",
-          "default": 10000,
-          "description": "Statusbar message timeout [milliseconds]"
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "node ./src/compile",
-    "postinstall": "node ./node_modules/vscode/bin/install"
-  },
-  "devDependencies": {
-    "vscode": "^0.11.0"
-  },
-  "dependencies": {
-    "cheerio": "^0.20.0",
-    "emoji-images": "^0.1.1",
-    "highlight.js": "^9.5.0",
-    "html-pdf": "^2.0.1",
-    "markdown-it": "^7.0.0",
-    "markdown-it-checkbox": "^1.1.0",
-    "markdown-it-emoji": "^1.2.0",
-    "mustache": "^2.2.1",
-    "which": "^1.2.10"
-  }
+	"name": "markdown-pdf",
+	"displayName": "Markdown PDF",
+	"description": "Convert Markdown to PDF",
+	"version": "0.1.7",
+	"publisher": "yzane",
+	"icon": "images/icon.png",
+	"engines": {
+		"vscode": "^1.0.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"license": "SEE LICENSE IN LICENSE.txt",
+	"keywords": [
+		"markdown",
+		"pdf",
+		"convert",
+		"export",
+		"html"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/yzane/vscode-markdown-pdf.git"
+	},
+	"activationEvents": [
+		"onCommand:extension.markdown-pdf",
+		"onLanguage:markdown"
+	],
+	"main": "./extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.markdown-pdf",
+				"title": "Convert Markdown to PDF"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"when": "resourceLangId == markdown",
+					"command": "extension.markdown-pdf",
+					"group": "markdown-pdf"
+				}
+			]
+		},
+		"configuration": {
+			"type": "object",
+			"title": "markdown-pdf configuration",
+			"properties": {
+				"markdown-pdf.convertOnSave": {
+					"type": [
+						"boolean"
+					],
+					"default": false,
+					"description": "Enable Auto convert on save"
+				},
+				"markdown-pdf.convertOnSaveExclude": {
+					"type": [
+						"array"
+					],
+					"default": [],
+					"description": "Excluded file name of convertOnSave option"
+				},
+				"markdown-pdf.outputDirectory": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "",
+					"description": "Output Directory"
+				},
+				"markdown-pdf.styles": {
+					"type": [
+						"array"
+					],
+					"default": [],
+					"description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
+				},
+				"markdown-pdf.highlightStyle": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "",
+					"description": "Set the style file name. for example: github.css, monokai.css ... https://github.com/isagalaev/highlight.js/tree/master/src/styles"
+				},
+				"markdown-pdf.highlight": {
+					"type": [
+						"boolean"
+					],
+					"default": true,
+					"description": "Enable Syntax highlighting"
+				},
+				"markdown-pdf.breaks": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable line breaks"
+				},
+				"markdown-pdf.emoji": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/"
+				},
+				"markdown-pdf.type": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "pdf",
+					"description": "Output format: pdf, html, png, jpeg"
+				},
+				"markdown-pdf.quality": {
+					"type": "number",
+					"default": 90,
+					"description": "Only used for types png & jpeg"
+				},
+				"markdown-pdf.format": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "A4",
+					"description": "Page Option. Page size: A3, A4, A5, Legal, Letter, Tabloid"
+				},
+				"markdown-pdf.orientation": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "portrait",
+					"description": "Page Option. portrait or landscape"
+				},
+				"markdown-pdf.border.top": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "1.5cm",
+					"description": "Page Option. Border Top. units: mm, cm, in, px"
+				},
+				"markdown-pdf.border.bottom": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "1cm",
+					"description": "Page Option. Border bottom. units: mm, cm, in, px"
+				},
+				"markdown-pdf.border.right": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "1cm",
+					"description": "Page Option. Border right. units: mm, cm, in, px"
+				},
+				"markdown-pdf.border.left": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "1cm",
+					"description": "Page Option. Border left. units: mm, cm, in, px"
+				},
+				"markdown-pdf.header.contents": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "",
+					"description": "Header contents"
+				},
+				"markdown-pdf.header.height": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "",
+					"description": "Header height. units: mm, cm, in, px"
+				},
+				"markdown-pdf.footer.contents": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "<div style=\"text-align: center; margin-top: 0.5cm;\">{{page}}/{{pages}}</div>",
+					"description": "Footer contents"
+				},
+				"markdown-pdf.footer.height": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": "0.8cm",
+					"description": "Footer height. units: mm, cm, in, px"
+				},
+				"markdown-pdf.StatusbarMessageTimeout": {
+					"type": "number",
+					"default": 10000,
+					"description": "Statusbar message timeout [milliseconds]"
+				},
+				"markdown-pdf.renderDelay": {
+					"type": "number",
+					"default": 10000,
+					"description": "Statusbar message timeout [milliseconds]"
+				},
+				"markdown-pdf.table-of-contents": {
+					"type": [
+						"object",
+						"null"
+					],
+					"default": {},
+					"description": "table-of-contents markdown-it options"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "node ./src/compile",
+		"postinstall": "node ./node_modules/vscode/bin/install"
+	},
+	"devDependencies": {
+		"vscode": "^0.11.0"
+	},
+	"dependencies": {
+		"cheerio": "^0.20.0",
+		"emoji-images": "^0.1.1",
+		"highlight.js": "^9.5.0",
+		"html-pdf": "^2.2.0",
+		"markdown-it": "^7.0.0",
+		"markdown-it-anchor": "^4.0.0",
+		"markdown-it-checkbox": "^1.1.0",
+		"markdown-it-emoji": "^1.2.0",
+		"markdown-it-table-of-contents": "^0.3.3",
+		"mustache": "^2.2.1",
+		"which": "^1.2.10"
+	}
 }
