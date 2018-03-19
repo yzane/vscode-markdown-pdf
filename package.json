@@ -25,7 +25,7 @@
   },
   "activationEvents": [
     "onCommand:extension.markdown-pdf",
-	  "onLanguage:markdown"
+    "onLanguage:markdown"
   ],
   "main": "./extension",
   "contributes": {
@@ -35,14 +35,16 @@
         "title": "Convert Markdown to PDF"
       }
     ],
-  "menus": {
-    "editor/context": [{
-      "when": "resourceLangId == markdown",
-      "command": "extension.markdown-pdf",
-      "group": "markdown-pdf"
-    }]
-  },
-  "configuration": {
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf",
+          "group": "markdown-pdf"
+        }
+      ]
+    },
+    "configuration": {
       "type": "object",
       "title": "markdown-pdf configuration",
       "properties": {
@@ -197,6 +199,11 @@
           "type": "number",
           "default": 10000,
           "description": "Statusbar message timeout [milliseconds]"
+        },
+        "markdown-pdf.renderDelay": {
+          "type": "number",
+          "default": 10000,
+          "description": "Statusbar message timeout [milliseconds]"
         }
       }
     }
@@ -212,7 +219,7 @@
     "cheerio": "^0.20.0",
     "emoji-images": "^0.1.1",
     "highlight.js": "^9.5.0",
-    "html-pdf": "^2.0.1",
+    "html-pdf": "^2.2.0",
     "markdown-it": "^7.0.0",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-emoji": "^1.2.0",
