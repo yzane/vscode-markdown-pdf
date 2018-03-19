@@ -75,6 +75,13 @@
           "default": [],
           "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
         },
+        "markdown-pdf.includeDefaultStyles": {
+          "type": [
+              "boolean"
+          ],
+          "default": true,
+          "description": "Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)"
+        },
         "markdown-pdf.highlightStyle": {
           "type": [
             "string",

@@ -74,6 +74,9 @@
 		"markdown-pdf.css.css"                                 // OK. 相対パス
 	],
 
+	// デフォルトのスタイルシート(VSCode, markdown-pdf)を有効にします
+	"markdown-pdf.includeDefaultStyles": true,
+
 	// スタイルシートのファイル名を指定します。例: github.css, monokai.css ...
 	// ファイル名のリスト : https://github.com/isagalaev/highlight.js/tree/master/src/styles
 	// デモサイト : https://highlightjs.org/static/demo/
