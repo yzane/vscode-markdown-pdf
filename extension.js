@@ -421,25 +421,32 @@ function makeCss(filename) {
 }
 
 function readStyles() {
+  var includeDefaultStyles;
   var style = '';
   var styles = '';
   var filename = '';
   var i;
-
+  
+  includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
+  
   // 1. read the style of the vscode.
-  filename = path.join(__dirname, 'styles', 'markdown.css');
-  style += makeCss(filename);
-
+  if (includeDefaultStyles) {
+    filename = path.join(__dirname, 'styles', 'markdown.css');
+    style += makeCss(filename);
+  }
+  
   // 2. read the style of the markdown.styles setting.
-  styles = vscode.workspace.getConfiguration('markdown')['styles'];
-  if (styles && Array.isArray(styles) && styles.length > 0) {
-    for (i = 0; i < styles.length; i++) {
-      var href = filename = styles[i];
-      var protocol = url.parse(href).protocol;
-      if (protocol === 'http:' || protocol === 'https:') {
-        style += '<link rel=\"stylesheet\" href=\"" + href + "\" type=\"text/css\">';
-      } else if (protocol === 'file:') {
-        style += makeCss(filename);
+  if (includeDefaultStyles) {
+    styles = vscode.workspace.getConfiguration('markdown')['styles'];
+    if (styles && Array.isArray(styles) && styles.length > 0) {
+      for (i = 0; i < styles.length; i++) {
+        var href = filename = styles[i];
+        var protocol = url.parse(href).protocol;
+        if (protocol === 'http:' || protocol === 'https:') {
+          style += '<link rel=\"stylesheet\" href=\"" + href + "\" type=\"text/css\">';
+        } else if (protocol === 'file:') {
+          style += makeCss(filename);
+        }
       }
     }
   }
@@ -459,8 +466,10 @@ function readStyles() {
   }
 
   // 4. read the style of the markdown-pdf.
-  filename = path.join(__dirname, 'styles', 'markdown-pdf.css');
-  style += makeCss(filename);
+  if (includeDefaultStyles) {
+    filename = path.join(__dirname, 'styles', 'markdown-pdf.css');
+    style += makeCss(filename);
+  }
 
   // 5. read the style of the markdown-pdf.styles settings.
   styles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';

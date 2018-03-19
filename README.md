@@ -76,6 +76,9 @@ Supports the following features.
 		"markdown-pdf.css.css"                                 // OK. Relative path
 	],
 
+	// Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)
+	"markdown-pdf.includeDefaultStyles": true,
+
 	// Set the style file name. for example: github.css, monokai.css ...
 	// fine name list : https://github.com/isagalaev/highlight.js/tree/master/src/styles
 	// demo site : https://highlightjs.org/static/demo/
