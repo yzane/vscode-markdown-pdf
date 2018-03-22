@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -25,7 +25,7 @@
   },
   "activationEvents": [
     "onCommand:extension.markdown-pdf",
-	  "onLanguage:markdown"
+    "onLanguage:markdown"
   ],
   "main": "./extension",
   "contributes": {
@@ -35,14 +35,16 @@
         "title": "Convert Markdown to PDF"
       }
     ],
-  "menus": {
-    "editor/context": [{
-      "when": "resourceLangId == markdown",
-      "command": "extension.markdown-pdf",
-      "group": "markdown-pdf"
-    }]
-  },
-  "configuration": {
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf",
+          "group": "markdown-pdf"
+        }
+      ]
+    },
+    "configuration": {
       "type": "object",
       "title": "markdown-pdf configuration",
       "properties": {
@@ -77,7 +79,7 @@
         },
         "markdown-pdf.includeDefaultStyles": {
           "type": [
-              "boolean"
+            "boolean"
           ],
           "default": true,
           "description": "Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)"
@@ -213,17 +215,17 @@
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
-    "vscode": "^0.11.0"
+    "vscode": "^1.1.14"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
     "emoji-images": "^0.1.1",
-    "highlight.js": "^9.5.0",
-    "html-pdf": "^2.0.1",
-    "markdown-it": "^7.0.0",
+    "highlight.js": "^9.12.0",
+    "html-pdf": "^2.2.0",
+    "markdown-it": "^8.4.1",
     "markdown-it-checkbox": "^1.1.0",
-    "markdown-it-emoji": "^1.2.0",
-    "mustache": "^2.2.1",
-    "which": "^1.2.10"
+    "markdown-it-emoji": "^1.4.0",
+    "mustache": "^2.3.0",
+    "which": "^1.3.0"
   }
 }

@@ -1,4 +1,8 @@
 # Change Log
+## 0.1.8 (2018/03/22)
+* Add: markdown-pdf.includeDefaultStyles option [#49](https://github.com/yzane/vscode-markdown-pdf/issues/49)
+* Fix: Inline code blocks do not use a proportional font [#26](https://github.com/yzane/vscode-markdown-pdf/issues/26)
+* Update: dependencies packages
 
 ## 0.1.7 (2017/04/05)
 * Change: Display completion message on status bar [#19](https://github.com/yzane/vscode-markdown-pdf/issues/19)

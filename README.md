@@ -148,12 +148,9 @@ Supports the following features.
 
 ## [Release Notes](https://github.com/yzane/vscode-markdown-pdf/blob/master/CHANGELOG.md)
 
-### 0.1.7 (2017/04/05)
-* Change: Display completion message on status bar [#19](https://github.com/yzane/vscode-markdown-pdf/issues/19)
-* Add: markdown-pdf.convertOnSaveExclude option [#16](https://github.com/yzane/vscode-markdown-pdf/issues/16)
-* Fix: broken code-blocks [#18](https://github.com/yzane/vscode-markdown-pdf/pull/18)
-* Fix: Image path error [#14](https://github.com/yzane/vscode-markdown-pdf/issues/14)
-* Update: [markdown.css](https://github.com/Microsoft/vscode/blob/master/extensions/markdown/media/markdown.css) of the vscode
+### 0.1.8 (2018/03/22)
+* Add: markdown-pdf.includeDefaultStyles option [#49](https://github.com/yzane/vscode-markdown-pdf/issues/49)
+* Fix: Inline code blocks do not use a proportional font [#26](https://github.com/yzane/vscode-markdown-pdf/issues/26)
 * Update: dependencies packages
 
 
