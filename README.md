@@ -335,7 +335,7 @@ Sample files
 ```
 
 
-## [Release Notes](https://github.com/yzane/vscode-markdown-pdf/blob/master/CHANGELOG.md)
+## [Release Notes](CHANGELOG.md)
 
 ### 1.0.0 (2018/04/15)
 * Change: Replace pdf converter with puppeteer instead of html-pdf
