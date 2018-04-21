@@ -563,7 +563,7 @@ function readStyles() {
         var href = filename = styles[i];
         var protocol = url.parse(href).protocol;
         if (protocol === 'http:' || protocol === 'https:') {
-          style += '<link rel=\"stylesheet\" href=\"" + href + "\" type=\"text/css\">';
+          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
         } else if (protocol === 'file:') {
           style += makeCss(filename);
         }
@@ -595,15 +595,22 @@ function readStyles() {
   styles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
   if (styles && Array.isArray(styles) && styles.length > 0) {
     for (i = 0; i < styles.length; i++) {
-      filename = styles[i];
+      var href = filename = styles[i];
+      var protocol = url.parse(href).protocol;
       if (!path.isAbsolute(filename)) {
-        if (vscode.workspace.rootPath == undefined) {
-          filename = path.join(path.dirname(mdfilename), filename);
+        if (protocol === 'http:' || protocol === 'https:') {
+          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
         } else {
-          filename = path.join(vscode.workspace.rootPath, filename);         
+          if (vscode.workspace.rootPath == undefined) {
+            filename = path.join(path.dirname(mdfilename), filename);
+          } else {
+            filename = path.join(vscode.workspace.rootPath, filename);         
+          }
+          style += makeCss(filename);
         }
+      } else {
+        style += makeCss(filename);
       }
-      style += makeCss(filename);
     }
   }
 
