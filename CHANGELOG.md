@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.0.1 (2018/04/21)
+* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
 ## 1.0.0 (2018/04/15)
 * Change: Replace pdf converter with puppeteer instead of html-pdf
 * Add: Support multiple types in markdown-pdf.type option

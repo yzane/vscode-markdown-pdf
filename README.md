@@ -16,6 +16,7 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 - [Extension Settings](#extension-settings)
 - [Options](#options)
 - [FAQ](#faq)
+- [Known Issues](#known-issues)
 - [Release Notes](#release-notes)
 - [License](#license)
 - [Special thanks](#special-thanks)
@@ -156,6 +157,8 @@ Sample files
 
 #### `markdown-pdf.styles`
   - A list of local paths to the stylesheets to use from the markdown-pdf
+  - Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
 
 ```javascript
 "markdown-pdf.styles": [
@@ -165,7 +168,8 @@ Sample files
   "/home/<USERNAME>/settings/markdown-pdf.css",          // OK
   ".vscode\\markdown-pdf.css",                           // OK. Relative path (Windows)
   ".vscode/markdown-pdf.css",                            // OK. Relative path
-  "markdown-pdf.css.css"                                 // OK. Relative path
+  "markdown-pdf.css.css",                                 // OK. Relative path
+  "https://xxx/xxx.css"
 ],
 ```
 
@@ -335,11 +339,20 @@ Sample files
 ```
 
 
+## Known Issues
+
+### `markdown-pdf.styles` option
+* Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
+
 ## [Release Notes](CHANGELOG.md)
+
+### 1.0.1 (2018/04/21)
+* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 ### 1.0.0 (2018/04/15)
 * Change: Replace pdf converter with puppeteer instead of html-pdf
-* Add: Support multiple types in markdown-pdf.type option
+* Add: Support multiple types in `markdown-pdf.type` option
     * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
 * Add: Support markdown-it-named-headers
     * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)

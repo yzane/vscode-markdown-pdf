@@ -14,6 +14,7 @@
 - [拡張機能 設定](#拡張機能-設定)
 - [オプション](#オプション)
 - [FAQ](#faq)
+- [既知の問題](#既知の問題)
 - [Release Notes](#release-notes)
 - [License](#license)
 - [Special thanks](#special-thanks)
@@ -154,6 +155,7 @@
 
 #### `markdown-pdf.styles`
   - markdown-pdf で使用するスタイルシートのパスを指定します
+  - オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 ```javascript
 "markdown-pdf.styles": [
@@ -163,7 +165,8 @@
   "/home/<USERNAME>/settings/markdown-pdf.css",          // OK
   ".vscode\\markdown-pdf.css",                           // OK. 相対パス (Windows)
   ".vscode/markdown-pdf.css",                            // OK. 相対パス
-  "markdown-pdf.css.css"                                 // OK. 相対パス
+  "markdown-pdf.css.css",                                 // OK. 相対パス
+  "https://xxx/xxx.css"
 ],
 ```
 
@@ -333,11 +336,20 @@
 ```
 
 
+## 既知の問題
+
+### `markdown-pdf.styles` option
+* オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
+
 ## [Release Notes](CHANGELOG.md)
+
+### 1.0.1 (2018/04/21)
+* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 ### 1.0.0 (2018/04/15)
 * Change: Replace pdf converter with puppeteer instead of html-pdf
-* Add: Support multiple types in markdown-pdf.type option
+* Add: Support multiple types in `markdown-pdf.type` option
     * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
 * Add: Support markdown-it-named-headers
     * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)
