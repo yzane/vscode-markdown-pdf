@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "0.1.8",
+  "version": "1.0.1",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -24,23 +24,105 @@
     "url": "https://github.com/yzane/vscode-markdown-pdf.git"
   },
   "activationEvents": [
-    "onCommand:extension.markdown-pdf",
+    "onCommand:extension.markdown-pdf.settings",
+    "onCommand:extension.markdown-pdf.pdf",
+    "onCommand:extension.markdown-pdf.html",
+    "onCommand:extension.markdown-pdf.png",
+    "onCommand:extension.markdown-pdf.jpeg",
+    "onCommand:extension.markdown-pdf.all",
     "onLanguage:markdown"
   ],
   "main": "./extension",
   "contributes": {
     "commands": [
       {
-        "command": "extension.markdown-pdf",
-        "title": "Convert Markdown to PDF"
+        "command": "extension.markdown-pdf.settings",
+        "title": "Markdown PDF: Export (settings.json)",
+        "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.pdf",
+        "title": "Markdown PDF: Export (pdf)",
+        "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.html",
+        "title": "Markdown PDF: Export (html)",
+        "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.png",
+        "title": "Markdown PDF: Export (png)",
+        "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.jpeg",
+        "title": "Markdown PDF: Export (jpeg)",
+        "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.all",
+        "title": "Markdown PDF: Export (all: pdf, html, png, jpeg)",
+        "group": "markdown-pdf"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.settings"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.pdf"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.html"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.png"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.jpeg"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.all"
+        }
+      ],
       "editor/context": [
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf",
-          "group": "markdown-pdf"
+          "command": "extension.markdown-pdf.settings",
+          "group": "markdown-pdf@1"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.pdf",
+          "group": "markdown-pdf@2"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.html",
+          "group": "markdown-pdf@3"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.png",
+          "group": "markdown-pdf@4"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.jpeg",
+          "group": "markdown-pdf@5"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.all",
+          "group": "markdown-pdf@6"
         }
       ]
     },
@@ -48,6 +130,16 @@
       "type": "object",
       "title": "markdown-pdf configuration",
       "properties": {
+        "markdown-pdf.type": {
+          "type": [
+            "array",
+            "string"
+          ],
+          "default": [
+            "pdf"
+          ],
+          "description": "Output format: pdf, html, png, jpeg. Multiple output formats support"
+        },
         "markdown-pdf.convertOnSave": {
           "type": [
             "boolean"
@@ -68,7 +160,7 @@
             "null"
           ],
           "default": "",
-          "description": "Output Directory"
+          "description": "Output Directory. All '\\' need to be written as '\\\\' (Windows)"
         },
         "markdown-pdf.styles": {
           "type": [
@@ -84,20 +176,101 @@
           "default": true,
           "description": "Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)"
         },
-        "markdown-pdf.highlightStyle": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Set the style file name. for example: github.css, monokai.css ... https://github.com/isagalaev/highlight.js/tree/master/src/styles"
-        },
         "markdown-pdf.highlight": {
           "type": [
             "boolean"
           ],
           "default": true,
           "description": "Enable Syntax highlighting"
+        },
+        "markdown-pdf.highlightStyle": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "atelier-dune-dark.css",
+            "atelier-dune-light.css",
+            "atelier-estuary-dark.css",
+            "atelier-estuary-light.css",
+            "atelier-forest-dark.css",
+            "atelier-forest-light.css",
+            "atelier-heath-dark.css",
+            "atelier-heath-light.css",
+            "atelier-lakeside-dark.css",
+            "atelier-lakeside-light.css",
+            "atelier-plateau-dark.css",
+            "atelier-plateau-light.css",
+            "atelier-savanna-dark.css",
+            "atelier-savanna-light.css",
+            "atelier-seaside-dark.css",
+            "atelier-seaside-light.css",
+            "atelier-sulphurpool-dark.css",
+            "atelier-sulphurpool-light.css",
+            "atom-one-dark.css",
+            "atom-one-light.css",
+            "brown-paper.css",
+            "codepen-embed.css",
+            "color-brewer.css",
+            "darcula.css",
+            "dark.css",
+            "darkula.css",
+            "default.css",
+            "docco.css",
+            "dracula.css",
+            "far.css",
+            "foundation.css",
+            "github.css",
+            "github-gist.css",
+            "googlecode.css",
+            "grayscale.css",
+            "gruvbox-dark.css",
+            "gruvbox-light.css",
+            "hopscotch.css",
+            "hybrid.css",
+            "idea.css",
+            "ir-black.css",
+            "kimbie.dark.css",
+            "kimbie.light.css",
+            "magula.css",
+            "mono-blue.css",
+            "monokai.css",
+            "monokai-sublime.css",
+            "obsidian.css",
+            "ocean.css",
+            "paraiso-dark.css",
+            "paraiso-light.css",
+            "pojoaque.css",
+            "purebasic.css",
+            "qtcreator_dark.css",
+            "qtcreator_light.css",
+            "railscasts.css",
+            "rainbow.css",
+            "routeros.css",
+            "school-book.css",
+            "solarized-dark.css",
+            "solarized-light.css",
+            "sunburst.css",
+            "tomorrow.css",
+            "tomorrow-night.css",
+            "tomorrow-night-blue.css",
+            "tomorrow-night-bright.css",
+            "tomorrow-night-eighties.css",
+            "vs.css",
+            "vs2015.css",
+            "xcode.css",
+            "xt256.css",
+            "zenburn.css",
+            "agate.css",
+            "androidstudio.css",
+            "arduino-light.css",
+            "arta.css",
+            "ascetic.css",
+            "atelier-cave-dark.css",
+            "atelier-cave-light.css"
+          ],
+          "default": "",
+          "description": "Set the style file name. for example: github.css, monokai.css ... https://github.com/isagalaev/highlight.js/tree/master/src/styles"
         },
         "markdown-pdf.breaks": {
           "type": "boolean",
@@ -109,36 +282,95 @@
           "default": true,
           "description": "Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/"
         },
-        "markdown-pdf.type": {
+        "markdown-pdf.executablePath": {
+          "type": [
+            "string"
+          ],
+          "default": "",
+          "description": "Path to a Chromium or Chrome executable to run instead of the bundled Chromium."
+        },
+        "markdown-pdf.scale": {
+          "type": "number",
+          "default": 1,
+          "description": "Scale of the page rendering."
+        },
+        "markdown-pdf.displayHeaderFooter": {
+          "type": "boolean",
+          "default": true,
+          "description": "pdf only. Display header and footer."
+        },
+        "markdown-pdf.headerTemplate": {
           "type": [
             "string",
             "null"
           ],
-          "default": "pdf",
-          "description": "Output format: pdf, html, png, jpeg"
+          "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
+          "description": "pdf only. HTML template for the print header."
         },
-        "markdown-pdf.quality": {
-          "type": "number",
-          "default": 90,
-          "description": "Only used for types png & jpeg"
+        "markdown-pdf.footerTemplate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
+          "description": "pdf only. HTML template for the print footer."
+        },
+        "markdown-pdf.printBackground": {
+          "type": "boolean",
+          "default": true,
+          "description": "pdf only. Print background graphics."
+        },
+        "markdown-pdf.orientation": {
+          "type": "string",
+          "default": "portrait",
+          "description": "pdf only. Paper orientation. portrait or landscape."
+        },
+        "markdown-pdf.pageRanges": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": "",
+          "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'."
         },
         "markdown-pdf.format": {
           "type": [
             "string",
             "null"
           ],
+          "enum": [
+            "Letter",
+            "Legal",
+            "Tabloid",
+            "Ledger",
+            "A0",
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5",
+            "A6"
+          ],
           "default": "A4",
-          "description": "Page Option. Page size: A3, A4, A5, Legal, Letter, Tabloid"
+          "description": "pdf only. Paper format [Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6]."
         },
-        "markdown-pdf.orientation": {
+        "markdown-pdf.width": {
           "type": [
             "string",
             "null"
           ],
-          "default": "portrait",
-          "description": "Page Option. portrait or landscape"
+          "default": "",
+          "description": "pdf only. Paper width, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
         },
-        "markdown-pdf.border.top": {
+        "markdown-pdf.height": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": "",
+          "description": "pdf only. Paper height, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
+        },
+        "markdown-pdf.margin.top": {
           "type": [
             "string",
             "null"
@@ -146,7 +378,7 @@
           "default": "1.5cm",
           "description": "Page Option. Border Top. units: mm, cm, in, px"
         },
-        "markdown-pdf.border.bottom": {
+        "markdown-pdf.margin.bottom": {
           "type": [
             "string",
             "null"
@@ -154,7 +386,7 @@
           "default": "1cm",
           "description": "Page Option. Border bottom. units: mm, cm, in, px"
         },
-        "markdown-pdf.border.right": {
+        "markdown-pdf.margin.right": {
           "type": [
             "string",
             "null"
@@ -162,7 +394,7 @@
           "default": "1cm",
           "description": "Page Option. Border right. units: mm, cm, in, px"
         },
-        "markdown-pdf.border.left": {
+        "markdown-pdf.margin.left": {
           "type": [
             "string",
             "null"
@@ -170,37 +402,35 @@
           "default": "1cm",
           "description": "Page Option. Border left. units: mm, cm, in, px"
         },
-        "markdown-pdf.header.contents": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Header contents"
+        "markdown-pdf.quality": {
+          "type": "number",
+          "default": 100,
+          "description": "jpeg only. The quality of the image, between 0-100. Not applicable to png images."
         },
-        "markdown-pdf.header.height": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "",
-          "description": "Header height. units: mm, cm, in, px"
+        "markdown-pdf.clip.x": {
+          "type": "number",
+          "default": null,
+          "description": "x-coordinate of top-left corner of clip area."
         },
-        "markdown-pdf.footer.contents": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "<div style=\"text-align: center; margin-top: 0.5cm;\">{{page}}/{{pages}}</div>",
-          "description": "Footer contents"
+        "markdown-pdf.clip.y": {
+          "type": "number",
+          "default": null,
+          "description": "y-coordinate of top-left corner of clip area."
         },
-        "markdown-pdf.footer.height": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "0.8cm",
-          "description": "Footer height. units: mm, cm, in, px"
+        "markdown-pdf.clip.width": {
+          "type": "number",
+          "default": null,
+          "description": "width of clipping area."
+        },
+        "markdown-pdf.clip.height": {
+          "type": "number",
+          "default": null,
+          "description": "height of clipping area."
+        },
+        "markdown-pdf.omitBackground": {
+          "type": "boolean",
+          "default": false,
+          "description": "Hides default white background and allows capturing screenshots with transparency."
         },
         "markdown-pdf.StatusbarMessageTimeout": {
           "type": "number",
@@ -215,17 +445,20 @@
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
+    "removeNPMAbsolutePaths": "^1.0.4",
     "vscode": "^1.1.14"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
     "emoji-images": "^0.1.1",
     "highlight.js": "^9.12.0",
-    "html-pdf": "^2.2.0",
     "markdown-it": "^8.4.1",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-emoji": "^1.4.0",
+    "markdown-it-named-headers": "0.0.4",
     "mustache": "^2.3.0",
+    "puppeteer": "^1.3.0",
+    "rimraf": "^2.6.2",
     "which": "^1.3.0"
   }
 }

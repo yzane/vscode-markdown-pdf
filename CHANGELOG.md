@@ -1,4 +1,17 @@
 # Change Log
+
+## 1.0.1 (2018/04/21)
+* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
+## 1.0.0 (2018/04/15)
+* Change: Replace pdf converter with puppeteer instead of html-pdf
+* Add: Support multiple types in markdown-pdf.type option
+    * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
+* Add: Support markdown-it-named-headers
+    * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)
+* Add: Increase menu items (pdf, html, png, jpeg)
+* Update: dependencies packages
+
 ## 0.1.8 (2018/03/22)
 * Add: markdown-pdf.includeDefaultStyles option [#49](https://github.com/yzane/vscode-markdown-pdf/issues/49)
 * Fix: Inline code blocks do not use a proportional font [#26](https://github.com/yzane/vscode-markdown-pdf/issues/26)
