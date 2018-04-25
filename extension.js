@@ -651,69 +651,15 @@ function installPuppeteerBinary() {
   browserFetcher.canDownload(revision)
     .then(function (r) {
       if (r) {
-          downloadPuppeteerBinary(statusbarmessage);
+        puppeteer_installer(statusbarmessage);
           return;
     } else {
         statusbarmessage.dispose();
         vscode.window.setStatusBarMessage('$(markdown) ERROR: Failed to download Chromium!', StatusbarMessageTimeout);
-        vscode.window.showErrorMessage('ERROR: installpuppeteerBinary() Are you offline or behind a proxy? If you are behind a proxy, set the http.proxy option to settings.json.');
+        vscode.window.showErrorMessage('ERROR: Failed to download Chromium! If you are behind a proxy, set the http.proxy option to settings.json and restart Visual Studio Code.');
         return;
       }
     });
-}
-
-function downloadPuppeteerBinary(statusbarmessage) {
-  var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
-  // which npm
-  var which = require('which');
-  var npm = '';
-  try {
-    npm = which.sync('npm');
-  } catch (e) {
-    console.warn(e.message);
-  }
-
-  // npm rebuild puppeteer
-  if (isExistsPath(npm)) {
-    try {
-        console.log('###### npm rebuild puppeteer');
-        var execSync = require('child_process').execSync;
-        var std = execSync('npm rebuild puppeteer', {cwd: __dirname});
-        console.log(std.toString());
-        if (checkPuppeteerBinary()) {
-          statusbarmessage.dispose();
-          vscode.window.setStatusBarMessage('$(markdown) Puppeteer installation succeeded.', StatusbarMessageTimeout);
-          vscode.window.showInformationMessage('[Markdown PDF:1] Puppeteer installation succeeded.');
-          return;
-        } else {
-          statusbarmessage.dispose();
-          return;
-        }
-    } catch (e) {
-      statusbarmessage.dispose();
-      vscode.window.setStatusBarMessage('ERROR: "npm rebuild puppeteer"', StatusbarMessageTimeout);
-      vscode.window.showErrorMessage('ERROR: "npm rebuild puppeteer"');
-      vscode.window.showErrorMessage(e.message);
-    }
-  } else {
-  // node_modules/puppeteer/install.js
-    var install = path.join(__dirname, 'node_modules', 'puppeteer', 'install.js');
-    try {
-      if (isExistsPath(install)) {
-        console.log('###### node_modules/puppeteer/install.js');
-        puppeteer_installer(statusbarmessage);        
-        return;
-      } else {
-        statusbarmessage.dispose();
-      }
-    } catch (e) {
-      statusbarmessage.dispose();
-      vscode.window.setStatusBarMessage('ERROR: "node_modules/puppeteer/install.js"', StatusbarMessageTimeout);
-      vscode.window.showErrorMessage('ERROR: "node_modules/puppeteer/install.js"');
-      vscode.window.showErrorMessage(e.message);
-      console.error(e.message);
-    }
-  }
 }
 
 /*

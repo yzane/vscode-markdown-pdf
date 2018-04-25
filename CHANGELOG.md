@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.0.2 (2018/04/24)
+* Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
+
 ## 1.0.1 (2018/04/21)
 * Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
