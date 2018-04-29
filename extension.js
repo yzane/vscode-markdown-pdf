@@ -3,6 +3,7 @@ var vscode = require('vscode');
 var path = require('path');
 var fs = require('fs');
 var url = require('url');
+var os = require('os');
 
 function activate(context) {
   init();
@@ -84,7 +85,9 @@ function MarkdownPdf(option_type) {
       var type = types[i];
       if (types_format.indexOf(type) >= 0) {
         filename = mdfilename.replace(ext, '.' + type);
-        filename = getOutputDir(filename);
+        console.log(filename);
+        filename = getOutputDir(filename, uri);
+        console.log(filename);
         var content = convertMarkdownToHtml(mdfilename, type);
         var html = makeHtml(content, uri);
         exportPdf(html, filename, type);
@@ -471,17 +474,53 @@ function deleteFile (path) {
   });
 }
 
-function getOutputDir(filename) {
-  var output_dir = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
-  if (output_dir.length !== 0) {
-    if (isExistsDir(output_dir)) {
-      return path.join(output_dir, path.basename(filename));
-    } else {
-      vscode.window.showWarningMessage('Output directory does not exist! (markdown-pdf.outputDirectory) : ' + output_dir);
-      return filename;
-    }
+function getOutputDir(filename, resource) {
+  var outputDir;
+  if (resource === undefined) {
+    return filename;
   }
-  return filename;
+  var outputDirectory = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
+  if (outputDirectory.length === 0) {
+    return filename;
+  }
+
+  // Use a home directory relative path If it starts with ~.
+  if (outputDirectory.indexOf('~') === 0) {
+    outputDir = outputDirectory.replace(/^~/, os.homedir());
+    mkdir(outputDir);
+    return path.join(outputDir, path.basename(filename));
+  }
+  
+  // Use path if it is absolute
+  if (path.isAbsolute(outputDirectory)) {
+    if (!isExistsDir(outputDirectory)) {
+      vscode.window.showErrorMessage(`The output directory specified by the markdown-pdf.outputDirectory option does not exist.\
+       Check the markdown-pdf.outputDirectory option. ` + outputDirectory);
+      return;
+    }
+    return path.join(outputDirectory, path.basename(filename));
+  }
+
+  // Use a workspace relative path if there is a workspace
+  let root = vscode.workspace.getWorkspaceFolder(resource);
+  if (root) {
+    outputDir = path.join(root.uri.fsPath, outputDirectory);
+    mkdir(outputDir);
+    return path.join(outputDir, path.basename(filename));
+  }
+
+  // Otherwise look relative to the markdown file
+  outputDir = path.join(path.dirname(resource.fsPath), outputDirectory);
+  mkdir(outputDir);
+  return path.join(outputDir, path.basename(filename));
+}
+
+function mkdir(path) {
+  if (isExistsDir(path)) {
+    return;
+  }
+  var mkdirp = require('mkdirp');
+  return mkdirp.sync(path);
 }
 
 function readFile(filename, encode) {
@@ -615,7 +654,6 @@ function fixHref(resource, href) {
     return hrefUri.toString();
   }
   // Use a home directory relative path If it starts with ^.
-  var os = require('os');
   if (href.indexOf('~') === 0) {
     return vscode.Uri.file(href.replace(/^~/, os.homedir())).toString();
   }

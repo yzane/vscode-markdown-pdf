@@ -1,13 +1,16 @@
 # Change Log
 
 ## 1.0.3 (YYYY/MM/DD)
-* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with markdown-pdf.styles option
+* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
     * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
     * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
-* Fix: markdown-pdf.styles option
+* Fix: `markdown-pdf.styles` option
     * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
     * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
     * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
+
+* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
+    * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
 ## 1.0.2 (2018/04/24)
 * Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
