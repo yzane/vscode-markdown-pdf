@@ -86,7 +86,8 @@ function MarkdownPdf(option_type) {
       if (types_format.indexOf(type) >= 0) {
         filename = mdfilename.replace(ext, '.' + type);
         filename = getOutputDir(filename, uri);
-        var content = convertMarkdownToHtml(mdfilename, type);
+        var text = editor.document.getText();
+        var content = convertMarkdownToHtml(mdfilename, type, text);
         var html = makeHtml(content, uri);
         exportPdf(html, filename, type);
       } else {
@@ -132,7 +133,7 @@ function isMarkdownPdfOnSaveExclude() {
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename, type) {
+function convertMarkdownToHtml(filename, type, text) {
   var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
   var hljs = require('highlight.js');
   var breaks = vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
@@ -231,7 +232,7 @@ function convertMarkdownToHtml(filename, type) {
   md.use(require('markdown-it-named-headers'), options);
   
   statusbarmessage.dispose();
-  return md.render(fs.readFileSync(filename, 'utf-8'));
+  return md.render(text);
 }
 
 /*

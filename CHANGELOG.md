@@ -12,6 +12,10 @@
 * Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
     * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
+* Fix: File encoding
+    * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
+    * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
+
 ## 1.0.2 (2018/04/24)
 * Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
 
