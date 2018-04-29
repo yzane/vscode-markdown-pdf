@@ -303,10 +303,9 @@ function exportPdf(data, filename, type) {
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   vscode.window.withProgress({
-    // location: vscode.ProgressLocation.Window,
     location: vscode.ProgressLocation.Notification,
     title: '[Markdown PDF]: Exporting (' + type + ') ...'
-    }, async (progress) => {
+    }, async () => {
       try {
         // export html
         if (type == 'html') {
@@ -316,7 +315,6 @@ function exportPdf(data, filename, type) {
         }
         
         const puppeteer = require('puppeteer');
-        const fs = require('fs');
         // create temporary file
         var f = path.parse(filename);
         var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
@@ -647,7 +645,6 @@ function installPuppeteerBinary() {
   const puppeteer = require('puppeteer');
   const browserFetcher = puppeteer.createBrowserFetcher();
   const revision = require(path.join(__dirname, 'node_modules', 'puppeteer', 'package.json')).puppeteer.chromium_revision;
-  const revisionInfo = browserFetcher.revisionInfo(revision);
   browserFetcher.canDownload(revision)
     .then(function (r) {
       if (r) {
