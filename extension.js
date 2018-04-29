@@ -705,7 +705,7 @@ function puppeteer_installer(statusbarmessage) {
     if (checkPuppeteerBinary()) {
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Puppeteer installation succeeded.', StatusbarMessageTimeout);
-      vscode.window.showInformationMessage('[Markdown PDF:2] Puppeteer installation succeeded.');
+      vscode.window.showInformationMessage('[Markdown PDF] Puppeteer installation succeeded.');
       return Promise.all(cleanupOldVersions);
     }
   }
