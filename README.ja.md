@@ -3,7 +3,7 @@
 この拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
 
 ## <font color="red"> 重要なお知らせ </font>
-* Markdown PDF ver1.0.0 では PDF変換を [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) から [puppeteer](https://github.com/GoogleChrome/puppeteer) に変更しました
+* Markdown PDF ver1.0.0 では PDF変換を [node-html-pdf](https://github.com/marcbachmann/node-html-pdf)   (PhantomJS) から [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) に変更しました
 * 一部のオプションは廃止された為、変更してください。 [オプション](#options)を参照してください
 
 ## 目次
@@ -145,28 +145,73 @@
 ```
 #### `markdown-pdf.outputDirectory`
   - 出力ディレクトリを指定します
-  - 全ての `\` は `\\` と記述する必要があります。(Windows)
+  - 全ての `\` は `\\` と記述する必要があります (Windows)
 
 ```javascript
-"markdown-pdf.outputDirectory": "C:\\work",
+"markdown-pdf.outputDirectory": "C:\\work\\output",
 ```
+
+
+  - 相対パス
+    - `Markdownファイル` を開いた場合、ファイルからの相対パスとして解釈されます
+    - `フォルダ` を開いた場合、ルートフォルダからの相対パスとして解釈されます
+    - `ワークスペース` を開いた場合、それぞれのルートフォルダからの相対パスとして解釈されます
+      - [マルチルート ワークスペース](https://code.visualstudio.com/docs/editor/multi-root-workspaces) を参照してください
+
+```javascript
+"markdown-pdf.outputDirectory": "output",
+```
+
+  - 相対パス (ホームディレクトリ)
+    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+
+```javascript
+"markdown-pdf.outputDirectory": "~/output",
+```
+
+  - `相対パス`でディレクトリを設定した場合、ディレクトリが存在しなければ作成されます
+  - `絶対パス`でディレクトリを設定した場合、ディレクトリが存在しなければエラーになります
 
 ### Styles options
 
 #### `markdown-pdf.styles`
   - markdown-pdf で使用するスタイルシートのパスを指定します
+  - ファイルが存在しない場合、スキップされます
+  - 全ての `\` は `\\` と記述する必要があります (Windows)
+
+```javascript
+"markdown-pdf.styles": [
+  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",
+  "/home/<USERNAME>/settings/markdown-pdf.css",
+],
+```
+
+  - 相対パス
+    - `Markdownファイル` を開いた場合、ファイルからの相対パスとして解釈されます
+    - `フォルダ` を開いた場合、ルートフォルダからの相対パスとして解釈されます
+    - `ワークスペース` を開いた場合、それぞれのルートフォルダからの相対パスとして解釈されます
+      - [マルチルート ワークスペース](https://code.visualstudio.com/docs/editor/multi-root-workspaces) を参照してください
+
+```javascript
+"markdown-pdf.styles": [
+  "markdown-pdf.css",
+],
+```
+
+  - 相対パス (ホームディレクトリ)
+    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+
+```javascript
+"markdown-pdf.styles": [
+  "~/.config/Code/User/markdown-pdf.css"
+],
+```
+
   - オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 ```javascript
 "markdown-pdf.styles": [
-  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK (Windows)
-  "C:\Users\<USERNAME>\Documents\markdown-pdf.css",      // N/A. 全ての \ は \\ と記述する必要があります。(Windows)
-  "C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK (Windows)
-  "/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-  ".vscode\\markdown-pdf.css",                           // OK. 相対パス (Windows)
-  ".vscode/markdown-pdf.css",                            // OK. 相対パス
-  "markdown-pdf.css.css",                                 // OK. 相対パス
-  "https://xxx/xxx.css"
+  "https://xxx/markdown-pdf.css"
 ],
 ```
 
@@ -205,7 +250,7 @@
 
 #### `markdown-pdf.executablePath`
   - バンドルされた Chromium の代わりに実行する Chromium または Chrome のパスを指定します
-  - 全ての `\` は `\\` と記述する必要があります。(Windows)
+  - 全ての `\` は `\\` と記述する必要があります (Windows)
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -344,20 +389,21 @@
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.0.2 (2018/04/24)
-* Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
+### 1.0.3 (2018/04/30)
+* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
+    * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
+    * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
+* Fix: `markdown-pdf.styles` option
+    * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
+    * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
+    * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
 
-### 1.0.1 (2018/04/21)
-* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
+    * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
-### 1.0.0 (2018/04/15)
-* Change: Replace pdf converter with puppeteer instead of html-pdf
-* Add: Support multiple types in `markdown-pdf.type` option
-    * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
-* Add: Support markdown-it-named-headers
-    * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)
-* Add: Increase menu items (pdf, html, png, jpeg)
-* Update: dependencies packages
+* Fix: File encoding
+    * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
+    * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
 
 
 ## License

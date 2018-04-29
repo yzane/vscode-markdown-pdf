@@ -5,7 +5,7 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 [Japanease README](README.ja.md)
 
 ## <font color="red"> Important Notices </font>
-* Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf)
+* Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) (PhantomJS)
 * Some options are obsolete, please change. See [Options](#options)
 
 ## Table of Contents
@@ -142,34 +142,78 @@ Sample files
   "work.md$",
   "work|test",
   "[0-9][0-9][0-9][0-9]-work",
-  "work\\test"  // All '\' need to be written as '\\'
+  "work\\test"  // All '\' need to be written as '\\' (Windows)
 ],
 ```
+
 #### `markdown-pdf.outputDirectory`
   - Output Directory
-  - All '\\' need to be written as '\\\\' (Windows)
+  - All `\` need to be written as `\\` (Windows)
 
 ```javascript
-"markdown-pdf.outputDirectory": "C:\\work",
+"markdown-pdf.outputDirectory": "C:\\work\\output",
 ```
+
+  - Relative path
+    - If you open the `Markdown file`, it will be interpreted as a relative path from the file
+    - If you open a `folder`, it will be interpreted as a relative path from the root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+      - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
+
+```javascript
+"markdown-pdf.outputDirectory": "output",
+```
+
+  - Relative path (home directory)
+    - If path starts with  `~`, it will be interpreted as a relative path from the home directory
+
+```javascript
+"markdown-pdf.outputDirectory": "~/output",
+```
+
+  - If you set a directory with a `relative path`, it will be created if the directory does not exist
+  - If you set a directory with an `absolute path`, an error occurs if the directory does not exist
 
 ### Styles options
 
 #### `markdown-pdf.styles`
   - A list of local paths to the stylesheets to use from the markdown-pdf
-  - Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
-
+  - If the file does not exist, it will be skipped
+  - All `\` need to be written as `\\` (Windows)
 
 ```javascript
 "markdown-pdf.styles": [
-  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK (Windows)
-  "C:\Users\<USERNAME>\Documents\markdown-pdf.css",      // N/A. All '\' need to be written as '\\'. (Windows)
-  "C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK (Windows)
-  "/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-  ".vscode\\markdown-pdf.css",                           // OK. Relative path (Windows)
-  ".vscode/markdown-pdf.css",                            // OK. Relative path
-  "markdown-pdf.css.css",                                 // OK. Relative path
-  "https://xxx/xxx.css"
+  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",
+  "/home/<USERNAME>/settings/markdown-pdf.css",
+],
+```
+
+  - Relative path
+    - If you open the `Markdown file`, it will be interpreted as a relative path from the file
+    - If you open a `folder`, it will be interpreted as a relative path from the root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+      - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
+
+```javascript
+"markdown-pdf.styles": [
+  "markdown-pdf.css",
+],
+```
+
+  - Relative path (home directory)
+    - If path starts with `~`, it will be interpreted as a relative path from the home directory
+
+```javascript
+"markdown-pdf.styles": [
+  "~/.config/Code/User/markdown-pdf.css"
+],
+```
+
+  - Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
+```javascript
+"markdown-pdf.styles": [
+  "https://xxx/markdown-pdf.css"
 ],
 ```
 
@@ -208,7 +252,7 @@ Sample files
 
 #### `markdown-pdf.executablePath`
   - Path to a Chromium or Chrome executable to run instead of the bundled Chromium
-  - All '\\' need to be written as '\\\\' (Windows)
+  - All `\` need to be written as `\\` (Windows)
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -347,20 +391,21 @@ Sample files
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.0.2 (2018/04/24)
-* Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
+### 1.0.3 (2018/04/30)
+* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
+    * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
+    * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
+* Fix: `markdown-pdf.styles` option
+    * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
+    * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
+    * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
 
-### 1.0.1 (2018/04/21)
-* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
+    * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
-### 1.0.0 (2018/04/15)
-* Change: Replace pdf converter with puppeteer instead of html-pdf
-* Add: Support multiple types in `markdown-pdf.type` option
-    * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
-* Add: Support markdown-it-named-headers
-    * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)
-* Add: Increase menu items (pdf, html, png, jpeg)
-* Update: dependencies packages
+* Fix: File encoding
+    * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
+    * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
 
 
 ## License

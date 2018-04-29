@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.0.3 (YYYY/MM/DD)
+## 1.0.3 (2018/04/30)
 * Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
     * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
     * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
