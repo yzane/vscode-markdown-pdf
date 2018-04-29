@@ -85,9 +85,7 @@ function MarkdownPdf(option_type) {
       var type = types[i];
       if (types_format.indexOf(type) >= 0) {
         filename = mdfilename.replace(ext, '.' + type);
-        console.log(filename);
         filename = getOutputDir(filename, uri);
-        console.log(filename);
         var content = convertMarkdownToHtml(mdfilename, type);
         var html = makeHtml(content, uri);
         exportPdf(html, filename, type);
