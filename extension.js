@@ -3,7 +3,6 @@ var vscode = require('vscode');
 var path = require('path');
 var fs = require('fs');
 var url = require('url');
-var mdfilename = '';
 
 function activate(context) {
   init();
@@ -48,7 +47,8 @@ function MarkdownPdf(option_type) {
     return;
   }
 
-  mdfilename = editor.document.fileName;
+  var uri = editor.document.uri;
+  var mdfilename = uri.fsPath;
   var ext = path.extname(mdfilename);
   if (!isExistsPath(mdfilename)) {
     if (editor.document.isUntitled) {
@@ -78,7 +78,6 @@ function MarkdownPdf(option_type) {
     return;
   }
 
-  var title = path.basename(mdfilename);
   // convert and export markdown to pdf, html, png, jpeg
   if (types && Array.isArray(types) && types.length > 0) {
     for (var i = 0; i < types.length; i++) {
@@ -87,7 +86,7 @@ function MarkdownPdf(option_type) {
         filename = mdfilename.replace(ext, '.' + type);
         filename = getOutputDir(filename);
         var content = convertMarkdownToHtml(mdfilename, type);
-        var html = makeHtml(content, title);
+        var html = makeHtml(content, uri);
         exportPdf(html, filename, type);
       } else {
         vscode.window.showErrorMessage('ERROR: MarkdownPdf().2 Supported formats: html, pdf, png, jpeg.');
@@ -251,12 +250,15 @@ function Slug(string) {
 /*
  * make html
  */
-function makeHtml(data, title) {
+function makeHtml(data, uri) {
   try {
     // read styles
   var style = '';
-  style += readStyles();
+  style += readStyles(uri);
 
+  // read template
+  var title = path.basename(uri.fsPath);
+  
   // read template
   var filename = path.join(__dirname, 'template', 'template.html');
   var template = readFile(filename);
@@ -538,7 +540,7 @@ function makeCss(filename) {
   }
 }
 
-function readStyles() {
+function readStyles(uri) {
   var includeDefaultStyles;
   var style = '';
   var styles = '';
@@ -552,19 +554,15 @@ function readStyles() {
     filename = path.join(__dirname, 'styles', 'markdown.css');
     style += makeCss(filename);
   }
-  
+
   // 2. read the style of the markdown.styles setting.
   if (includeDefaultStyles) {
     styles = vscode.workspace.getConfiguration('markdown')['styles'];
     if (styles && Array.isArray(styles) && styles.length > 0) {
       for (i = 0; i < styles.length; i++) {
-        var href = filename = styles[i];
-        var protocol = url.parse(href).protocol;
-        if (protocol === 'http:' || protocol === 'https:') {
-          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
-        } else if (protocol === 'file:') {
-          style += makeCss(filename);
-        }
+        var href = fixHref(uri, styles[i]);
+        console.log("href: " + href);
+        style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
       }
     }
   }
@@ -593,26 +591,49 @@ function readStyles() {
   styles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
   if (styles && Array.isArray(styles) && styles.length > 0) {
     for (i = 0; i < styles.length; i++) {
-      var href = filename = styles[i];
-      var protocol = url.parse(href).protocol;
-      if (!path.isAbsolute(filename)) {
-        if (protocol === 'http:' || protocol === 'https:') {
-          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
-        } else {
-          if (vscode.workspace.rootPath == undefined) {
-            filename = path.join(path.dirname(mdfilename), filename);
-          } else {
-            filename = path.join(vscode.workspace.rootPath, filename);         
-          }
-          style += makeCss(filename);
-        }
-      } else {
-        style += makeCss(filename);
-      }
+      var href = fixHref(uri, styles[i]);
+      console.log("href[0]: " + styles[i]);
+      console.log("href[1]: " + href);
+      console.log("");
+      style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
     }
   }
 
   return style;
+}
+
+/*
+ * vscode/extensions/markdown-language-features/src/features/previewContentProvider.ts fixHref()
+ * https://github.com/Microsoft/vscode/blob/0c47c04e85bc604288a288422f0a7db69302a323/extensions/markdown-language-features/src/features/previewContentProvider.ts#L95
+ *
+ * Extension Authoring: Adopting Multi Root Workspace APIs ?E Microsoft/vscode Wiki
+ * https://github.com/Microsoft/vscode/wiki/Extension-Authoring:-Adopting-Multi-Root-Workspace-APIs
+ */
+function fixHref(resource, href) {
+  if (!href) {
+    return href;
+  }
+  // Use href if it is already an URL
+  const hrefUri = vscode.Uri.parse(href);
+  if (['http', 'https'].indexOf(hrefUri.scheme) >= 0) {
+    return hrefUri.toString();
+  }
+  // Use a home directory relative path If it starts with ^.
+  var os = require('os');
+  if (href.indexOf('~') === 0) {
+    return vscode.Uri.file(href.replace(/^~/, os.homedir())).toString();
+  }
+  // Use href as file URI if it is absolute
+  if (path.isAbsolute(href) || hrefUri.scheme === 'file') {
+    return vscode.Uri.file(href).toString();
+  }
+  // Use a workspace relative path if there is a workspace
+  let root = vscode.workspace.getWorkspaceFolder(resource);
+  if (root) {
+    return vscode.Uri.file(path.join(root.uri.fsPath, href)).toString();
+  }
+  // Otherwise look relative to the markdown file
+  return vscode.Uri.file(path.join(path.dirname(resource.fsPath), href)).toString();
 }
 
 function checkPuppeteerBinary() {
