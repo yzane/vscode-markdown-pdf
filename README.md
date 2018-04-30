@@ -239,6 +239,7 @@ If the download is not successful or you want to avoid downloading every time yo
 #### `markdown-pdf.stylesRelativePathFile`
 
   - If `markdown-pdf.stylesRelativePathFile` option is set to `true`, the relative path set with [markdown-pdf.styles](#markdown-pdfstyles) is interpreted as relative from the file
+  - It can be used to avoid relative paths from folders and workspaces
   - boolean. Default: false
 
 #### `markdown-pdf.includeDefaultStyles`
