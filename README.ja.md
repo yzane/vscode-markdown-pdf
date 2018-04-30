@@ -455,6 +455,16 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 "files.autoGuessEncoding": true,
 ```
 
+### Tip: 出力ディレクトリ
+
+常に Markdown ファイルからの相対パスのディレクトリに出力したい。
+
+例えば、Markdown ファイルと同じディレクトリの "output"ディレクトリに出力する場合、次のように設定してください。
+
+```javascript
+"markdown-pdf.outputDirectory" : "output",
+"markdown-pdf.outputDirectoryRelativePathFile": true,
+```
 
 ## 既知の問題
 

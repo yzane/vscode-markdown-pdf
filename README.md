@@ -462,6 +462,16 @@ Using `files.autoGuessEncoding` option of the Visual Studio Code is useful becau
 "files.autoGuessEncoding": true,
 ```
 
+### Tip: Output directory
+
+I always want to output to the relative path directory from the Markdown file.
+
+For example, to output to the "output" directory in the same directory as the Markdown file, set it as follows.
+
+```javascript
+"markdown-pdf.outputDirectory" : "output",
+"markdown-pdf.outputDirectoryRelativePathFile": true,
+```
 
 ## Known Issues
 
