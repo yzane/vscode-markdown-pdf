@@ -162,6 +162,13 @@
           "default": "",
           "description": "Output Directory. All '\\' need to be written as '\\\\' (Windows)"
         },
+        "markdown-pdf.outputDirectoryRelativePathFile": {
+          "type": [
+            "boolean"
+          ],
+          "default": false,
+          "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+        },
         "markdown-pdf.styles": {
           "type": [
             "array"

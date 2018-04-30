@@ -504,9 +504,10 @@ function getOutputDir(filename, resource) {
     return path.join(outputDirectory, path.basename(filename));
   }
 
-  // Use a workspace relative path if there is a workspace
+  // Use a workspace relative path if there is a workspace and markdown-pdf.outputDirectoryRootPath = workspace
+  var outputDirectoryRelativePathFile = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectoryRelativePathFile'];
   let root = vscode.workspace.getWorkspaceFolder(resource);
-  if (root) {
+  if (outputDirectoryRelativePathFile === false && root) {
     outputDir = path.join(root.uri.fsPath, outputDirectory);
     mkdir(outputDir);
     return path.join(outputDir, path.basename(filename));

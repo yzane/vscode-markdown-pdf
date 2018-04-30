@@ -183,6 +183,10 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
   - `相対パス`でディレクトリを設定した場合、ディレクトリが存在しなければ作成されます
   - `絶対パス`でディレクトリを設定した場合、ディレクトリが存在しなければエラーになります
 
+#### `markdown-pdf.outputDirectoryRelativePathFile`
+  - `markdown-pdf.outputDirectoryRelativePathFile` オプションが `true` に設定されている場合、[markdown-pdf.outputDirectory](#markdown-pdfoutputDirectory) で設定した相対パスは、ファイルからの相対パスとして解釈されます
+  - boolean. Default: false
+
 ### Styles options
 
 #### `markdown-pdf.styles`

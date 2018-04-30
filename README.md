@@ -188,6 +188,10 @@ If the download is not successful or you want to avoid downloading every time yo
   - If you set a directory with a `relative path`, it will be created if the directory does not exist
   - If you set a directory with an `absolute path`, an error occurs if the directory does not exist
 
+#### `markdown-pdf.outputDirectoryRelativePathFile`
+  - If `markdown-pdf.outputDirectoryRelativePathFile` option is set to `true`, the relative path set with [markdown-pdf.outputDirectory](#markdown-pdfoutputDirectory) is interpreted as relative from the file
+  - boolean. Default: false
+
 ### Styles options
 
 #### `markdown-pdf.styles`
