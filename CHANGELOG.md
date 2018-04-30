@@ -18,6 +18,9 @@
 
 * Fix: Can not convert pdf [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76)
 
+* Add: `markdown-pdf.outputDirectoryRelativePathFile` option
+* Add: `markdown-pdf.stylesRelativePathFile` option
+
 ## 1.0.2 (2018/04/24)
 * Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
 

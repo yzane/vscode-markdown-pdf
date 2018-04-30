@@ -457,7 +457,7 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ### Tip: 出力ディレクトリ
 
-常に Markdown ファイルからの相対パスのディレクトリに出力したい。
+常に Markdown ファイルからの相対パスのディレクトリに出力したい場合。
 
 例えば、Markdown ファイルと同じディレクトリの "output"ディレクトリに出力する場合、次のように設定してください。
 
@@ -475,15 +475,15 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 ## [Release Notes](CHANGELOG.md)
 
 ### 1.0.3 (2018/04/30)
-* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
+* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with [markdown-pdf.styles](#markdown-pdfstyles) option
     * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
     * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
-* Fix: `markdown-pdf.styles` option
+* Fix: [markdown-pdf.styles](#markdown-pdfstyles) option
     * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
     * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
     * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
 
-* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
+* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with [markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory) option
     * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
 * Fix: File encoding
@@ -492,6 +492,8 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 * Fix: Can not convert pdf [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76)
 
+* Add: [markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile) option
+* Add: [markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile) option
 
 ## License
 
