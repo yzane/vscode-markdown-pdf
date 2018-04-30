@@ -3,7 +3,7 @@ var vscode = require('vscode');
 var path = require('path');
 var fs = require('fs');
 var url = require('url');
-var mdfilename = '';
+var os = require('os');
 
 function activate(context) {
   init();
@@ -48,7 +48,8 @@ function MarkdownPdf(option_type) {
     return;
   }
 
-  mdfilename = editor.document.fileName;
+  var uri = editor.document.uri;
+  var mdfilename = uri.fsPath;
   var ext = path.extname(mdfilename);
   if (!isExistsPath(mdfilename)) {
     if (editor.document.isUntitled) {
@@ -78,17 +79,16 @@ function MarkdownPdf(option_type) {
     return;
   }
 
-  var title = path.basename(mdfilename);
   // convert and export markdown to pdf, html, png, jpeg
   if (types && Array.isArray(types) && types.length > 0) {
     for (var i = 0; i < types.length; i++) {
       var type = types[i];
       if (types_format.indexOf(type) >= 0) {
         filename = mdfilename.replace(ext, '.' + type);
-        filename = getOutputDir(filename);
-        var content = convertMarkdownToHtml(mdfilename, type);
-        var html = makeHtml(content, title);
-        exportPdf(html, filename, type);
+        var text = editor.document.getText();
+        var content = convertMarkdownToHtml(mdfilename, type, text);
+        var html = makeHtml(content, uri);
+        exportPdf(html, filename, type, uri);
       } else {
         vscode.window.showErrorMessage('ERROR: MarkdownPdf().2 Supported formats: html, pdf, png, jpeg.');
         return;
@@ -132,7 +132,7 @@ function isMarkdownPdfOnSaveExclude() {
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename, type) {
+function convertMarkdownToHtml(filename, type, text) {
   var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
   var hljs = require('highlight.js');
   var breaks = vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
@@ -231,7 +231,7 @@ function convertMarkdownToHtml(filename, type) {
   md.use(require('markdown-it-named-headers'), options);
   
   statusbarmessage.dispose();
-  return md.render(fs.readFileSync(filename, 'utf-8'));
+  return md.render(text);
 }
 
 /*
@@ -251,12 +251,15 @@ function Slug(string) {
 /*
  * make html
  */
-function makeHtml(data, title) {
+function makeHtml(data, uri) {
   try {
     // read styles
   var style = '';
-  style += readStyles();
+  style += readStyles(uri);
 
+  // read template
+  var title = path.basename(uri.fsPath);
+  
   // read template
   var filename = path.join(__dirname, 'template', 'template.html');
   var template = readFile(filename);
@@ -294,42 +297,39 @@ function exportHtml(data, filename) {
 /*
  * export a html to a pdf file (html-pdf)
  */
-function exportPdf(data, filename, type) {
+function exportPdf(data, filename, type, uri) {
   
   if (!checkPuppeteerBinary()) {
     return;
   }
-  
+
+  var exportFilename = getOutputDir(filename, uri); 
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   vscode.window.withProgress({
-    // location: vscode.ProgressLocation.Window,
     location: vscode.ProgressLocation.Notification,
     title: '[Markdown PDF]: Exporting (' + type + ') ...'
-    }, async (progress) => {
+    }, async () => {
       try {
         // export html
         if (type == 'html') {
-          exportHtml(data, filename);
-          vscode.window.setStatusBarMessage('$(markdown) ' + filename, StatusbarMessageTimeout);
+          exportHtml(data, exportFilename);
+          vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
           return;
         }
-        
+
         const puppeteer = require('puppeteer');
-        const fs = require('fs');
         // create temporary file
         var f = path.parse(filename);
         var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
-        tmpfilename = getOutputDir(tmpfilename);
         exportHtml(data, tmpfilename);
-        
         var options = {
           executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || undefined
         }
         const browser = await puppeteer.launch(options);
         const page = await browser.newPage();
-        await page.goto(`file://${tmpfilename}`, { waitUntil: 'networkidle0' });
-
+        await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
+        
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
         if (type == 'pdf') {
@@ -343,12 +343,12 @@ function exportPdf(data, filename, type) {
           }
           var landscape_option;
           if (vscode.workspace.getConfiguration('markdown-pdf')['orientation'] == 'landscape') {
-              landscape_option = true;
+            landscape_option = true;
           } else {
             landscape_option = false;
           }
           var options = {
-            path: filename,
+            path: exportFilename,
             scale: vscode.workspace.getConfiguration('markdown-pdf')['scale'],
             displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf')['displayHeaderFooter'],
             headerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['headerTemplate'] || '',
@@ -367,7 +367,10 @@ function exportPdf(data, filename, type) {
             }
           }
           if (checkPuppeteerBinary()) {
-            await page.pdf(options);
+            await page.pdf(options).catch(e => {
+              vscode.window.showErrorMessage(e.message);
+              console.warn(e.message);
+            });
           }
         }
 
@@ -391,7 +394,7 @@ function exportPdf(data, filename, type) {
           var options;
           if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
             options = {
-              path: filename,
+              path: exportFilename,
               quality: quality_option,
               fullPage: false,
               clip: {
@@ -404,14 +407,17 @@ function exportPdf(data, filename, type) {
             }
           } else {
             options = {
-              path: filename,
+              path: exportFilename,
               quality: quality_option,
               fullPage: true,
               omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],          
             }
           }
           if (checkPuppeteerBinary()) {
-            await page.screenshot(options);
+            await page.screenshot(options).catch(e => {
+              vscode.window.showErrorMessage(e.message);
+              console.warn(e.message);
+            });
           }
         }
 
@@ -425,10 +431,10 @@ function exportPdf(data, filename, type) {
           }
         }
 
-        vscode.window.setStatusBarMessage('$(markdown) ' + filename, StatusbarMessageTimeout);
+        vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
       } catch (e) {
-        // vscode.window.showErrorMessage('ERROR: exportPdf()');
         // vscode.window.showErrorMessage(e.message);
+        console.warn(e.message);
       }
     } // async
   ); // vscode.window.withProgress
@@ -471,17 +477,54 @@ function deleteFile (path) {
   });
 }
 
-function getOutputDir(filename) {
-  var output_dir = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
-  if (output_dir.length !== 0) {
-    if (isExistsDir(output_dir)) {
-      return path.join(output_dir, path.basename(filename));
-    } else {
-      vscode.window.showWarningMessage('Output directory does not exist! (markdown-pdf.outputDirectory) : ' + output_dir);
-      return filename;
-    }
+function getOutputDir(filename, resource) {
+  var outputDir;
+  if (resource === undefined) {
+    return filename;
   }
-  return filename;
+  var outputDirectory = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
+  if (outputDirectory.length === 0) {
+    return filename;
+  }
+
+  // Use a home directory relative path If it starts with ~.
+  if (outputDirectory.indexOf('~') === 0) {
+    outputDir = outputDirectory.replace(/^~/, os.homedir());
+    mkdir(outputDir);
+    return path.join(outputDir, path.basename(filename));
+  }
+  
+  // Use path if it is absolute
+  if (path.isAbsolute(outputDirectory)) {
+    if (!isExistsDir(outputDirectory)) {
+      vscode.window.showErrorMessage(`The output directory specified by the markdown-pdf.outputDirectory option does not exist.\
+       Check the markdown-pdf.outputDirectory option. ` + outputDirectory);
+      return;
+    }
+    return path.join(outputDirectory, path.basename(filename));
+  }
+
+  // Use a workspace relative path if there is a workspace and markdown-pdf.outputDirectoryRootPath = workspace
+  var outputDirectoryRelativePathFile = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectoryRelativePathFile'];
+  let root = vscode.workspace.getWorkspaceFolder(resource);
+  if (outputDirectoryRelativePathFile === false && root) {
+    outputDir = path.join(root.uri.fsPath, outputDirectory);
+    mkdir(outputDir);
+    return path.join(outputDir, path.basename(filename));
+  }
+
+  // Otherwise look relative to the markdown file
+  outputDir = path.join(path.dirname(resource.fsPath), outputDirectory);
+  mkdir(outputDir);
+  return path.join(outputDir, path.basename(filename));
+}
+
+function mkdir(path) {
+  if (isExistsDir(path)) {
+    return;
+  }
+  var mkdirp = require('mkdirp');
+  return mkdirp.sync(path);
 }
 
 function readFile(filename, encode) {
@@ -540,7 +583,7 @@ function makeCss(filename) {
   }
 }
 
-function readStyles() {
+function readStyles(uri) {
   var includeDefaultStyles;
   var style = '';
   var styles = '';
@@ -554,19 +597,14 @@ function readStyles() {
     filename = path.join(__dirname, 'styles', 'markdown.css');
     style += makeCss(filename);
   }
-  
+
   // 2. read the style of the markdown.styles setting.
   if (includeDefaultStyles) {
     styles = vscode.workspace.getConfiguration('markdown')['styles'];
     if (styles && Array.isArray(styles) && styles.length > 0) {
       for (i = 0; i < styles.length; i++) {
-        var href = filename = styles[i];
-        var protocol = url.parse(href).protocol;
-        if (protocol === 'http:' || protocol === 'https:') {
-          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
-        } else if (protocol === 'file:') {
-          style += makeCss(filename);
-        }
+        var href = fixHref(uri, styles[i]);
+        style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
       }
     }
   }
@@ -595,26 +633,51 @@ function readStyles() {
   styles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
   if (styles && Array.isArray(styles) && styles.length > 0) {
     for (i = 0; i < styles.length; i++) {
-      var href = filename = styles[i];
-      var protocol = url.parse(href).protocol;
-      if (!path.isAbsolute(filename)) {
-        if (protocol === 'http:' || protocol === 'https:') {
-          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
-        } else {
-          if (vscode.workspace.rootPath == undefined) {
-            filename = path.join(path.dirname(mdfilename), filename);
-          } else {
-            filename = path.join(vscode.workspace.rootPath, filename);         
-          }
-          style += makeCss(filename);
-        }
-      } else {
-        style += makeCss(filename);
-      }
+      var href = fixHref(uri, styles[i]);
+      style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
     }
   }
 
   return style;
+}
+
+/*
+ * vscode/extensions/markdown-language-features/src/features/previewContentProvider.ts fixHref()
+ * https://github.com/Microsoft/vscode/blob/0c47c04e85bc604288a288422f0a7db69302a323/extensions/markdown-language-features/src/features/previewContentProvider.ts#L95
+ *
+ * Extension Authoring: Adopting Multi Root Workspace APIs ?E Microsoft/vscode Wiki
+ * https://github.com/Microsoft/vscode/wiki/Extension-Authoring:-Adopting-Multi-Root-Workspace-APIs
+ */
+function fixHref(resource, href) {
+  if (!href) {
+    return href;
+  }
+
+  // Use href if it is already an URL
+  const hrefUri = vscode.Uri.parse(href);
+  if (['http', 'https'].indexOf(hrefUri.scheme) >= 0) {
+    return hrefUri.toString();
+  }
+
+  // Use a home directory relative path If it starts with ^.
+  if (href.indexOf('~') === 0) {
+    return vscode.Uri.file(href.replace(/^~/, os.homedir())).toString();
+  }
+
+  // Use href as file URI if it is absolute
+  if (path.isAbsolute(href) || hrefUri.scheme === 'file') {
+    return vscode.Uri.file(href).toString();
+  }
+
+  // Use a workspace relative path if there is a workspace and markdown-pdf.stylesRelativePathFile is false
+  var stylesRelativePathFile = vscode.workspace.getConfiguration('markdown-pdf')['stylesRelativePathFile'];
+  let root = vscode.workspace.getWorkspaceFolder(resource);
+  if (stylesRelativePathFile === false && root) {
+    return vscode.Uri.file(path.join(root.uri.fsPath, href)).toString();
+  }
+
+  // Otherwise look relative to the markdown file
+  return vscode.Uri.file(path.join(path.dirname(resource.fsPath), href)).toString();
 }
 
 function checkPuppeteerBinary() {
@@ -647,7 +710,6 @@ function installPuppeteerBinary() {
   const puppeteer = require('puppeteer');
   const browserFetcher = puppeteer.createBrowserFetcher();
   const revision = require(path.join(__dirname, 'node_modules', 'puppeteer', 'package.json')).puppeteer.chromium_revision;
-  const revisionInfo = browserFetcher.revisionInfo(revision);
   browserFetcher.canDownload(revision)
     .then(function (r) {
       if (r) {
@@ -687,7 +749,7 @@ function puppeteer_installer(statusbarmessage) {
     if (checkPuppeteerBinary()) {
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Puppeteer installation succeeded.', StatusbarMessageTimeout);
-      vscode.window.showInformationMessage('[Markdown PDF:2] Puppeteer installation succeeded.');
+      vscode.window.showInformationMessage('[Markdown PDF] Puppeteer installation succeeded.');
       return Promise.all(cleanupOldVersions);
     }
   }

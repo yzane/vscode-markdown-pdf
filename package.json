@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -17,7 +17,8 @@
     "pdf",
     "convert",
     "export",
-    "html"
+    "html",
+    "multi-root ready"
   ],
   "repository": {
     "type": "git",
@@ -141,9 +142,7 @@
           "description": "Output format: pdf, html, png, jpeg. Multiple output formats support"
         },
         "markdown-pdf.convertOnSave": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "Enable Auto convert on save"
         },
@@ -162,6 +161,11 @@
           "default": "",
           "description": "Output Directory. All '\\' need to be written as '\\\\' (Windows)"
         },
+        "markdown-pdf.outputDirectoryRelativePathFile": {
+          "type": "boolean",
+          "default": false,
+          "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+        },
         "markdown-pdf.styles": {
           "type": [
             "array"
@@ -169,17 +173,18 @@
           "default": [],
           "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
         },
+        "markdown-pdf.stylesRelativePathFile": {
+          "type": "boolean",
+          "default": false,
+          "description": "If markdown-pdf.stylesRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+        },
         "markdown-pdf.includeDefaultStyles": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)"
         },
         "markdown-pdf.highlight": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "Enable Syntax highlighting"
         },
@@ -446,7 +451,7 @@
   },
   "devDependencies": {
     "removeNPMAbsolutePaths": "^1.0.4",
-    "vscode": "^1.1.14"
+    "vscode": "^1.1.16"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
@@ -456,6 +461,7 @@
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-emoji": "^1.4.0",
     "markdown-it-named-headers": "0.0.4",
+    "mkdirp": "^0.5.1",
     "mustache": "^2.3.0",
     "puppeteer": "^1.3.0",
     "rimraf": "^2.6.2"

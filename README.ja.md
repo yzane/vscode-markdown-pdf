@@ -3,13 +3,14 @@
 この拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
 
 ## <font color="red"> 重要なお知らせ </font>
-* Markdown PDF ver1.0.0 では PDF変換を [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) から [puppeteer](https://github.com/GoogleChrome/puppeteer) に変更しました
+* Markdown PDF ver1.0.0 では PDF変換を [node-html-pdf](https://github.com/marcbachmann/node-html-pdf)   (PhantomJS) から [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) に変更しました
 * 一部のオプションは廃止された為、変更してください。 [オプション](#options)を参照してください
 
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
 - [機能](#機能)
+- [インストール](#インストール)
 - [使い方](#使い方)
 - [拡張機能 設定](#拡張機能-設定)
 - [オプション](#オプション)
@@ -33,6 +34,16 @@
  * [html](sample/README.html)
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
+
+
+## インストール
+
+Markdown PDF をインストールして、Visutal Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
+しかしサイズが大きい為 (~170Mb Mac, ~282Mb Linux, ~280Mb Win) 、環境によっては時間がかかります。
+ダウンロード中は、ステータスバーに `Installing Puppeteer ...` が表示されます。
+
+ダウンロードが上手くいかない場合や、Markdown PDF のバージョンアップの度にダウンロードするのを避けたい場合、[markdown-pdf.executablePath](#markdown-pdfexecutablepath) オプションでインストール済みの Chromium か Chrome を指定してください。
+
  
 ## 使い方
 
@@ -111,6 +122,44 @@
 |`markdown-pdf.clip.height`||
 |`markdown-pdf.omitBackground`||
 
+### Option list
+
+|Category| Option name|
+|:---|:---|
+|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)|
+||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)|
+||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)|
+||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)|
+||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)|
+|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)|
+||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)|
+||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)|
+|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)|
+||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)|
+|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)|
+|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)|
+|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)|
+|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)|
+|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|
+||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|
+||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|
+||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|
+||[markdown-pdf.orientation](#markdown-pdforientation)|
+||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|
+||[markdown-pdf.format](#markdown-pdfformat)|
+||[markdown-pdf.width](#markdown-pdfwidth)|
+||[markdown-pdf.height](#markdown-pdfheight)|
+||[markdown-pdf.margin.top](#markdown-pdfmargintop)|
+||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|
+||[markdown-pdf.margin.right](#markdown-pdfmarginright)|
+||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|
+|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)|
+||[markdown-pdf.clip.x](#markdown-pdfclipx)|
+||[markdown-pdf.clip.y](#markdown-pdfclipy)|
+||[markdown-pdf.clip.width](#markdown-pdfclipwidth)|
+||[markdown-pdf.clip.height](#markdown-pdfclipheight)|
+||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
+
 ### Save options
 
 #### `markdown-pdf.type`
@@ -130,6 +179,7 @@
 #### `markdown-pdf.convertOnSave`
   - 保存時の自動変換を有効にします
   - boolean. Default: false
+  - 設定の反映には、Visutal Studio Code の再起動が必要です
 
 #### `markdown-pdf.convertOnSaveExclude`
   - convertOnSave オプションの除外ファイル名を指定します
@@ -145,30 +195,84 @@
 ```
 #### `markdown-pdf.outputDirectory`
   - 出力ディレクトリを指定します
-  - 全ての `\` は `\\` と記述する必要があります。(Windows)
+  - 全ての `\` は `\\` と記述する必要があります (Windows)
 
 ```javascript
-"markdown-pdf.outputDirectory": "C:\\work",
+"markdown-pdf.outputDirectory": "C:\\work\\output",
 ```
+
+  - 相対パス
+    - `Markdownファイル` を開いた場合、ファイルからの相対パスとして解釈されます
+    - `フォルダ` を開いた場合、ルートフォルダからの相対パスとして解釈されます
+    - `ワークスペース` を開いた場合、それぞれのルートフォルダからの相対パスとして解釈されます
+      - [マルチルート ワークスペース](https://code.visualstudio.com/docs/editor/multi-root-workspaces) を参照してください
+
+```javascript
+"markdown-pdf.outputDirectory": "output",
+```
+
+  - 相対パス (ホームディレクトリ)
+    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+
+```javascript
+"markdown-pdf.outputDirectory": "~/output",
+```
+
+  - `相対パス`でディレクトリを設定した場合、ディレクトリが存在しなければ作成されます
+  - `絶対パス`でディレクトリを設定した場合、ディレクトリが存在しなければエラーになります
+
+#### `markdown-pdf.outputDirectoryRelativePathFile`
+  - `markdown-pdf.outputDirectoryRelativePathFile` オプションが `true` に設定されている場合、[markdown-pdf.outputDirectory](#markdown-pdfoutputDirectory) で設定した相対パスは、ファイルからの相対パスとして解釈されます
+  - フォルダやワークスペースからの相対パスを避けたい場合に使うことが出来ます
+  - boolean. Default: false
 
 ### Styles options
 
 #### `markdown-pdf.styles`
   - markdown-pdf で使用するスタイルシートのパスを指定します
+  - ファイルが存在しない場合、スキップされます
+  - 全ての `\` は `\\` と記述する必要があります (Windows)
+
+```javascript
+"markdown-pdf.styles": [
+  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",
+  "/home/<USERNAME>/settings/markdown-pdf.css",
+],
+```
+
+  - 相対パス
+    - `Markdownファイル` を開いた場合、ファイルからの相対パスとして解釈されます
+    - `フォルダ` を開いた場合、ルートフォルダからの相対パスとして解釈されます
+    - `ワークスペース` を開いた場合、それぞれのルートフォルダからの相対パスとして解釈されます
+      - [マルチルート ワークスペース](https://code.visualstudio.com/docs/editor/multi-root-workspaces) を参照してください
+
+```javascript
+"markdown-pdf.styles": [
+  "markdown-pdf.css",
+],
+```
+
+  - 相対パス (ホームディレクトリ)
+    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+
+```javascript
+"markdown-pdf.styles": [
+  "~/.config/Code/User/markdown-pdf.css"
+],
+```
+
   - オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 ```javascript
 "markdown-pdf.styles": [
-  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK (Windows)
-  "C:\Users\<USERNAME>\Documents\markdown-pdf.css",      // N/A. 全ての \ は \\ と記述する必要があります。(Windows)
-  "C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK (Windows)
-  "/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-  ".vscode\\markdown-pdf.css",                           // OK. 相対パス (Windows)
-  ".vscode/markdown-pdf.css",                            // OK. 相対パス
-  "markdown-pdf.css.css",                                 // OK. 相対パス
-  "https://xxx/xxx.css"
+  "https://xxx/markdown-pdf.css"
 ],
 ```
+
+#### `markdown-pdf.stylesRelativePathFile`
+  - `markdown-pdf.stylesRelativePathFile` オプションが `true` に設定されている場合、[markdown-pdf.styles](#markdown-pdfstyles) で設定した相対パスは、ファイルからの相対パスとして解釈されます
+  - フォルダやワークスペースからの相対パスを避けたい場合に使うことが出来ます
+  - boolean. Default: false
 
 #### `markdown-pdf.includeDefaultStyles`
   - デフォルトのスタイルシート(VSCode, markdown-pdf)を有効にします
@@ -205,7 +309,8 @@
 
 #### `markdown-pdf.executablePath`
   - バンドルされた Chromium の代わりに実行する Chromium または Chrome のパスを指定します
-  - 全ての `\` は `\\` と記述する必要があります。(Windows)
+  - 全ての `\` は `\\` と記述する必要があります (Windows)
+  - 設定の反映には、Visutal Studio Code の再起動が必要です
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -270,7 +375,8 @@
 "markdown-pdf.format": "A4",
 ```
 
-#### `markdown-pdf.width`, `markdown-pdf.height`
+#### `markdown-pdf.width`
+#### `markdown-pdf.height`
   - 用紙の幅/高さ、 単位(mm, cm, in, px)
   - このオプションが指定されている場合、markdown-pdf.format オプションより優先されます
 
@@ -279,7 +385,10 @@
 "markdown-pdf.height": "20cm",
 ```
 
-#### `markdown-pdf.margin.top`, `markdown-pdf.margin.bottom`, `markdown-pdf.margin.right`, `markdown-pdf.margin.left`
+#### `markdown-pdf.margin.top`
+#### `markdown-pdf.margin.bottom`
+#### `markdown-pdf.margin.right`
+#### `markdown-pdf.margin.left`
   - 用紙の余白、単位(mm, cm, in, px)
 
 ```javascript
@@ -300,7 +409,10 @@
 "markdown-pdf.quality": 100,
 ```
 
-#### `markdown-pdf.clip.x`, `markdown-pdf.clip.y`, `markdown-pdf.clip.width`, `markdown-pdf.clip.height`
+#### `markdown-pdf.clip.x`
+#### `markdown-pdf.clip.y`
+#### `markdown-pdf.clip.width`
+#### `markdown-pdf.clip.height`
   - ページの切り抜き領域を指定します
   - number
 
@@ -335,6 +447,24 @@
 }
 ```
 
+### Tip: 文字コードの自動判定
+
+Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、文字コードが自動判定されるので便利です。
+
+```javascript
+"files.autoGuessEncoding": true,
+```
+
+### Tip: 出力ディレクトリ
+
+常に Markdown ファイルからの相対パスのディレクトリに出力したい。
+
+例えば、Markdown ファイルと同じディレクトリの "output"ディレクトリに出力する場合、次のように設定してください。
+
+```javascript
+"markdown-pdf.outputDirectory" : "output",
+"markdown-pdf.outputDirectoryRelativePathFile": true,
+```
 
 ## 既知の問題
 
@@ -344,20 +474,23 @@
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.0.2 (2018/04/24)
-* Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
+### 1.0.3 (2018/04/30)
+* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
+    * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
+    * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
+* Fix: `markdown-pdf.styles` option
+    * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
+    * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
+    * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
 
-### 1.0.1 (2018/04/21)
-* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
+    * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
-### 1.0.0 (2018/04/15)
-* Change: Replace pdf converter with puppeteer instead of html-pdf
-* Add: Support multiple types in `markdown-pdf.type` option
-    * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
-* Add: Support markdown-it-named-headers
-    * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)
-* Add: Increase menu items (pdf, html, png, jpeg)
-* Update: dependencies packages
+* Fix: File encoding
+    * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
+    * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
+
+* Fix: Can not convert pdf [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76)
 
 
 ## License
