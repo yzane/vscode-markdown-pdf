@@ -163,7 +163,6 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 "markdown-pdf.outputDirectory": "C:\\work\\output",
 ```
 
-
   - 相対パス
     - `Markdownファイル` を開いた場合、ファイルからの相対パスとして解釈されます
     - `フォルダ` を開いた場合、ルートフォルダからの相対パスとして解釈されます
