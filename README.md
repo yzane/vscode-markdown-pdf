@@ -190,6 +190,7 @@ If the download is not successful or you want to avoid downloading every time yo
 
 #### `markdown-pdf.outputDirectoryRelativePathFile`
   - If `markdown-pdf.outputDirectoryRelativePathFile` option is set to `true`, the relative path set with [markdown-pdf.outputDirectory](#markdown-pdfoutputDirectory) is interpreted as relative from the file
+  - It can be used to avoid relative paths from folders and workspaces
   - boolean. Default: false
 
 ### Styles options

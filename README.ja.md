@@ -185,6 +185,7 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 
 #### `markdown-pdf.outputDirectoryRelativePathFile`
   - `markdown-pdf.outputDirectoryRelativePathFile` オプションが `true` に設定されている場合、[markdown-pdf.outputDirectory](#markdown-pdfoutputDirectory) で設定した相対パスは、ファイルからの相対パスとして解釈されます
+  - フォルダやワークスペースからの相対パスを避けたい場合に使うことが出来ます
   - boolean. Default: false
 
 ### Styles options
