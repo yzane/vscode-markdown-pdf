@@ -122,6 +122,44 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 |`markdown-pdf.clip.height`||
 |`markdown-pdf.omitBackground`||
 
+### Option list
+
+|Category| Option name|
+|:---|:---|
+|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)|
+||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)|
+||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)|
+||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)|
+||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)|
+|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)|
+||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)|
+||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)|
+|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)|
+||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)|
+|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)|
+|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)|
+|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)|
+|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)|
+|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|
+||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|
+||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|
+||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|
+||[markdown-pdf.orientation](#markdown-pdforientation)|
+||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|
+||[markdown-pdf.format](#markdown-pdfformat)|
+||[markdown-pdf.width](#markdown-pdfwidth)|
+||[markdown-pdf.height](#markdown-pdfheight)|
+||[markdown-pdf.margin.top](#markdown-pdfmargintop)|
+||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|
+||[markdown-pdf.margin.right](#markdown-pdfmarginright)|
+||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|
+|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)|
+||[markdown-pdf.clip.x](#markdown-pdfclipx)|
+||[markdown-pdf.clip.y](#markdown-pdfclipy)|
+||[markdown-pdf.clip.width](#markdown-pdfclipwidth)|
+||[markdown-pdf.clip.height](#markdown-pdfclipheight)|
+||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
+
 ### Save options
 
 #### `markdown-pdf.type`
@@ -337,7 +375,8 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 "markdown-pdf.format": "A4",
 ```
 
-#### `markdown-pdf.width`, `markdown-pdf.height`
+#### `markdown-pdf.width`
+#### `markdown-pdf.height`
   - 用紙の幅/高さ、 単位(mm, cm, in, px)
   - このオプションが指定されている場合、markdown-pdf.format オプションより優先されます
 
@@ -346,7 +385,10 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 "markdown-pdf.height": "20cm",
 ```
 
-#### `markdown-pdf.margin.top`, `markdown-pdf.margin.bottom`, `markdown-pdf.margin.right`, `markdown-pdf.margin.left`
+#### `markdown-pdf.margin.top`
+#### `markdown-pdf.margin.bottom`
+#### `markdown-pdf.margin.right`
+#### `markdown-pdf.margin.left`
   - 用紙の余白、単位(mm, cm, in, px)
 
 ```javascript
@@ -367,7 +409,10 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 "markdown-pdf.quality": 100,
 ```
 
-#### `markdown-pdf.clip.x`, `markdown-pdf.clip.y`, `markdown-pdf.clip.width`, `markdown-pdf.clip.height`
+#### `markdown-pdf.clip.x`
+#### `markdown-pdf.clip.y`
+#### `markdown-pdf.clip.width`
+#### `markdown-pdf.clip.height`
   - ページの切り抜き領域を指定します
   - number
 
