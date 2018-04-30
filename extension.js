@@ -669,9 +669,10 @@ function fixHref(resource, href) {
     return vscode.Uri.file(href).toString();
   }
 
-  // Use a workspace relative path if there is a workspace
+  // Use a workspace relative path if there is a workspace and markdown-pdf.stylesRelativePathFile is false
+  var stylesRelativePathFile = vscode.workspace.getConfiguration('markdown-pdf')['stylesRelativePathFile'];
   let root = vscode.workspace.getWorkspaceFolder(resource);
-  if (root) {
+  if (stylesRelativePathFile === false && root) {
     return vscode.Uri.file(path.join(root.uri.fsPath, href)).toString();
   }
 

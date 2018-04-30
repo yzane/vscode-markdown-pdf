@@ -230,6 +230,10 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 ],
 ```
 
+#### `markdown-pdf.stylesRelativePathFile`
+  - `markdown-pdf.stylesRelativePathFile` オプションが `true` に設定されている場合、[markdown-pdf.styles](#markdown-pdfstyles) で設定した相対パスは、ファイルからの相対パスとして解釈されます
+  - boolean. Default: false
+
 #### `markdown-pdf.includeDefaultStyles`
   - デフォルトのスタイルシート(VSCode, markdown-pdf)を有効にします
   - boolean. Default: true

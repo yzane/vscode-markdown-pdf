@@ -176,6 +176,13 @@
           "default": [],
           "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
         },
+        "markdown-pdf.stylesRelativePathFile": {
+          "type": [
+            "boolean"
+          ],
+          "default": false,
+          "description": "If markdown-pdf.stylesRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+        },
         "markdown-pdf.includeDefaultStyles": {
           "type": [
             "boolean"
