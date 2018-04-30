@@ -5,13 +5,14 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 [Japanease README](README.ja.md)
 
 ## <font color="red"> Important Notices </font>
-* Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf)
+* Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) (PhantomJS)
 * Some options are obsolete, please change. See [Options](#options)
 
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
 - [Features](#features)
+- [Install](#install)
 - [Usage](#usage)
 - [Extension Settings](#extension-settings)
 - [Options](#options)
@@ -35,6 +36,18 @@ Sample files
  * [html](sample/README.html)
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
+
+
+## Install
+
+Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visutal Studio Code.
+
+However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).
+
+During downloading, `Installing Puppeteer ...` is displayed in the status bar.
+
+If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed 'Chromium' or 'Chrome' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
+
 
 ## Usage
 
@@ -113,6 +126,44 @@ Sample files
 |`markdown-pdf.clip.height`||
 |`markdown-pdf.omitBackground`||
 
+### Option list
+
+|Category| Option name|
+|:---|:---|
+|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)|
+||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)|
+||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)|
+||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)|
+||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)|
+|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)|
+||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)|
+||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)|
+|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)|
+||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)|
+|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)|
+|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)|
+|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)|
+|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)|
+|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|
+||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|
+||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|
+||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|
+||[markdown-pdf.orientation](#markdown-pdforientation)|
+||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|
+||[markdown-pdf.format](#markdown-pdfformat)|
+||[markdown-pdf.width](#markdown-pdfwidth)|
+||[markdown-pdf.height](#markdown-pdfheight)|
+||[markdown-pdf.margin.top](#markdown-pdfmargintop)|
+||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|
+||[markdown-pdf.margin.right](#markdown-pdfmarginright)|
+||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|
+|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)|
+||[markdown-pdf.clip.x](#markdown-pdfclipx)|
+||[markdown-pdf.clip.y](#markdown-pdfclipy)|
+||[markdown-pdf.clip.width](#markdown-pdfclipwidth)|
+||[markdown-pdf.clip.height](#markdown-pdfclipheight)|
+||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
+
 ### Save options
 
 #### `markdown-pdf.type`
@@ -132,6 +183,7 @@ Sample files
 #### `markdown-pdf.convertOnSave`
   - Enable Auto convert on save
   - boolean. Default: false
+  - To apply the settings, you need to restart Visual Studio Code
 
 #### `markdown-pdf.convertOnSaveExclude`
   - Excluded file name of convertOnSave option
@@ -142,36 +194,91 @@ Sample files
   "work.md$",
   "work|test",
   "[0-9][0-9][0-9][0-9]-work",
-  "work\\test"  // All '\' need to be written as '\\'
+  "work\\test"  // All '\' need to be written as '\\' (Windows)
 ],
 ```
+
 #### `markdown-pdf.outputDirectory`
   - Output Directory
-  - All '\\' need to be written as '\\\\' (Windows)
+  - All `\` need to be written as `\\` (Windows)
 
 ```javascript
-"markdown-pdf.outputDirectory": "C:\\work",
+"markdown-pdf.outputDirectory": "C:\\work\\output",
 ```
+
+  - Relative path
+    - If you open the `Markdown file`, it will be interpreted as a relative path from the file
+    - If you open a `folder`, it will be interpreted as a relative path from the root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+      - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
+
+```javascript
+"markdown-pdf.outputDirectory": "output",
+```
+
+  - Relative path (home directory)
+    - If path starts with  `~`, it will be interpreted as a relative path from the home directory
+
+```javascript
+"markdown-pdf.outputDirectory": "~/output",
+```
+
+  - If you set a directory with a `relative path`, it will be created if the directory does not exist
+  - If you set a directory with an `absolute path`, an error occurs if the directory does not exist
+
+#### `markdown-pdf.outputDirectoryRelativePathFile`
+  - If `markdown-pdf.outputDirectoryRelativePathFile` option is set to `true`, the relative path set with [markdown-pdf.outputDirectory](#markdown-pdfoutputDirectory) is interpreted as relative from the file
+  - It can be used to avoid relative paths from folders and workspaces
+  - boolean. Default: false
 
 ### Styles options
 
 #### `markdown-pdf.styles`
   - A list of local paths to the stylesheets to use from the markdown-pdf
-  - Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
-
+  - If the file does not exist, it will be skipped
+  - All `\` need to be written as `\\` (Windows)
 
 ```javascript
 "markdown-pdf.styles": [
-  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",  // OK (Windows)
-  "C:\Users\<USERNAME>\Documents\markdown-pdf.css",      // N/A. All '\' need to be written as '\\'. (Windows)
-  "C:/Users/<USERNAME>/Documents/markdown-pdf.css",      // OK (Windows)
-  "/home/<USERNAME>/settings/markdown-pdf.css",          // OK
-  ".vscode\\markdown-pdf.css",                           // OK. Relative path (Windows)
-  ".vscode/markdown-pdf.css",                            // OK. Relative path
-  "markdown-pdf.css.css",                                 // OK. Relative path
-  "https://xxx/xxx.css"
+  "C:\\Users\\<USERNAME>\\Documents\\markdown-pdf.css",
+  "/home/<USERNAME>/settings/markdown-pdf.css",
 ],
 ```
+
+  - Relative path
+    - If you open the `Markdown file`, it will be interpreted as a relative path from the file
+    - If you open a `folder`, it will be interpreted as a relative path from the root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+      - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
+
+```javascript
+"markdown-pdf.styles": [
+  "markdown-pdf.css",
+],
+```
+
+  - Relative path (home directory)
+    - If path starts with `~`, it will be interpreted as a relative path from the home directory
+
+```javascript
+"markdown-pdf.styles": [
+  "~/.config/Code/User/markdown-pdf.css"
+],
+```
+
+  - Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+
+```javascript
+"markdown-pdf.styles": [
+  "https://xxx/markdown-pdf.css"
+],
+```
+
+#### `markdown-pdf.stylesRelativePathFile`
+
+  - If `markdown-pdf.stylesRelativePathFile` option is set to `true`, the relative path set with [markdown-pdf.styles](#markdown-pdfstyles) is interpreted as relative from the file
+  - It can be used to avoid relative paths from folders and workspaces
+  - boolean. Default: false
 
 #### `markdown-pdf.includeDefaultStyles`
   - Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)
@@ -208,7 +315,8 @@ Sample files
 
 #### `markdown-pdf.executablePath`
   - Path to a Chromium or Chrome executable to run instead of the bundled Chromium
-  - All '\\' need to be written as '\\\\' (Windows)
+  - All `\` need to be written as `\\` (Windows)
+  - To apply the settings, you need to restart Visual Studio Code
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -232,7 +340,8 @@ Sample files
   - Enable display header and footer
   - boolean. Default: true
 
-#### `markdown-pdf.headerTemplate`, `markdown-pdf.footerTemplate`
+#### `markdown-pdf.headerTemplate`
+#### `markdown-pdf.footerTemplate`
   - HTML template for the print header and footer
   - `<span class='date'></span>` : formatted print date
   - `<span class='title'></span>` : markdown file name
@@ -273,7 +382,8 @@ Sample files
 "markdown-pdf.format": "A4",
 ```
 
-#### `markdown-pdf.width`, `markdown-pdf.height`
+#### `markdown-pdf.width`
+#### `markdown-pdf.height`
   - Paper width / height, accepts values labeled with units(mm, cm, in, px)
   - If it is set, it overrides the markdown-pdf.format option
 
@@ -282,7 +392,10 @@ Sample files
 "markdown-pdf.height": "20cm",
 ```
 
-#### `markdown-pdf.margin.top`, `markdown-pdf.margin.bottom`, `markdown-pdf.margin.right`, `markdown-pdf.margin.left`
+#### `markdown-pdf.margin.top`
+#### `markdown-pdf.margin.bottom`
+#### `markdown-pdf.margin.right`
+#### `markdown-pdf.margin.left`
   - Paper margins.units(mm, cm, in, px)
 
 ```javascript
@@ -292,7 +405,7 @@ Sample files
 "markdown-pdf.margin.left": "1cm",
 ```
 
-### PNG, JPEG options
+### PNG JPEG options
 
   - png and jpeg only. [puppeteer page.screenshot options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
 
@@ -303,7 +416,10 @@ Sample files
 "markdown-pdf.quality": 100,
 ```
 
-#### `markdown-pdf.clip.x`, `markdown-pdf.clip.y`, `markdown-pdf.clip.width`, `markdown-pdf.clip.height`
+#### `markdown-pdf.clip.x`
+#### `markdown-pdf.clip.y`
+#### `markdown-pdf.clip.width`
+#### `markdown-pdf.clip.height`
   - An object which specifies clipping region of the page
   - number
 
@@ -338,6 +454,24 @@ Sample files
 }
 ```
 
+### Tip: Auto guess encoding of files
+
+Using `files.autoGuessEncoding` option of the Visual Studio Code is useful because it automatically guesses the character code. See [files.autoGuessEncoding](https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files)
+
+```javascript
+"files.autoGuessEncoding": true,
+```
+
+### Tip: Output directory
+
+I always want to output to the relative path directory from the Markdown file.
+
+For example, to output to the "output" directory in the same directory as the Markdown file, set it as follows.
+
+```javascript
+"markdown-pdf.outputDirectory" : "output",
+"markdown-pdf.outputDirectoryRelativePathFile": true,
+```
 
 ## Known Issues
 
@@ -347,20 +481,23 @@ Sample files
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.0.2 (2018/04/24)
-* Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
+### 1.0.3 (2018/04/30)
+* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
+    * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
+    * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
+* Fix: `markdown-pdf.styles` option
+    * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
+    * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
+    * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
 
-### 1.0.1 (2018/04/21)
-* Add: Allow online (https) CSS in `markdown-pdf.styles` [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
+* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.outputDirectory` option
+    * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
 
-### 1.0.0 (2018/04/15)
-* Change: Replace pdf converter with puppeteer instead of html-pdf
-* Add: Support multiple types in `markdown-pdf.type` option
-    * Add: Define Multiple outputformats [#20](https://github.com/yzane/vscode-markdown-pdf/issues/20)
-* Add: Support markdown-it-named-headers
-    * Fix: TOC extension not working on Convert Markdown to PDF [#31](https://github.com/yzane/vscode-markdown-pdf/issues/31)
-* Add: Increase menu items (pdf, html, png, jpeg)
-* Update: dependencies packages
+* Fix: File encoding
+    * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
+    * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
+
+* Fix: Can not convert pdf [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76)
 
 
 ## License
