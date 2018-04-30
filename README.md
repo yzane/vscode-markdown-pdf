@@ -12,6 +12,7 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
 - [Features](#features)
+- [Install](#install)
 - [Usage](#usage)
 - [Extension Settings](#extension-settings)
 - [Options](#options)
@@ -35,6 +36,18 @@ Sample files
  * [html](sample/README.html)
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
+
+
+## Install
+
+Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visutal Studio Code.
+
+However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).
+
+During downloading, `Installing Puppeteer ...` is displayed in the status bar.
+
+If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed 'Chromium' or 'Chrome' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
+
 
 ## Usage
 
@@ -132,6 +145,7 @@ Sample files
 #### `markdown-pdf.convertOnSave`
   - Enable Auto convert on save
   - boolean. Default: false
+  - To apply the settings, you need to restart Visual Studio Code
 
 #### `markdown-pdf.convertOnSaveExclude`
   - Excluded file name of convertOnSave option
@@ -253,6 +267,7 @@ Sample files
 #### `markdown-pdf.executablePath`
   - Path to a Chromium or Chrome executable to run instead of the bundled Chromium
   - All `\` need to be written as `\\` (Windows)
+  - To apply the settings, you need to restart Visual Studio Code
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -380,6 +395,14 @@ Sample files
 .emoji {
   height: 2em;
 }
+```
+
+### Tip: Auto guess encoding of files
+
+Using `files.autoGuessEncoding` option of the Visual Studio Code is useful because it automatically guesses the character code. See [files.autoGuessEncoding](https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files)
+
+```javascript
+"files.autoGuessEncoding": true,
 ```
 
 

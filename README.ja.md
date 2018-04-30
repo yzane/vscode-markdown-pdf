@@ -10,6 +10,7 @@
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
 - [機能](#機能)
+- [インストール](#インストール)
 - [使い方](#使い方)
 - [拡張機能 設定](#拡張機能-設定)
 - [オプション](#オプション)
@@ -33,6 +34,16 @@
  * [html](sample/README.html)
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
+
+
+## インストール
+
+Markdown PDF をインストールして、Visutal Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
+しかしサイズが大きい為 (~170Mb Mac, ~282Mb Linux, ~280Mb Win) 、環境によっては時間がかかります。
+ダウンロード中は、ステータスバーに `Installing Puppeteer ...` が表示されます。
+
+ダウンロードが上手くいかない場合や、Markdown PDF のバージョンアップの度にダウンロードするのを避けたい場合、[markdown-pdf.executablePath](#markdown-pdfexecutablepath) オプションでインストール済みの Chromium か Chrome を指定してください。
+
  
 ## 使い方
 
@@ -130,6 +141,7 @@
 #### `markdown-pdf.convertOnSave`
   - 保存時の自動変換を有効にします
   - boolean. Default: false
+  - 設定の反映には、Visutal Studio Code の再起動が必要です
 
 #### `markdown-pdf.convertOnSaveExclude`
   - convertOnSave オプションの除外ファイル名を指定します
@@ -251,6 +263,7 @@
 #### `markdown-pdf.executablePath`
   - バンドルされた Chromium の代わりに実行する Chromium または Chrome のパスを指定します
   - 全ての `\` は `\\` と記述する必要があります (Windows)
+  - 設定の反映には、Visutal Studio Code の再起動が必要です
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -378,6 +391,14 @@
 .emoji {
   height: 2em;
 }
+```
+
+### Tip: 文字コードの自動判定
+
+Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、文字コードが自動判定されるので便利です。
+
+```javascript
+"files.autoGuessEncoding": true,
 ```
 
 
