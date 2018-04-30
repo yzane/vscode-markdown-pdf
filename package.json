@@ -461,7 +461,7 @@
   },
   "devDependencies": {
     "removeNPMAbsolutePaths": "^1.0.4",
-    "vscode": "^1.1.14"
+    "vscode": "^1.1.16"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
