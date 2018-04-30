@@ -16,6 +16,8 @@
     * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
     * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
 
+* Fix: Can not convert pdf [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76)
+
 ## 1.0.2 (2018/04/24)
 * Improve: puppeteer install [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76), [#77](https://github.com/yzane/vscode-markdown-pdf/issues/77)
 

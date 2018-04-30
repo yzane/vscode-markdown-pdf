@@ -85,11 +85,10 @@ function MarkdownPdf(option_type) {
       var type = types[i];
       if (types_format.indexOf(type) >= 0) {
         filename = mdfilename.replace(ext, '.' + type);
-        filename = getOutputDir(filename, uri);
         var text = editor.document.getText();
         var content = convertMarkdownToHtml(mdfilename, type, text);
         var html = makeHtml(content, uri);
-        exportPdf(html, filename, type);
+        exportPdf(html, filename, type, uri);
       } else {
         vscode.window.showErrorMessage('ERROR: MarkdownPdf().2 Supported formats: html, pdf, png, jpeg.');
         return;
@@ -298,12 +297,13 @@ function exportHtml(data, filename) {
 /*
  * export a html to a pdf file (html-pdf)
  */
-function exportPdf(data, filename, type) {
+function exportPdf(data, filename, type, uri) {
   
   if (!checkPuppeteerBinary()) {
     return;
   }
-  
+
+  var exportFilename = getOutputDir(filename, uri); 
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   vscode.window.withProgress({
@@ -313,25 +313,23 @@ function exportPdf(data, filename, type) {
       try {
         // export html
         if (type == 'html') {
-          exportHtml(data, filename);
-          vscode.window.setStatusBarMessage('$(markdown) ' + filename, StatusbarMessageTimeout);
+          exportHtml(data, exportFilename);
+          vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
           return;
         }
-        
+
         const puppeteer = require('puppeteer');
         // create temporary file
         var f = path.parse(filename);
         var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
-        tmpfilename = getOutputDir(tmpfilename);
         exportHtml(data, tmpfilename);
-        
         var options = {
           executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || undefined
         }
         const browser = await puppeteer.launch(options);
         const page = await browser.newPage();
-        await page.goto(`file://${tmpfilename}`, { waitUntil: 'networkidle0' });
-
+        await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
+        
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
         if (type == 'pdf') {
@@ -345,12 +343,12 @@ function exportPdf(data, filename, type) {
           }
           var landscape_option;
           if (vscode.workspace.getConfiguration('markdown-pdf')['orientation'] == 'landscape') {
-              landscape_option = true;
+            landscape_option = true;
           } else {
             landscape_option = false;
           }
           var options = {
-            path: filename,
+            path: exportFilename,
             scale: vscode.workspace.getConfiguration('markdown-pdf')['scale'],
             displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf')['displayHeaderFooter'],
             headerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['headerTemplate'] || '',
@@ -369,7 +367,10 @@ function exportPdf(data, filename, type) {
             }
           }
           if (checkPuppeteerBinary()) {
-            await page.pdf(options);
+            await page.pdf(options).catch(e => {
+              vscode.window.showErrorMessage(e.message);
+              console.warn(e.message);
+            });
           }
         }
 
@@ -393,7 +394,7 @@ function exportPdf(data, filename, type) {
           var options;
           if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
             options = {
-              path: filename,
+              path: exportFilename,
               quality: quality_option,
               fullPage: false,
               clip: {
@@ -406,14 +407,17 @@ function exportPdf(data, filename, type) {
             }
           } else {
             options = {
-              path: filename,
+              path: exportFilename,
               quality: quality_option,
               fullPage: true,
               omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],          
             }
           }
           if (checkPuppeteerBinary()) {
-            await page.screenshot(options);
+            await page.screenshot(options).catch(e => {
+              vscode.window.showErrorMessage(e.message);
+              console.warn(e.message);
+            });
           }
         }
 
@@ -427,10 +431,10 @@ function exportPdf(data, filename, type) {
           }
         }
 
-        vscode.window.setStatusBarMessage('$(markdown) ' + filename, StatusbarMessageTimeout);
+        vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
       } catch (e) {
-        // vscode.window.showErrorMessage('ERROR: exportPdf()');
         // vscode.window.showErrorMessage(e.message);
+        console.warn(e.message);
       }
     } // async
   ); // vscode.window.withProgress
