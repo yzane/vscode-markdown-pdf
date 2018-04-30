@@ -142,9 +142,7 @@
           "description": "Output format: pdf, html, png, jpeg. Multiple output formats support"
         },
         "markdown-pdf.convertOnSave": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "Enable Auto convert on save"
         },
@@ -164,9 +162,7 @@
           "description": "Output Directory. All '\\' need to be written as '\\\\' (Windows)"
         },
         "markdown-pdf.outputDirectoryRelativePathFile": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
         },
@@ -178,23 +174,17 @@
           "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
         },
         "markdown-pdf.stylesRelativePathFile": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": false,
           "description": "If markdown-pdf.stylesRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
         },
         "markdown-pdf.includeDefaultStyles": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)"
         },
         "markdown-pdf.highlight": {
-          "type": [
-            "boolean"
-          ],
+          "type": "boolean",
           "default": true,
           "description": "Enable Syntax highlighting"
         },
