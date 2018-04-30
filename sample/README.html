@@ -1000,6 +1000,12 @@ blockquote {
 <p>Using <code>files.autoGuessEncoding</code> option of the Visual Studio Code is useful because it automatically guesses the character code. See <a href="https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files">files.autoGuessEncoding</a></p>
 <pre class="hljs"><code><div><span class="hljs-string">"files.autoGuessEncoding"</span>: <span class="hljs-literal">true</span>,
 </div></code></pre>
+<h3 id="tip-output-directory">Tip: Output directory</h3>
+<p>If you always want to output to the relative path directory from the Markdown file.</p>
+<p>For example, to output to the &quot;output&quot; directory in the same directory as the Markdown file, set it as follows.</p>
+<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.outputDirectory"</span> : <span class="hljs-string">"output"</span>,
+<span class="hljs-string">"markdown-pdf.outputDirectoryRelativePathFile"</span>: <span class="hljs-literal">true</span>,
+</div></code></pre>
 <h2 id="known-issues">Known Issues</h2>
 <h3 id="markdown-pdfstyles-option"><code>markdown-pdf.styles</code> option</h3>
 <ul>
@@ -1009,14 +1015,14 @@ blockquote {
 <h3 id="103-20180430">1.0.3 (2018/04/30)</h3>
 <ul>
 <li>
-<p>Fix: Support <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a> with <code>markdown-pdf.styles</code> option</p>
+<p>Fix: Support <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a> with <a href="#markdown-pdfstyles">markdown-pdf.styles</a> option</p>
 <ul>
 <li>Japanese font is not good <a href="https://github.com/yzane/vscode-markdown-pdf/issues/79">#79</a></li>
 <li>relative stylesheet paths are not working when multiple folders in workspace <a href="https://github.com/yzane/vscode-markdown-pdf/issues/68">#68</a></li>
 </ul>
 </li>
 <li>
-<p>Fix: <code>markdown-pdf.styles</code> option</p>
+<p>Fix: <a href="#markdown-pdfstyles">markdown-pdf.styles</a> option</p>
 <ul>
 <li>[BUG] Custom PDF style not being used <a href="https://github.com/yzane/vscode-markdown-pdf/issues/35">#35</a></li>
 <li>How to change font size of generated pdf <a href="https://github.com/yzane/vscode-markdown-pdf/issues/40">#40</a></li>
@@ -1024,7 +1030,7 @@ blockquote {
 </ul>
 </li>
 <li>
-<p>Improve: Support <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a> with <code>markdown-pdf.outputDirectory</code> option</p>
+<p>Improve: Support <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a> with <a href="#markdown-pdfoutputdirectory">markdown-pdf.outputDirectory</a> option</p>
 <ul>
 <li>How do I specify a relative output directory? <a href="https://github.com/yzane/vscode-markdown-pdf/issues/29">#29</a></li>
 </ul>
@@ -1038,6 +1044,12 @@ blockquote {
 </li>
 <li>
 <p>Fix: Can not convert pdf <a href="https://github.com/yzane/vscode-markdown-pdf/issues/76">#76</a></p>
+</li>
+<li>
+<p>Add: <a href="#markdown-pdfoutputdirectoryrelativepathfile">markdown-pdf.outputDirectoryRelativePathFile</a> option</p>
+</li>
+<li>
+<p>Add: <a href="#markdown-pdfstylesrelativepathfile">markdown-pdf.stylesRelativePathFile</a> option</p>
 </li>
 </ul>
 <h2 id="license">License</h2>
