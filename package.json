@@ -17,7 +17,8 @@
     "pdf",
     "convert",
     "export",
-    "html"
+    "html",
+    "multi-root ready"
   ],
   "repository": {
     "type": "git",
