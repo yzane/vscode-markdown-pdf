@@ -697,49 +697,29 @@ function checkPuppeteerBinary() {
   }
 }
 
-function installPuppeteerBinary() {
-  var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
-
-  vscode.window.showInformationMessage('[Markdown PDF] Installing Puppeteer ...');
-  var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Installing Puppeteer ...');
-
-  // proxy setting
-  setProxy();
-
-  // download check
-  const puppeteer = require('puppeteer');
-  const browserFetcher = puppeteer.createBrowserFetcher();
-  const revision = require(path.join(__dirname, 'node_modules', 'puppeteer', 'package.json')).puppeteer.chromium_revision;
-  browserFetcher.canDownload(revision)
-    .then(function (r) {
-      if (r) {
-        puppeteer_installer(statusbarmessage);
-          return;
-    } else {
-        statusbarmessage.dispose();
-        vscode.window.setStatusBarMessage('$(markdown) ERROR: Failed to download Chromium!', StatusbarMessageTimeout);
-        vscode.window.showErrorMessage('ERROR: Failed to download Chromium! If you are behind a proxy, set the http.proxy option to settings.json and restart Visual Studio Code.');
-        return;
-      }
-    });
-}
-
 /*
  * puppeteer install.js
  * https://github.com/GoogleChrome/puppeteer/blob/master/install.js
  */
-function puppeteer_installer(statusbarmessage) {
+function installChromium() {
+  vscode.window.showInformationMessage('[Markdown PDF] Installing Chromium ...');
+  var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ...');
+
+  // proxy setting
+  setProxy();
+
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   const puppeteer = require('puppeteer');
   const browserFetcher = puppeteer.createBrowserFetcher();
   const revision = require(path.join(__dirname, 'node_modules', 'puppeteer', 'package.json')).puppeteer.chromium_revision;
   const revisionInfo = browserFetcher.revisionInfo(revision);
-  
-  browserFetcher.download(revisionInfo.revision)
-      .then(() => browserFetcher.localRevisions())
-      .then(onSuccess)
-      .catch(onError);
-  
+
+  // download Chromium
+  browserFetcher.download(revisionInfo.revision, onProgress)
+    .then(() => browserFetcher.localRevisions())
+    .then(onSuccess)
+    .catch(onError);
+
   function onSuccess(localRevisions) {
     console.log('Chromium downloaded to ' + revisionInfo.folderPath);
     localRevisions = localRevisions.filter(revision => revision !== revisionInfo.revision);
@@ -748,21 +728,23 @@ function puppeteer_installer(statusbarmessage) {
 
     if (checkPuppeteerBinary()) {
       statusbarmessage.dispose();
-      vscode.window.setStatusBarMessage('$(markdown) Puppeteer installation succeeded.', StatusbarMessageTimeout);
-      vscode.window.showInformationMessage('[Markdown PDF] Puppeteer installation succeeded.');
+      vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
+      vscode.window.showInformationMessage('[Markdown PDF] Chromium installation succeeded.');
       return Promise.all(cleanupOldVersions);
     }
   }
   
   function onError(error) {
-    console.error(`ERROR: Failed to download Chromium r${revision}!`);
     statusbarmessage.dispose();
     vscode.window.setStatusBarMessage('$(markdown) ERROR: Failed to download Chromium!', StatusbarMessageTimeout);
-    vscode.window.showErrorMessage('ERROR: Failed to download Chromium!');
-    vscode.window.showErrorMessage(error);
-    console.error(error);
-    process.exit(1);
+    vscode.window.showErrorMessage('ERROR: Failed to download Chromium! If you are behind a proxy, set the http.proxy option to settings.json and restart Visual Studio Code. See https://github.com/yzane/vscode-markdown-pdf#install');
+    vscode.window.showErrorMessage(error.message);
   } 
+
+  function onProgress(downloadedBytes, totalBytes) {
+    var progress = parseInt(downloadedBytes / totalBytes * 100);
+    vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ' + progress + '%' , StatusbarMessageTimeout);
+  }
 }
 
 function setProxy() {
@@ -775,6 +757,6 @@ function setProxy() {
 
 function init() {
   if (!checkPuppeteerBinary()) {
-    installPuppeteerBinary();
+    installChromium();
   }
 }
