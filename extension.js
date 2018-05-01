@@ -715,7 +715,7 @@ function installChromium() {
   const revisionInfo = browserFetcher.revisionInfo(revision);
 
   // download Chromium
-  browserFetcher.download(revisionInfo.revision)
+  browserFetcher.download(revisionInfo.revision, onProgress)
     .then(() => browserFetcher.localRevisions())
     .then(onSuccess)
     .catch(onError);
@@ -739,6 +739,11 @@ function installChromium() {
     vscode.window.setStatusBarMessage('$(markdown) ERROR: Failed to download Chromium!', StatusbarMessageTimeout);
     vscode.window.showErrorMessage('ERROR: Failed to download Chromium! If you are behind a proxy, set the http.proxy option to settings.json and restart Visual Studio Code. See https://github.com/yzane/vscode-markdown-pdf#install');
     vscode.window.showErrorMessage(error.message);
+  } 
+
+  function onProgress(downloadedBytes, totalBytes) {
+    var progress = parseInt(downloadedBytes / totalBytes * 100);
+    vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ' + progress + '%' , StatusbarMessageTimeout);
   }
 }
 
