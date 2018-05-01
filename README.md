@@ -44,9 +44,11 @@ Chromium download starts automatically when Markdown PDF is installed and Markdo
 
 However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).
 
-During downloading, `Installing Puppeteer ...` is displayed in the status bar.
+During downloading, the message `Installing Chromium` is displayed in the status bar.
 
-If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed 'Chromium' or 'Chrome' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
+If you are behind a proxy, set the `http.proxy` option to settings.json and restart Visual Studio Code.
+
+If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed [Chrome](https://www.google.co.jp/chrome/) or 'Chromium' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
 
 
 ## Usage
@@ -481,26 +483,10 @@ For example, to output to the "output" directory in the same directory as the Ma
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.0.3 (2018/04/30)
-* Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with [markdown-pdf.styles](#markdown-pdfstyles) option
-    * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
-    * relative stylesheet paths are not working when multiple folders in workspace [#68](https://github.com/yzane/vscode-markdown-pdf/issues/68)
-* Fix: [markdown-pdf.styles](#markdown-pdfstyles) option
-    * [BUG] Custom PDF style not being used [#35](https://github.com/yzane/vscode-markdown-pdf/issues/35)
-    * How to change font size of generated pdf [#40](https://github.com/yzane/vscode-markdown-pdf/issues/40)
-    * How do you change font-family? [#64](https://github.com/yzane/vscode-markdown-pdf/issues/64)
+## 1.0.4 (2018/05/01)
+* Fix: Display error message when downloading Chromium
+* Improve: Chromium install. Display download progress on status bar
 
-* Improve: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with [markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory) option
-    * How do I specify a relative output directory? [#29](https://github.com/yzane/vscode-markdown-pdf/issues/29)
-
-* Fix: File encoding
-    * Not correctly rendering Windows 1252 encoding [#39](https://github.com/yzane/vscode-markdown-pdf/issues/39)
-    * First H1 header not recognized if file starts with UTF-8 BOM [#44](https://github.com/yzane/vscode-markdown-pdf/issues/44)
-
-* Fix: Can not convert pdf [#76](https://github.com/yzane/vscode-markdown-pdf/issues/76)
-
-* Add: [markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile) option
-* Add: [markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile) option
 
 ## License
 
