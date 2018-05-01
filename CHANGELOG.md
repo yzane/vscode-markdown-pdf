@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.4 (2018/05/01)
+* Fix: Display error message when downloading Chromium
+* Improve: Chromium install. Display download progress on status bar
+
 ## 1.0.3 (2018/04/30)
 * Fix: Support [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces) with `markdown-pdf.styles` option
     * Japanese font is not good [#79](https://github.com/yzane/vscode-markdown-pdf/issues/79)
