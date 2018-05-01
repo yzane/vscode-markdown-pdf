@@ -229,7 +229,22 @@ function convertMarkdownToHtml(filename, type, text) {
     slugify: Slug
   }
   md.use(require('markdown-it-named-headers'), options);
-  
+
+  // markdown-it-container
+  // https://github.com/markdown-it/markdown-it-container
+  md.use(require('markdown-it-container'), 'class', {
+    render: function (tokens, idx) {
+      var m = tokens[idx].info.trim().match(/^class\s+(.*)$/);
+      if (tokens[idx].nesting === 1) {
+        // opening tag
+        return '<div class=\"' + md.utils.escapeHtml(m[1]) +  '\">\n';
+      } else {
+        // closing tag
+        return '</div>\n';
+      }
+    }
+  });
+
   statusbarmessage.dispose();
   return md.render(text);
 }
