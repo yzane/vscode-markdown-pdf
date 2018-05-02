@@ -254,20 +254,19 @@ function Slug(string) {
 function makeHtml(data, uri) {
   try {
     // read styles
-  var style = '';
-  style += readStyles(uri);
+    var style = '';
+    style += readStyles(uri);
 
-  // read template
-  var title = path.basename(uri.fsPath);
-  
-  // read template
-  var filename = path.join(__dirname, 'template', 'template.html');
-  var template = readFile(filename);
+    // get title
+    var title = path.basename(uri.fsPath);
+    
+    // read template
+    var filename = path.join(__dirname, 'template', 'template.html');
+    var template = readFile(filename);
 
-  // compile template
-  var mustache = require('mustache');
+    // compile template
+    var mustache = require('mustache');
 
-  // try {
     var view = {
       title: title,
       style: style,
