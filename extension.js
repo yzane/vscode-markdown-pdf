@@ -144,11 +144,11 @@ function convertMarkdownToHtml(filename, type, text) {
         if (lang && hljs.getLanguage(lang)) {
           try {
             str = hljs.highlight(lang, str, true).value;
-          } catch (e) {
+          } catch (error) {
             str = md.utils.escapeHtml(str);
 
             vscode.window.showErrorMessage('ERROR: markdown-it:highlight');
-            vscode.window.showErrorMessage(e.message);
+            vscode.window.showErrorMessage(error.message);
           }
         } else {
           str = md.utils.escapeHtml(str);
@@ -156,10 +156,10 @@ function convertMarkdownToHtml(filename, type, text) {
         return '<pre class="hljs"><code><div>' + str + '</div></code></pre>';
       }
     });
-  } catch (e) {
+  } catch (error) {
     statusbarmessage.dispose();
     vscode.window.showErrorMessage('ERROR: require(\'markdown-it\')');
-    vscode.window.showErrorMessage(e.message);
+    vscode.window.showErrorMessage(error.message);
   }
 
   // convert the img src of the markdown
@@ -205,10 +205,10 @@ function convertMarkdownToHtml(filename, type, text) {
       var options = {
         defs: emojies_defs
       };
-    } catch (e) {
+    } catch (error) {
       statusbarmessage.dispose();
       vscode.window.showErrorMessage('ERROR: markdown-it-emoji:options');
-      vscode.window.showErrorMessage(e.message);
+      vscode.window.showErrorMessage(error.message);
     }
     md.use(require('markdown-it-emoji'), options);
     md.renderer.rules.emoji = function (token, idx) {
@@ -272,9 +272,9 @@ function makeHtml(data, uri) {
       style: style,
       content: data
     };
-  } catch (e) {
+  } catch (error) {
     vscode.window.showErrorMessage('ERROR: mustache:view');
-    vscode.window.showErrorMessage(e.message);
+    vscode.window.showErrorMessage(error.message);
   }
 
   return mustache.render(template, view);
@@ -284,10 +284,10 @@ function makeHtml(data, uri) {
  * export a html to a html file
  */
 function exportHtml(data, filename) {
-  fs.writeFile(filename, data, 'utf-8', function (err) {
-    if (err) {
+  fs.writeFile(filename, data, 'utf-8', function (error) {
+    if (error) {
       vscode.window.showErrorMessage('ERROR: exportHtml()');
-      vscode.window.showErrorMessage(err.message);
+      vscode.window.showErrorMessage(error.message);
       return;
     }
   });
@@ -366,9 +366,9 @@ function exportPdf(data, filename, type, uri) {
             }
           }
           if (checkPuppeteerBinary()) {
-            await page.pdf(options).catch(e => {
-              vscode.window.showErrorMessage(e.message);
-              console.warn(e.message);
+            await page.pdf(options).catch(error => {
+              vscode.window.showErrorMessage(error.message);
+              console.warn(error.message);
             });
           }
         }
@@ -413,9 +413,9 @@ function exportPdf(data, filename, type, uri) {
             }
           }
           if (checkPuppeteerBinary()) {
-            await page.screenshot(options).catch(e => {
-              vscode.window.showErrorMessage(e.message);
-              console.warn(e.message);
+            await page.screenshot(options).catch(error => {
+              vscode.window.showErrorMessage(error.message);
+              console.warn(error.message);
             });
           }
         }
@@ -431,9 +431,9 @@ function exportPdf(data, filename, type, uri) {
         }
 
         vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
-      } catch (e) {
-        // vscode.window.showErrorMessage(e.message);
-        console.warn(e.message);
+      } catch (error) {
+        // vscode.window.showErrorMessage(error.message);
+        console.warn(error.message);
       }
     } // async
   ); // vscode.window.withProgress
@@ -446,8 +446,8 @@ function isExistsPath(path) {
   try {
     fs.accessSync(path);
     return true;
-  } catch (e) {
-    console.warn(e.message);
+  } catch (error) {
+    console.warn(error.message);
     return false;
   }
 }
@@ -463,16 +463,16 @@ function isExistsDir(dirname) {
       console.warn('Directory does not exist!') ;
       return false;
     }
-  } catch (e) {
-    console.warn(e.message);
+  } catch (error) {
+    console.warn(error.message);
     return false;
   }
 }
 
 function deleteFile (path) {
   var rimraf = require('rimraf')
-  rimraf(path, function(err) {
-    if (err) throw err;
+  rimraf(path, function(error) {
+    if (error) throw error;
   });
 }
 
