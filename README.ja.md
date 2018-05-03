@@ -31,6 +31,8 @@
 * [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
+* [PlantUML](http://plantuml.com/)
+  * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 
 サンプルファイル
  * [pdf](sample/README.pdf)
@@ -40,19 +42,33 @@
 
 ### markdown-it-container
 
-input
+INPUT
 ```
 ::: warning
 *here be dragons*
 :::
 ```
 
-output
+OUTPUT
 ``` html
 <div class="warning">
 <p><em>here be dragons</em></p>
 </div>
 ```
+
+### markdown-it-plantuml
+
+INPUT
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+OUTPUT
+
+![PlantUML](images/PlantUML.png)
 
 
 ## インストール
@@ -508,6 +524,10 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
+### 1.2.0 (2018/05/03)
+* Add: Support [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
+    * Support for lightweight diagrams (PlantUML) [#60](https://github.com/yzane/vscode-markdown-pdf/issues/60)
+
 ### 1.1.0 (2018/05/03)
 * Add: Support [markdown-it-container](https://github.com/markdown-it/markdown-it-container) [#72](https://github.com/yzane/vscode-markdown-pdf/issues/72)
 
@@ -532,17 +552,18 @@ MIT
 
 
 ## Special thanks
-* [marcbachmann/node-html-pdf](https://github.com/marcbachmann/node-html-pdf)
+* [GoogleChrome/puppeteer](https://github.com/GoogleChrome/puppeteer)
 * [markdown-it/markdown-it](https://github.com/markdown-it/markdown-it)
 * [mcecot/markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
+* [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
 * [isagalaev/highlight.js](https://github.com/isagalaev/highlight.js)
 * [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
 * [janl/mustache.js](https://github.com/janl/mustache.js)
-
+* [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
+* [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 
 and
-
 
 * [cakebake/markdown-themeable-pdf](https://github.com/cakebake/markdown-themeable-pdf)
