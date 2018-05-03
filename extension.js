@@ -316,7 +316,6 @@ function exportHtml(data, filename) {
  */
 function exportPdf(data, filename, type, uri) {
 
-  console.log(INSTALL_CHECK);
   if (!INSTALL_CHECK) {
     return;
   }
