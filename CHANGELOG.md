@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.1.0 (2018/05/03)
+* Add: Support [markdown-it-container](https://github.com/markdown-it/markdown-it-container) [#72](https://github.com/yzane/vscode-markdown-pdf/issues/72)
+
 ## 1.0.5 (2018/05/03)
 * Improve: Exception handling
 * Improve: Chromium install check
