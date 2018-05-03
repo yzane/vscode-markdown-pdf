@@ -243,10 +243,26 @@ function convertMarkdownToHtml(filename, type, text) {
   }
   md.use(require('markdown-it-named-headers'), options);
 
+  // markdown-it-container
+  // https://github.com/markdown-it/markdown-it-container
+  md.use(require('markdown-it-container'), '', {
+    validate: function (name) {
+      return name.trim().length;
+    },
+    render: function (tokens, idx) {
+      if (tokens[idx].info.trim() !== '') {
+        return `<div class="${tokens[idx].info.trim()}">\n`;
+      } else {
+        return `</div>\n`;
+      }
+    }
+  });
+  
   statusbarmessage.dispose();
   return md.render(text);
 
   } catch (error) {
+    statusbarmessage.dispose();
     showErrorMessage('convertMarkdownToHtml()', error);
   }
 }

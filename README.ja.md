@@ -29,13 +29,30 @@
 以下の機能をサポートしています。
 * [Syntax highlighting](https://highlightjs.org/static/demo/)
 * [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
-* checkbox
+* [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
+* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 
 サンプルファイル
  * [pdf](sample/README.pdf)
  * [html](sample/README.html)
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
+
+### markdown-it-container
+
+input
+```
+::: warning
+*here be dragons*
+:::
+```
+
+output
+``` html
+<div class="warning">
+<p><em>here be dragons</em></p>
+</div>
+```
 
 
 ## インストール
@@ -490,6 +507,9 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 
 ## [Release Notes](CHANGELOG.md)
+
+### 1.1.0 (2018/05/03)
+* Add: Support [markdown-it-container](https://github.com/markdown-it/markdown-it-container) [#72](https://github.com/yzane/vscode-markdown-pdf/issues/72)
 
 ### 1.0.5 (2018/05/03)
 * Improve: Exception handling
