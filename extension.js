@@ -4,6 +4,7 @@ var path = require('path');
 var fs = require('fs');
 var url = require('url');
 var os = require('os');
+var INSTALL_CHECK = false;
 
 function activate(context) {
   init();
@@ -315,10 +316,16 @@ function exportHtml(data, filename) {
  */
 function exportPdf(data, filename, type, uri) {
 
-  if (!checkPuppeteerBinary()) {
+  console.log(INSTALL_CHECK);
+  if (!INSTALL_CHECK) {
     return;
   }
-
+  if (!checkPuppeteerBinary()) {
+    showErrorMessage('Chromium or Chrome does not exist! \
+      See https://github.com/yzane/vscode-markdown-pdf#install');
+    return;
+  }
+  
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   var exportFilename = getOutputDir(filename, uri);
@@ -389,11 +396,9 @@ function exportPdf(data, filename, type, uri) {
               left: vscode.workspace.getConfiguration('markdown-pdf')['margin']['left'] || ''
             }
           }
-          if (checkPuppeteerBinary()) {
-            await page.pdf(options).catch(error => {
-              showErrorMessage('page.pdf', error);
-            });
-          }
+          await page.pdf(options).catch(error => {
+            showErrorMessage('page.pdf', error);
+          });
         }
 
         // generate png and jpeg
@@ -435,11 +440,9 @@ function exportPdf(data, filename, type, uri) {
               omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
             }
           }
-          if (checkPuppeteerBinary()) {
-            await page.screenshot(options).catch(error => {
-              showErrorMessage('page.screenshot()', error);
-            });
-          }
+          await page.screenshot(options).catch(error => {
+            showErrorMessage('page.screenshot()', error);
+          });
         }
 
         await browser.close();
@@ -725,6 +728,7 @@ function checkPuppeteerBinary() {
     // settings.json
     var executablePath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || ''
     if (isExistsPath(executablePath)) {
+      INSTALL_CHECK = true;
       return true;
     }
 
@@ -772,6 +776,7 @@ function installChromium() {
       const cleanupOldVersions = localRevisions.map(revision => browserFetcher.remove(revision));
 
       if (checkPuppeteerBinary()) {
+        INSTALL_CHECK = true;
         statusbarmessage.dispose();
         vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
         vscode.window.showInformationMessage('[Markdown PDF] Chromium installation succeeded.');
@@ -815,7 +820,9 @@ function setProxy() {
 
 function init() {
   try {
-    if (!checkPuppeteerBinary()) {
+    if (checkPuppeteerBinary()) {
+      INSTALL_CHECK = true;
+    } else {
       installChromium();
     }
   } catch (error) {
