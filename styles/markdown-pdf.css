@@ -30,3 +30,9 @@ blockquote {
 	color: #C9AE75; /* Change the old color so it seems less like an error */
 	font-size: inherit;
 }
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
