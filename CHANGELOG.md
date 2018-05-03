@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.0.5 (2018/05/03)
+* Improve: Exception handling
+* Improve: Chromium install check
+* Add: Page break
+    * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
+* Update: README
+    * FAQ: Page break
+
 ## 1.0.4 (2018/05/01)
 * Fix: Display error message when downloading Chromium
 * Improve: Chromium install. Display download progress on status bar

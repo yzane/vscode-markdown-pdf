@@ -450,7 +450,7 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 }
 ```
 
-### Tip: 文字コードの自動判定
+### 文字コードの自動判定
 
 Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、文字コードが自動判定されるので便利です。
 
@@ -458,7 +458,7 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 "files.autoGuessEncoding": true,
 ```
 
-### Tip: 出力ディレクトリ
+### 出力ディレクトリ
 
 常に Markdown ファイルからの相対パスのディレクトリに出力したい場合。
 
@@ -469,6 +469,15 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 "markdown-pdf.outputDirectoryRelativePathFile": true,
 ```
 
+### 改ページ
+
+改ページを挿入するには、以下を使用してください。
+
+``` html
+<div class="page"/>
+```
+
+
 ## 既知の問題
 
 ### `markdown-pdf.styles` option
@@ -477,7 +486,15 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
-## 1.0.4 (2018/05/01)
+### 1.0.5 (2018/05/03)
+* Improve: Exception handling
+* Improve: Chromium install check
+* Add: Page break
+    * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
+* Update: README
+    * FAQ: Page break
+
+### 1.0.4 (2018/05/01)
 * Fix: Display error message when downloading Chromium
 * Improve: Chromium install. Display download progress on status bar
 
