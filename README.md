@@ -24,6 +24,8 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 
 <!-- /TOC -->
 
+<div class="page"/>
+
 ## Features
 
 Supports the following features
@@ -50,6 +52,7 @@ If you are behind a proxy, set the `http.proxy` option to settings.json and rest
 
 If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed [Chrome](https://www.google.co.jp/chrome/) or 'Chromium' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
 
+<div class="page"/>
 
 ## Usage
 
@@ -443,6 +446,7 @@ If the download is not successful or you want to avoid downloading every time yo
   - Hides default white background and allows capturing screenshots with transparency
   - boolean. Default: false
 
+<div class="page"/>
 
 ## FAQ
 
@@ -456,7 +460,7 @@ If the download is not successful or you want to avoid downloading every time yo
 }
 ```
 
-### Tip: Auto guess encoding of files
+### Auto guess encoding of files
 
 Using `files.autoGuessEncoding` option of the Visual Studio Code is useful because it automatically guesses the character code. See [files.autoGuessEncoding](https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files)
 
@@ -464,7 +468,7 @@ Using `files.autoGuessEncoding` option of the Visual Studio Code is useful becau
 "files.autoGuessEncoding": true,
 ```
 
-### Tip: Output directory
+### Output directory
 
 If you always want to output to the relative path directory from the Markdown file.
 
@@ -475,6 +479,16 @@ For example, to output to the "output" directory in the same directory as the Ma
 "markdown-pdf.outputDirectoryRelativePathFile": true,
 ```
 
+### Page Break
+
+Please use the following to insert a page break.
+
+``` html
+<div class="page"/>
+```
+
+<div class="page"/>
+
 ## Known Issues
 
 ### `markdown-pdf.styles` option
@@ -483,7 +497,17 @@ For example, to output to the "output" directory in the same directory as the Ma
 
 ## [Release Notes](CHANGELOG.md)
 
-## 1.0.4 (2018/05/01)
+### 1.0.5 (2018/05/03)
+* Improve: Exception handling
+* Improve: Chromium install check
+* Add: Page break
+    * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
+* Update: README
+    * FAQ: Page break
+* Update: markdown-pdf.css
+    * Add: Meiryo to font-family
+
+### 1.0.4 (2018/05/01)
 * Fix: Display error message when downloading Chromium
 * Improve: Chromium install. Display download progress on status bar
 
