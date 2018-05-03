@@ -257,7 +257,11 @@ function convertMarkdownToHtml(filename, type, text) {
       }
     }
   });
-  
+
+  // PlantUML
+  // https://github.com/gmunguia/markdown-it-plantuml
+  md.use(require('markdown-it-plantuml'));
+
   statusbarmessage.dispose();
   return md.render(text);
 
