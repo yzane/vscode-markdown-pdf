@@ -24,6 +24,8 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 
 <!-- /TOC -->
 
+<div class="page"/>
+
 ## Features
 
 Supports the following features
@@ -50,6 +52,7 @@ If you are behind a proxy, set the `http.proxy` option to settings.json and rest
 
 If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed [Chrome](https://www.google.co.jp/chrome/) or 'Chromium' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
 
+<div class="page"/>
 
 ## Usage
 
@@ -443,6 +446,7 @@ If the download is not successful or you want to avoid downloading every time yo
   - Hides default white background and allows capturing screenshots with transparency
   - boolean. Default: false
 
+<div class="page"/>
 
 ## FAQ
 
@@ -483,6 +487,7 @@ Please use the following to insert a page break.
 <div class="page"/>
 ```
 
+<div class="page"/>
 
 ## Known Issues
 
@@ -499,6 +504,8 @@ Please use the following to insert a page break.
     * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
 * Update: README
     * FAQ: Page break
+* Update: markdown-pdf.css
+    * Add: Meiryo to font-family
 
 ### 1.0.4 (2018/05/01)
 * Fix: Display error message when downloading Chromium

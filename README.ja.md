@@ -22,6 +22,8 @@
 
 <!-- /TOC -->
 
+<div class="page"/>
+
 ## 機能
 
 以下の機能をサポートしています。
@@ -47,6 +49,7 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 
 ダウンロードが上手くいかない場合や、Markdown PDF のバージョンアップの度にダウンロードするのを避けたい場合、[markdown-pdf.executablePath](#markdown-pdfexecutablepath) オプションでインストール済みの [Chrome](https://www.google.co.jp/chrome/) か Chromium を指定してください。
 
+<div class="page"/>
 
 ## 使い方
 
@@ -437,6 +440,7 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
   - デフォルトの白い背景ではなく、透過によるスクリーンショットのキャプチャーを有効にします
   - boolean. Default: false
 
+<div class="page"/>
 
 ## FAQ
 
@@ -477,6 +481,7 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 <div class="page"/>
 ```
 
+<div class="page"/>
 
 ## 既知の問題
 
@@ -493,6 +498,8 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
     * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
 * Update: README
     * FAQ: Page break
+* Update: markdown-pdf.css
+    * Add: Meiryo to font-family
 
 ### 1.0.4 (2018/05/01)
 * Fix: Display error message when downloading Chromium

@@ -342,6 +342,10 @@ pre.hljs code > div {
  * Markdown PDF CSS
  */
 
+ body {
+	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+}
+
 pre {
 	background-color: #f8f8f8;
 	border: 1px solid #cccccc;
@@ -371,6 +375,12 @@ blockquote {
 	font-size: inherit;
 }
 
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
 </style>
 
 </head>
@@ -398,6 +408,7 @@ blockquote {
 <li><a href="#special-thanks">Special thanks</a></li>
 </ul>
 <!-- /TOC -->
+<div class="page"/>
 <h2 id="features">Features</h2>
 <p>Supports the following features</p>
 <ul>
@@ -415,8 +426,10 @@ blockquote {
 <h2 id="install">Install</h2>
 <p>Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visutal Studio Code.</p>
 <p>However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).</p>
-<p>During downloading, <code>Installing Puppeteer ...</code> is displayed in the status bar.</p>
-<p>If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed 'Chromium' or 'Chrome' with <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a> option.</p>
+<p>During downloading, the message <code>Installing Chromium</code> is displayed in the status bar.</p>
+<p>If you are behind a proxy, set the <code>http.proxy</code> option to settings.json and restart Visual Studio Code.</p>
+<p>If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed <a href="https://www.google.co.jp/chrome/">Chrome</a> or 'Chromium' with <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a> option.</p>
+<div class="page"/>
 <h2 id="usage">Usage</h2>
 <h3 id="command-palette">Command Palette</h3>
 <ol>
@@ -987,6 +1000,7 @@ blockquote {
 <li>Hides default white background and allows capturing screenshots with transparency</li>
 <li>boolean. Default: false</li>
 </ul>
+<div class="page"/>
 <h2 id="faq">FAQ</h2>
 <h3 id="how-can-i-change-emoji-size">How can I change emoji size ?</h3>
 <ol>
@@ -996,61 +1010,51 @@ blockquote {
   <span class="hljs-attribute">height</span>: <span class="hljs-number">2em</span>;
 }
 </div></code></pre>
-<h3 id="tip-auto-guess-encoding-of-files">Tip: Auto guess encoding of files</h3>
+<h3 id="auto-guess-encoding-of-files">Auto guess encoding of files</h3>
 <p>Using <code>files.autoGuessEncoding</code> option of the Visual Studio Code is useful because it automatically guesses the character code. See <a href="https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files">files.autoGuessEncoding</a></p>
 <pre class="hljs"><code><div><span class="hljs-string">"files.autoGuessEncoding"</span>: <span class="hljs-literal">true</span>,
 </div></code></pre>
-<h3 id="tip-output-directory">Tip: Output directory</h3>
+<h3 id="output-directory">Output directory</h3>
 <p>If you always want to output to the relative path directory from the Markdown file.</p>
 <p>For example, to output to the &quot;output&quot; directory in the same directory as the Markdown file, set it as follows.</p>
 <pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.outputDirectory"</span> : <span class="hljs-string">"output"</span>,
 <span class="hljs-string">"markdown-pdf.outputDirectoryRelativePathFile"</span>: <span class="hljs-literal">true</span>,
 </div></code></pre>
+<h3 id="page-break">Page Break</h3>
+<p>Please use the following to insert a page break.</p>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"page"</span>/&gt;</span>
+</div></code></pre>
+<div class="page"/>
 <h2 id="known-issues">Known Issues</h2>
 <h3 id="markdown-pdfstyles-option"><code>markdown-pdf.styles</code> option</h3>
 <ul>
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
-<h3 id="103-20180430">1.0.3 (2018/04/30)</h3>
+<h3 id="105-20180503">1.0.5 (2018/05/03)</h3>
 <ul>
-<li>
-<p>Fix: Support <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a> with <a href="#markdown-pdfstyles">markdown-pdf.styles</a> option</p>
+<li>Improve: Exception handling</li>
+<li>Improve: Chromium install check</li>
+<li>Add: Page break
 <ul>
-<li>Japanese font is not good <a href="https://github.com/yzane/vscode-markdown-pdf/issues/79">#79</a></li>
-<li>relative stylesheet paths are not working when multiple folders in workspace <a href="https://github.com/yzane/vscode-markdown-pdf/issues/68">#68</a></li>
+<li>Is it possible to insert page breaks? <a href="https://github.com/yzane/vscode-markdown-pdf/issues/25">#25</a></li>
 </ul>
 </li>
-<li>
-<p>Fix: <a href="#markdown-pdfstyles">markdown-pdf.styles</a> option</p>
+<li>Update: README
 <ul>
-<li>[BUG] Custom PDF style not being used <a href="https://github.com/yzane/vscode-markdown-pdf/issues/35">#35</a></li>
-<li>How to change font size of generated pdf <a href="https://github.com/yzane/vscode-markdown-pdf/issues/40">#40</a></li>
-<li>How do you change font-family? <a href="https://github.com/yzane/vscode-markdown-pdf/issues/64">#64</a></li>
+<li>FAQ: Page break</li>
 </ul>
 </li>
-<li>
-<p>Improve: Support <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a> with <a href="#markdown-pdfoutputdirectory">markdown-pdf.outputDirectory</a> option</p>
+<li>Update: markdown-pdf.css
 <ul>
-<li>How do I specify a relative output directory? <a href="https://github.com/yzane/vscode-markdown-pdf/issues/29">#29</a></li>
+<li>Add: Meiryo to font-family</li>
 </ul>
 </li>
-<li>
-<p>Fix: File encoding</p>
-<ul>
-<li>Not correctly rendering Windows 1252 encoding <a href="https://github.com/yzane/vscode-markdown-pdf/issues/39">#39</a></li>
-<li>First H1 header not recognized if file starts with UTF-8 BOM <a href="https://github.com/yzane/vscode-markdown-pdf/issues/44">#44</a></li>
 </ul>
-</li>
-<li>
-<p>Fix: Can not convert pdf <a href="https://github.com/yzane/vscode-markdown-pdf/issues/76">#76</a></p>
-</li>
-<li>
-<p>Add: <a href="#markdown-pdfoutputdirectoryrelativepathfile">markdown-pdf.outputDirectoryRelativePathFile</a> option</p>
-</li>
-<li>
-<p>Add: <a href="#markdown-pdfstylesrelativepathfile">markdown-pdf.stylesRelativePathFile</a> option</p>
-</li>
+<h3 id="104-20180501">1.0.4 (2018/05/01)</h3>
+<ul>
+<li>Fix: Display error message when downloading Chromium</li>
+<li>Improve: Chromium install. Display download progress on status bar</li>
 </ul>
 <h2 id="license">License</h2>
 <p>MIT</p>

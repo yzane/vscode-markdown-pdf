@@ -7,6 +7,8 @@
     * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
 * Update: README
     * FAQ: Page break
+* Update: markdown-pdf.css
+    * Add: Meiryo to font-family
 
 ## 1.0.4 (2018/05/01)
 * Fix: Display error message when downloading Chromium
