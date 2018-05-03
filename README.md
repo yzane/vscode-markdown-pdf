@@ -31,13 +31,30 @@ This extension convert Markdown file to pdf, html, png or jpeg file.
 Supports the following features
 * [Syntax highlighting](https://highlightjs.org/static/demo/)
 * [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
-* checkbox
+* [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
+* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 
 Sample files
  * [pdf](sample/README.pdf)
  * [html](sample/README.html)
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
+
+### markdown-it-container
+
+input
+```
+::: warning
+*here be dragons*
+:::
+```
+
+output
+``` html
+<div class="warning">
+<p><em>here be dragons</em></p>
+</div>
+```
 
 
 ## Install
@@ -496,6 +513,9 @@ Please use the following to insert a page break.
 
 
 ## [Release Notes](CHANGELOG.md)
+
+### 1.1.0 (2018/05/03)
+* Add: Support [markdown-it-container](https://github.com/markdown-it/markdown-it-container) [#72](https://github.com/yzane/vscode-markdown-pdf/issues/72)
 
 ### 1.0.5 (2018/05/03)
 * Improve: Exception handling
