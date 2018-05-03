@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.2.0 (2018/05/03)
+* Add: Support [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
+    * Support for lightweight diagrams (PlantUML) [#60](https://github.com/yzane/vscode-markdown-pdf/issues/60)
+
 ## 1.1.0 (2018/05/03)
 * Add: Support [markdown-it-container](https://github.com/markdown-it/markdown-it-container) [#72](https://github.com/yzane/vscode-markdown-pdf/issues/72)
 
