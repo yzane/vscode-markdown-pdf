@@ -247,6 +247,7 @@ function convertMarkdownToHtml(filename, type, text) {
   return md.render(text);
 
   } catch (error) {
+    statusbarmessage.dispose();
     showErrorMessage('convertMarkdownToHtml()', error);
   }
 }
