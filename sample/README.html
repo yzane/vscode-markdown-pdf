@@ -414,7 +414,13 @@ blockquote {
 <ul>
 <li><a href="https://highlightjs.org/static/demo/">Syntax highlighting</a></li>
 <li><a href="http://www.webpagefx.com/tools/emoji-cheat-sheet/">emoji</a></li>
-<li>checkbox</li>
+<li><a href="https://github.com/mcecot/markdown-it-checkbox">markdown-it-checkbox</a></li>
+<li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a></li>
+<li><a href="http://plantuml.com/">PlantUML</a>
+<ul>
+<li><a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a></li>
+</ul>
+</li>
 </ul>
 <p>Sample files</p>
 <ul>
@@ -423,6 +429,26 @@ blockquote {
 <li><a href="sample/README.png">png</a></li>
 <li><a href="sample/README.jpeg">jpeg</a></li>
 </ul>
+<h3 id="markdown-it-container">markdown-it-container</h3>
+<p>INPUT</p>
+<pre class="hljs"><code><div>::: warning
+*here be dragons*
+:::
+</div></code></pre>
+<p>OUTPUT</p>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"warning"</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">em</span>&gt;</span>here be dragons<span class="hljs-tag">&lt;/<span class="hljs-name">em</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+</div></code></pre>
+<h3 id="markdown-it-plantuml">markdown-it-plantuml</h3>
+<p>INPUT</p>
+<pre class="hljs"><code><div>@startuml
+Bob -[#red]&gt; Alice : hello
+Alice -[#0000FF]-&gt;Bob : ok
+@enduml
+</div></code></pre>
+<p>OUTPUT</p>
+<p><img src="images/PlantUML.png" alt="PlantUML"></p>
 <h2 id="install">Install</h2>
 <p>Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visutal Studio Code.</p>
 <p>However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).</p>
@@ -1031,6 +1057,18 @@ blockquote {
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
+<h3 id="120-20180503">1.2.0 (2018/05/03)</h3>
+<ul>
+<li>Add: Support <a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a>
+<ul>
+<li>Support for lightweight diagrams (PlantUML) <a href="https://github.com/yzane/vscode-markdown-pdf/issues/60">#60</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="110-20180503">1.1.0 (2018/05/03)</h3>
+<ul>
+<li>Add: Support <a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a> <a href="https://github.com/yzane/vscode-markdown-pdf/issues/72">#72</a></li>
+</ul>
 <h3 id="105-20180503">1.0.5 (2018/05/03)</h3>
 <ul>
 <li>Improve: Exception handling</li>
@@ -1069,6 +1107,8 @@ blockquote {
 <li><a href="https://github.com/isagalaev/highlight.js">isagalaev/highlight.js</a></li>
 <li><a href="https://github.com/cheeriojs/cheerio">cheeriojs/cheerio</a></li>
 <li><a href="https://github.com/janl/mustache.js">janl/mustache.js</a></li>
+<li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it/markdown-it-container</a></li>
+<li><a href="https://github.com/gmunguia/markdown-it-plantuml">gmunguia/markdown-it-plantuml</a></li>
 </ul>
 <p>and</p>
 <ul>

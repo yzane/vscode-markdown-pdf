@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -462,6 +462,7 @@
     "markdown-it-container": "^2.0.0",
     "markdown-it-emoji": "^1.4.0",
     "markdown-it-named-headers": "0.0.4",
+    "markdown-it-plantuml": "^1.0.0",
     "mkdirp": "^0.5.1",
     "mustache": "^2.3.0",
     "puppeteer": "^1.3.0",
