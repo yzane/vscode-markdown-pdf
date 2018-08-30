@@ -338,6 +338,20 @@
           "default": "",
           "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'."
         },
+        "markdown-pdf.plantumlOpenMarker": {
+          "type": [
+            "string"
+          ],
+          "default": "@startuml",
+          "description": "Oppening delimiter used for the plantuml parser."
+        },
+        "markdown-pdf.plantumlCloseMarker": {
+          "type": [
+            "string"
+          ],
+          "default": "@enduml",
+          "description": "Closing delimiter used for the plantuml parser."
+        },
         "markdown-pdf.format": {
           "type": [
             "string",
