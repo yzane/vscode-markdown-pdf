@@ -33,6 +33,7 @@ Supports the following features
 * [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
+* [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
 * [PlantUML](http://plantuml.com/)
   * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 
@@ -72,6 +73,34 @@ OUTPUT
 
 ![PlantUML](images/PlantUML.png)
 
+### markdown-it-include
+
+Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+
+```
+├── [plugins]
+│  └── README.md
+├── CHANGELOG.md
+└── README.md
+```
+
+INPUT
+```
+README Content
+
+:[Plugins](./plugins/README.md)
+
+:[Changelog](CHANGELOG.md)
+```
+
+OUTPUT
+```
+Content of README.md
+
+Content of plugins/README.md
+
+Content of CHANGELOG.md
+```
 
 ## Install
 
