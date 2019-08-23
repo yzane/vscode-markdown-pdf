@@ -1,3 +1,4 @@
 {
-    "markdown-pdf.outputDirectory": "sample"
+    "markdown-pdf.outputDirectory": "sample",
+    "debug.node.autoAttach": "on"
 }
