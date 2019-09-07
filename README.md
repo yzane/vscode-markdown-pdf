@@ -1,8 +1,8 @@
 # Markdown PDF
 
-This extension convert Markdown file to pdf, html, png or jpeg file.
+This extension converts Markdown files to pdf, html, png or jpeg files.
 
-[Japanease README](README.ja.md)
+[Japanese README](README.ja.md)
 
 ## <font color="red"> Important Notices </font>
 * Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) (PhantomJS)
