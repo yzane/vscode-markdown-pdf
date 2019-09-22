@@ -4,10 +4,6 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 [Japanese README](README.ja.md)
 
-## <font color="red"> Important Notices </font>
-* Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) (PhantomJS)
-* Some options are obsolete, please change. See [Options](#options)
-
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
@@ -136,35 +132,7 @@ If the download is not successful or you want to avoid downloading every time yo
 
 ## Options
 
-* Markdown PDF ver1.0.0 replaced PDF converter with [puppeteer](https://github.com/GoogleChrome/puppeteer) instead of [node-html-pdf](https://github.com/marcbachmann/node-html-pdf).
-* Some options are obsolete, please change
-* The new option of Markdown PDF ver1.0.0 and the obsolete options are as follows
-
-|ver1.0.0 (new)|ver0.x.x (obsolete)|
-|:---|:---|
-|`markdown-pdf.executablePath`||
-|`markdown-pdf.scale`||
-|`markdown-pdf.displayHeaderFooter`||
-|`markdown-pdf.headerTemplate`|`markdown-pdf.header.contents`|
-|`markdown-pdf.footerTemplate`|`markdown-pdf.footer.contents`|
-|`markdown-pdf.printBackground`||
-|`markdown-pdf.pageRanges`||
-|`markdown-pdf.width`||
-|`markdown-pdf.height`||
-|`markdown-pdf.margin.top`|`markdown-pdf.border.top`|
-||`markdown-pdf.header.height`|
-|`markdown-pdf.margin.bottom`|`markdown-pdf.border.bottom`|
-||`markdown-pdf.footer.height`|
-|`markdown-pdf.margin.right`|`markdown-pdf.border.right`|
-|`markdown-pdf.margin.left`|`markdown-pdf.border.left`|
-|`markdown-pdf.quality`||
-|`markdown-pdf.clip.x`||
-|`markdown-pdf.clip.y`||
-|`markdown-pdf.clip.width`||
-|`markdown-pdf.clip.height`||
-|`markdown-pdf.omitBackground`||
-
-### Option list
+### List
 
 |Category| Option name|
 |:---|:---|
@@ -572,5 +540,4 @@ MIT
 
 and
 
-* [marcbachmann/node-html-pdf](https://github.com/marcbachmann/node-html-pdf)
 * [cakebake/markdown-themeable-pdf](https://github.com/cakebake/markdown-themeable-pdf)

@@ -2,10 +2,6 @@
 
 この拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
 
-## <font color="red"> 重要なお知らせ </font>
-* Markdown PDF ver1.0.0 では PDF変換を [node-html-pdf](https://github.com/marcbachmann/node-html-pdf)   (PhantomJS) から [puppeteer](https://github.com/GoogleChrome/puppeteer) (Chromium) に変更しました
-* 一部のオプションは廃止された為、変更してください。 [オプション](#options)を参照してください
-
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
@@ -133,35 +129,7 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 
 ## オプション
 
-* Markdown PDF ver1.0.0 では PDF変換を [node-html-pdf](https://github.com/marcbachmann/node-html-pdf) から [puppeteer](https://github.com/GoogleChrome/puppeteer) に変更しました
-* 一部のオプションは廃止された為、変更してください。 [Options](#options)
-* Markdown PDF ver1.0.0 の新オプションと、廃止されたオプションは以下になります
-
-|ver1.0.0 (新)|ver0.x.x (廃止)|
-|:---|:---|
-|`markdown-pdf.executablePath`||
-|`markdown-pdf.scale`||
-|`markdown-pdf.displayHeaderFooter`||
-|`markdown-pdf.headerTemplate`|`markdown-pdf.header.contents`|
-|`markdown-pdf.footerTemplate`|`markdown-pdf.footer.contents`|
-|`markdown-pdf.printBackground`||
-|`markdown-pdf.pageRanges`||
-|`markdown-pdf.width`||
-|`markdown-pdf.height`||
-|`markdown-pdf.margin.top`|`markdown-pdf.border.top`|
-||`markdown-pdf.header.height`|
-|`markdown-pdf.margin.bottom`|`markdown-pdf.border.bottom`|
-||`markdown-pdf.footer.height`|
-|`markdown-pdf.margin.right`|`markdown-pdf.border.right`|
-|`markdown-pdf.margin.left`|`markdown-pdf.border.left`|
-|`markdown-pdf.quality`||
-|`markdown-pdf.clip.x`||
-|`markdown-pdf.clip.y`||
-|`markdown-pdf.clip.width`||
-|`markdown-pdf.clip.height`||
-|`markdown-pdf.omitBackground`||
-
-### Option list
+### List
 
 |Category| Option name|
 |:---|:---|
