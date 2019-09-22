@@ -386,13 +386,8 @@ blockquote {
 </head>
 <body>
 <h1 id="markdown-pdf">Markdown PDF</h1>
-<p>This extension convert Markdown file to pdf, html, png or jpeg file.</p>
-<p><a href="README.ja.md">Japanease README</a></p>
-<h2 id="font-colorred-important-notices-font"><font color="red"> Important Notices </font></h2>
-<ul>
-<li>Markdown PDF ver1.0.0 replaced PDF converter with <a href="https://github.com/GoogleChrome/puppeteer">puppeteer</a> (Chromium) instead of <a href="https://github.com/marcbachmann/node-html-pdf">node-html-pdf</a> (PhantomJS)</li>
-<li>Some options are obsolete, please change. See <a href="#options">Options</a></li>
-</ul>
+<p>This extension converts Markdown files to pdf, html, png or jpeg files.</p>
+<p><a href="README.ja.md">Japanese README</a></p>
 <h2 id="table-of-contents">Table of Contents</h2>
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 <ul>
@@ -505,106 +500,7 @@ Alice -[#0000FF]-&gt;Bob : ok
 </ol>
 <p><img src="images/settings.gif" alt="demo"></p>
 <h2 id="options">Options</h2>
-<ul>
-<li>Markdown PDF ver1.0.0 replaced PDF converter with <a href="https://github.com/GoogleChrome/puppeteer">puppeteer</a> instead of <a href="https://github.com/marcbachmann/node-html-pdf">node-html-pdf</a>.</li>
-<li>Some options are obsolete, please change</li>
-<li>The new option of Markdown PDF ver1.0.0 and the obsolete options are as follows</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">ver1.0.0 (new)</th>
-<th style="text-align:left">ver0.x.x (obsolete)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.executablePath</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.scale</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.displayHeaderFooter</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.headerTemplate</code></td>
-<td style="text-align:left"><code>markdown-pdf.header.contents</code></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.footerTemplate</code></td>
-<td style="text-align:left"><code>markdown-pdf.footer.contents</code></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.printBackground</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.pageRanges</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.width</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.height</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.margin.top</code></td>
-<td style="text-align:left"><code>markdown-pdf.border.top</code></td>
-</tr>
-<tr>
-<td style="text-align:left"></td>
-<td style="text-align:left"><code>markdown-pdf.header.height</code></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.margin.bottom</code></td>
-<td style="text-align:left"><code>markdown-pdf.border.bottom</code></td>
-</tr>
-<tr>
-<td style="text-align:left"></td>
-<td style="text-align:left"><code>markdown-pdf.footer.height</code></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.margin.right</code></td>
-<td style="text-align:left"><code>markdown-pdf.border.right</code></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.margin.left</code></td>
-<td style="text-align:left"><code>markdown-pdf.border.left</code></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.quality</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.clip.x</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.clip.y</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.clip.width</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.clip.height</code></td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left"><code>markdown-pdf.omitBackground</code></td>
-<td style="text-align:left"></td>
-</tr>
-</tbody>
-</table>
-<h3 id="option-list">Option list</h3>
+<h3 id="list">List</h3>
 <table>
 <thead>
 <tr>
@@ -744,6 +640,14 @@ Alice -[#0000FF]-&gt;Bob : ok
 <tr>
 <td style="text-align:left"></td>
 <td style="text-align:left"><a href="#markdown-pdfomitbackground">markdown-pdf.omitBackground</a></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#plantuml-options">PlantUML options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfplantumlopenmarker">markdown-pdf.plantumlOpenMarker</a></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfplantumlclosemarker">markdown-pdf.plantumlCloseMarker</a></td>
 </tr>
 </tbody>
 </table>
@@ -1026,6 +930,17 @@ Alice -[#0000FF]-&gt;Bob : ok
 <li>Hides default white background and allows capturing screenshots with transparency</li>
 <li>boolean. Default: false</li>
 </ul>
+<h3 id="plantuml-options">PlantUML options</h3>
+<h4 id="markdown-pdfplantumlopenmarker"><code>markdown-pdf.plantumlOpenMarker</code></h4>
+<ul>
+<li>Oppening delimiter used for the plantuml parser.</li>
+<li>Default: @startuml</li>
+</ul>
+<h4 id="markdown-pdfplantumlclosemarker"><code>markdown-pdf.plantumlCloseMarker</code></h4>
+<ul>
+<li>Closing delimiter used for the plantuml parser.</li>
+<li>Default: @enduml</li>
+</ul>
 <div class="page"/>
 <h2 id="faq">FAQ</h2>
 <h3 id="how-can-i-change-emoji-size">How can I change emoji size ?</h3>
@@ -1057,42 +972,16 @@ Alice -[#0000FF]-&gt;Bob : ok
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
-<h3 id="120-20180503">1.2.0 (2018/05/03)</h3>
+<h3 id="121-20190923">1.2.1 (2019/09/23)</h3>
 <ul>
-<li>Add: Support <a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a>
-<ul>
-<li>Support for lightweight diagrams (PlantUML) <a href="https://github.com/yzane/vscode-markdown-pdf/issues/60">#60</a></li>
-</ul>
-</li>
-</ul>
-<h3 id="110-20180503">1.1.0 (2018/05/03)</h3>
-<ul>
-<li>Add: Support <a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a> <a href="https://github.com/yzane/vscode-markdown-pdf/issues/72">#72</a></li>
-</ul>
-<h3 id="105-20180503">1.0.5 (2018/05/03)</h3>
-<ul>
-<li>Improve: Exception handling</li>
-<li>Improve: Chromium install check</li>
-<li>Add: Page break
-<ul>
-<li>Is it possible to insert page breaks? <a href="https://github.com/yzane/vscode-markdown-pdf/issues/25">#25</a></li>
-</ul>
-</li>
+<li>Fix: <a href="https://github.com/yzane/vscode-markdown-pdf/pull/122">fix typo, grammar</a></li>
+<li>Add: <a href="https://github.com/yzane/vscode-markdown-pdf/pull/104">Option to specify the plantuml delimiter</a></li>
+<li>Update: dependencies packages</li>
 <li>Update: README
 <ul>
-<li>FAQ: Page break</li>
+<li>Delete the description of the obsolete options.</li>
 </ul>
 </li>
-<li>Update: markdown-pdf.css
-<ul>
-<li>Add: Meiryo to font-family</li>
-</ul>
-</li>
-</ul>
-<h3 id="104-20180501">1.0.4 (2018/05/01)</h3>
-<ul>
-<li>Fix: Display error message when downloading Chromium</li>
-<li>Improve: Chromium install. Display download progress on status bar</li>
 </ul>
 <h2 id="license">License</h2>
 <p>MIT</p>
@@ -1112,7 +1001,6 @@ Alice -[#0000FF]-&gt;Bob : ok
 </ul>
 <p>and</p>
 <ul>
-<li><a href="https://github.com/marcbachmann/node-html-pdf">marcbachmann/node-html-pdf</a></li>
 <li><a href="https://github.com/cakebake/markdown-themeable-pdf">cakebake/markdown-themeable-pdf</a></li>
 </ul>
 
