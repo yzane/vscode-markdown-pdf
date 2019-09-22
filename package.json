@@ -464,22 +464,22 @@
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
-    "removeNPMAbsolutePaths": "^1.0.4",
-    "vscode": "^1.1.17"
+    "removeNPMAbsolutePaths": "^2.0.0",
+    "vscode": "^1.1.36"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
     "emoji-images": "^0.1.1",
-    "highlight.js": "^9.12.0",
-    "markdown-it": "^8.4.1",
+    "highlight.js": "^9.15.10",
+    "markdown-it": "^10.0.0",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-container": "^2.0.0",
     "markdown-it-emoji": "^1.4.0",
     "markdown-it-named-headers": "0.0.4",
-    "markdown-it-plantuml": "^1.0.0",
+    "markdown-it-plantuml": "^1.4.1",
     "mkdirp": "^0.5.1",
-    "mustache": "^2.3.0",
-    "puppeteer": "^1.3.0",
-    "rimraf": "^2.6.2"
+    "mustache": "^3.1.0",
+    "puppeteer": "^1.20.0",
+    "rimraf": "^3.0.0"
   }
 }
