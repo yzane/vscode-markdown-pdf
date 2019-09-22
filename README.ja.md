@@ -166,6 +166,8 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 ||[markdown-pdf.clip.width](#markdown-pdfclipwidth)|
 ||[markdown-pdf.clip.height](#markdown-pdfclipheight)|
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
+|[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)|
+||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)|
 
 ### Save options
 
@@ -441,6 +443,16 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
   - デフォルトの白い背景ではなく、透過によるスクリーンショットのキャプチャーを有効にします
   - boolean. Default: false
 
+### PlantUML options
+
+#### `markdown-pdf.plantumlOpenMarker`
+  - plantuml パーサーの開始区切り文字
+  - Default: @startuml
+
+#### `markdown-pdf.plantumlCloseMarker`
+  - plantuml パーサーの終了区切り文字
+  - Default: @enduml
+
 <div class="page"/>
 
 ## FAQ
@@ -492,26 +504,12 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.2.0 (2018/05/03)
-* Add: Support [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-    * Support for lightweight diagrams (PlantUML) [#60](https://github.com/yzane/vscode-markdown-pdf/issues/60)
-
-### 1.1.0 (2018/05/03)
-* Add: Support [markdown-it-container](https://github.com/markdown-it/markdown-it-container) [#72](https://github.com/yzane/vscode-markdown-pdf/issues/72)
-
-### 1.0.5 (2018/05/03)
-* Improve: Exception handling
-* Improve: Chromium install check
-* Add: Page break
-    * Is it possible to insert page breaks? [#25](https://github.com/yzane/vscode-markdown-pdf/issues/25)
+### 1.2.1 (2019/09/23)
+* Fix: [fix typo, grammar](https://github.com/yzane/vscode-markdown-pdf/pull/122)
+* Add: [Option to specify the plantuml delimiter](https://github.com/yzane/vscode-markdown-pdf/pull/104)
+* Update: dependencies packages
 * Update: README
-    * FAQ: Page break
-* Update: markdown-pdf.css
-    * Add: Meiryo to font-family
-
-### 1.0.4 (2018/05/01)
-* Fix: Display error message when downloading Chromium
-* Improve: Chromium install. Display download progress on status bar
+   * Delete the description of the obsolete options.
 
 
 ## License
