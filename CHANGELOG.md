@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.2.1 (2019/09/23)
+* Fix: [fix typo, grammar](https://github.com/yzane/vscode-markdown-pdf/pull/122)
+* Add: [Option to specify the plantuml delimiter](https://github.com/yzane/vscode-markdown-pdf/pull/104)
+* Update: dependencies packages
+* Update: README
+   * Delete the description of the obsolete options.
+
 ## 1.2.0 (2018/05/03)
 * Add: Support [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
     * Support for lightweight diagrams (PlantUML) [#60](https://github.com/yzane/vscode-markdown-pdf/issues/60)
