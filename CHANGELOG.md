@@ -3,6 +3,7 @@
 ## 1.3.0 (2019/09/28)
 * Add: Support [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
     * Integrate markdown-it-include plugin [#138](https://github.com/yzane/vscode-markdown-pdf/pull/138)
+    * Add: `markdown-pdf.markdown-it-include.enable` option
 * Update: README
 
 ## 1.2.1 (2019/09/23)

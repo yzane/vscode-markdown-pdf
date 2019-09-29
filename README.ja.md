@@ -197,6 +197,7 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)|
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)|
+|[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)|
 
 ### Save options
 
@@ -482,6 +483,12 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
   - plantuml パーサーの終了区切り文字
   - Default: @enduml
 
+### markdown-it-include options
+
+#### `markdown-pdf.markdown-it-include.enable`
+  - markdown-it-include を有効にします
+  - boolean. Default: true
+
 <div class="page"/>
 
 ## FAQ
@@ -536,6 +543,7 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 ### 1.3.0 (2019/09/28)
 * Add: Support [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
     * Integrate markdown-it-include plugin [#138](https://github.com/yzane/vscode-markdown-pdf/pull/138)
+    * Add: `markdown-pdf.markdown-it-include.enable` option
 * Update: README
 
 

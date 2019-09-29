@@ -455,6 +455,11 @@
           "type": "number",
           "default": 10000,
           "description": "Statusbar message timeout [milliseconds]"
+        },
+        "markdown-pdf.markdown-it-include.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable markdown-it-include. "
         }
       }
     }

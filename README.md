@@ -200,6 +200,7 @@ If the download is not successful or you want to avoid downloading every time yo
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)|
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)|
+|[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)|
 
 ### Save options
 
@@ -488,6 +489,12 @@ If the download is not successful or you want to avoid downloading every time yo
   - Closing delimiter used for the plantuml parser.
   - Default: @enduml
 
+### markdown-it-include options
+
+#### `markdown-pdf.markdown-it-include.enable`
+  - Enable markdown-it-include.
+  - boolean. Default: true
+
 <div class="page"/>
 
 ## FAQ
@@ -542,6 +549,7 @@ Please use the following to insert a page break.
 ### 1.3.0 (2019/09/28)
 * Add: Support [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
     * Integrate markdown-it-include plugin [#138](https://github.com/yzane/vscode-markdown-pdf/pull/138)
+    * Add: `markdown-pdf.markdown-it-include.enable` option
 * Update: README
 
 
