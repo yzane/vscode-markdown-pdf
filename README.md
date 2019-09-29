@@ -539,12 +539,10 @@ Please use the following to insert a page break.
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.2.1 (2019/09/23)
-* Fix: [fix typo, grammar](https://github.com/yzane/vscode-markdown-pdf/pull/122)
-* Add: [Option to specify the plantuml delimiter](https://github.com/yzane/vscode-markdown-pdf/pull/104)
-* Update: dependencies packages
+### 1.3.0 (2019/09/28)
+* Add: Support [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
+    * Integrate markdown-it-include plugin [#138](https://github.com/yzane/vscode-markdown-pdf/pull/138)
 * Update: README
-   * Delete the description of the obsolete options.
 
 
 ## License
