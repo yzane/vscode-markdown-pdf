@@ -540,7 +540,11 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.3.0 (2019/09/28)
+### 1.3.1 (2019/09/30)
+* Update: README
+* Update: CHANGELOG
+
+### 1.3.0 (2019/09/30)
 * Add: Support [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
     * Integrate markdown-it-include plugin [#138](https://github.com/yzane/vscode-markdown-pdf/pull/138)
     * Add: `markdown-pdf.markdown-it-include.enable` option
