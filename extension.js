@@ -10,12 +10,12 @@ function activate(context) {
   init();
 
   var commands = [
-    vscode.commands.registerCommand('extension.markdown-pdf.settings', function () { MarkdownPdf('settings'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.pdf', function () { MarkdownPdf('pdf'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.html', function () { MarkdownPdf('html'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.png', function () { MarkdownPdf('png'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.jpeg', function () { MarkdownPdf('jpeg'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.all', function () { MarkdownPdf('all'); })
+    vscode.commands.registerCommand('extension.markdown-pdf.settings', async function () { await markdownPdf('settings'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.pdf', async function () { await markdownPdf('pdf'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); })
   ];
   commands.forEach(function (command) {
     context.subscriptions.push(command);
@@ -23,7 +23,7 @@ function activate(context) {
 
   var isConvertOnSave = vscode.workspace.getConfiguration('markdown-pdf')['convertOnSave'];
   if (isConvertOnSave) {
-    var disposable_onsave = vscode.workspace.onDidSaveTextDocument(function () { MarkdownPdfOnSave(); });
+    var disposable_onsave = vscode.workspace.onDidSaveTextDocument(function () { markdownPdfOnSave(); });
     context.subscriptions.push(disposable_onsave);
   }
 }
@@ -34,8 +34,8 @@ function deactivate() {
 }
 exports.deactivate = deactivate;
 
-function MarkdownPdf(option_type) {
-  
+async function markdownPdf(option_type) {
+
   try {
 
     // check active window
@@ -92,7 +92,7 @@ function MarkdownPdf(option_type) {
           var text = editor.document.getText();
           var content = convertMarkdownToHtml(mdfilename, type, text);
           var html = makeHtml(content, uri);
-          exportPdf(html, filename, type, uri);
+          await exportPdf(html, filename, type, uri);
         } else {
           showErrorMessage('MarkdownPdf().2 Supported formats: html, pdf, png, jpeg.');
           return;
@@ -107,7 +107,7 @@ function MarkdownPdf(option_type) {
   }
 }
 
-function MarkdownPdfOnSave() {
+function markdownPdfOnSave() {
   try {
     var editor = vscode.window.activeTextEditor;
     var mode = editor.document.languageId;
@@ -157,6 +157,11 @@ function convertMarkdownToHtml(filename, type, text) {
         html: true,
         breaks: breaks,
         highlight: function (str, lang) {
+
+          if (lang && lang.match(/\bmermaid\b/i)) {
+            return `<div class="mermaid">${str}</div>`;
+          }
+
           if (lang && hljs.getLanguage(lang)) {
             try {
               str = hljs.highlight(lang, str, true).value;
@@ -320,13 +325,17 @@ function makeHtml(data, uri) {
     var filename = path.join(__dirname, 'template', 'template.html');
     var template = readFile(filename);
 
+     // read mermaid javascripts
+     var mermaid = readFile(path.join(__dirname, 'node_modules', 'mermaid', 'dist', 'mermaid.min.js'));
+
     // compile template
     var mustache = require('mustache');
 
     var view = {
       title: title,
       style: style,
-      content: data
+      content: data,
+      mermaid: mermaid
     };
     return mustache.render(template, view);
   } catch (error) {
@@ -359,12 +368,12 @@ function exportPdf(data, filename, type, uri) {
       See https://github.com/yzane/vscode-markdown-pdf#install');
     return;
   }
-  
+
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   var exportFilename = getOutputDir(filename, uri);
 
-  vscode.window.withProgress({
+  return vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
     title: '[Markdown PDF]: Exporting (' + type + ') ...'
     }, async () => {
@@ -382,18 +391,11 @@ function exportPdf(data, filename, type, uri) {
         var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
         exportHtml(data, tmpfilename);
         var options = {
-          executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || undefined
-        }
-        const browser = await puppeteer.launch(options).catch(error => {
-          showErrorMessage('puppeteer.launch()', error);
-        });
-        const page = await browser.newPage().catch(error => {
-          showErrorMessage('browser.newPage()', error);
-        });;
-        await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' }).catch(error => {
-          showErrorMessage('page.goto()', error);
-        });;
-
+          executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath()
+        };
+        const browser = await puppeteer.launch(options);
+        const page = await browser.newPage();
+        await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
         if (type == 'pdf') {
@@ -430,9 +432,7 @@ function exportPdf(data, filename, type, uri) {
               left: vscode.workspace.getConfiguration('markdown-pdf')['margin']['left'] || ''
             }
           }
-          await page.pdf(options).catch(error => {
-            showErrorMessage('page.pdf', error);
-          });
+          await page.pdf(options);
         }
 
         // generate png and jpeg
@@ -474,9 +474,7 @@ function exportPdf(data, filename, type, uri) {
               omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
             }
           }
-          await page.screenshot(options).catch(error => {
-            showErrorMessage('page.screenshot()', error);
-          });
+          await page.screenshot(options);
         }
 
         await browser.close();
@@ -529,9 +527,7 @@ function isExistsDir(dirname) {
 
 function deleteFile (path) {
   var rimraf = require('rimraf')
-  rimraf(path, function(error) {
-    if (error) throw error;
-  });
+  rimraf.sync(path);
 }
 
 function getOutputDir(filename, resource) {

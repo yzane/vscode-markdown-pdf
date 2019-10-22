@@ -465,12 +465,13 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "node ./src/compile",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "test": "node ./test/runTest.js"
   },
   "devDependencies": {
+    "glob": "7.1.4",
+    "mocha": "6.2.0",
     "removeNPMAbsolutePaths": "^2.0.0",
-    "vscode": "^1.1.36"
+    "vscode-test": "1.2.0"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
@@ -483,6 +484,7 @@
     "markdown-it-include": "^1.1.0",
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
+    "mermaid": "8.2.3",
     "mkdirp": "^0.5.1",
     "mustache": "^3.1.0",
     "puppeteer": "^1.20.0",
