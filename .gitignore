@@ -1,3 +1,5 @@
+.history
+.vscode-test
 node_modules
 work/**
 *.vsix

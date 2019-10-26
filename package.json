@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -17,7 +17,7 @@
     "pdf",
     "PlantUML",
     "export",
-    "html",
+    "mermaid",
     "multi-root ready"
   ],
   "repository": {
@@ -466,14 +466,17 @@
   },
   "scripts": {
     "vscode:prepublish": "node ./src/compile",
-    "postinstall": "node ./node_modules/vscode/bin/install"
+    "test": "node ./test/runTest.js"
   },
   "devDependencies": {
+    "glob": "^7.1.5",
+    "mocha": "^6.2.2",
     "removeNPMAbsolutePaths": "^2.0.0",
-    "vscode": "^1.1.36"
+    "vscode-test": "^1.2.0"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
+    "d3": "^4.13.0",
     "emoji-images": "^0.1.1",
     "highlight.js": "^9.15.10",
     "markdown-it": "^10.0.0",
@@ -483,6 +486,7 @@
     "markdown-it-include": "^1.1.0",
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
+    "mermaid": "^8.4.0",
     "mkdirp": "^0.5.1",
     "mustache": "^3.1.0",
     "puppeteer": "^1.20.0",
