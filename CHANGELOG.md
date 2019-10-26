@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.0 (2019/10/27)
+* Add: Support [mermaid](https://github.com/knsv/mermaid)
+    * Added mermaid support. [#144](https://github.com/yzane/vscode-markdown-pdf/pull/144)
+
 ## 1.3.1 (2019/09/30)
 * Update: README
 * Update: CHANGELOG
