@@ -32,6 +32,8 @@ Supports the following features
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
 * [PlantUML](http://plantuml.com/)
   * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
+* [mermaid](http://knsv.github.io/mermaid/)
+  * [knsv/mermaid](https://github.com/knsv/mermaid)
 
 Sample files
  * [pdf](sample/README.pdf)
@@ -97,6 +99,24 @@ Content of plugins/README.md
 
 Content of CHANGELOG.md
 ```
+
+### mermaid
+
+INPUT
+<pre>
+```mermaid
+stateDiagram
+    [*] --> First
+    state First {
+        [*] --> second
+        second --> [*]
+    }
+```
+</pre>
+
+OUTPUT
+
+![mermaid](images/mermaid.png)
 
 ## Install
 
@@ -546,15 +566,9 @@ Please use the following to insert a page break.
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.3.1 (2019/09/30)
-* Update: README
-* Update: CHANGELOG
-
-### 1.3.0 (2019/09/30)
-* Add: Support [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-    * Integrate markdown-it-include plugin [#138](https://github.com/yzane/vscode-markdown-pdf/pull/138)
-    * Add: `markdown-pdf.markdown-it-include.enable` option
-* Update: README
+### 1.4.0 (2019/10/27)
+* Add: Support [mermaid](https://github.com/knsv/mermaid)
+    * Added mermaid support. [#144](https://github.com/yzane/vscode-markdown-pdf/pull/144)
 
 
 ## License
@@ -575,6 +589,7 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [camelaissani/markdown-it-include](https://github.com/camelaissani/markdown-it-include)
+* [knsv/mermaid](https://github.com/knsv/mermaid)
 
 and
 

@@ -4,8 +4,19 @@
 <title>{{{title}}}</title>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 {{{style}}}
+<script>
+  {{{mermaid}}}
+</script>
 </head>
 <body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
 {{{content}}}
 </body>
 </html>
