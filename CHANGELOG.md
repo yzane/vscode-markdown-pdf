@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.4.1 (2019/10/28)
+* Fix: "ReferenceError: MarkdownPdf is not defined" on auto create PDF on save in VSCodium [#156](https://github.com/yzane/vscode-markdown-pdf/issues/156)
+
 ## 1.4.0 (2019/10/27)
 * Add: Support [mermaid](https://github.com/knsv/mermaid)
     * Added mermaid support. [#144](https://github.com/yzane/vscode-markdown-pdf/pull/144)
