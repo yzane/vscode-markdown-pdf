@@ -79,7 +79,7 @@ async function markdownPdf(option_type) {
     } else if (option_type === 'all') {
       types = types_format;
     } else {
-      showErrorMessage('MarkdownPdf().1 Supported formats: html, pdf, png, jpeg.');
+      showErrorMessage('markdownPdf().1 Supported formats: html, pdf, png, jpeg.');
       return;
     }
 
@@ -94,16 +94,16 @@ async function markdownPdf(option_type) {
           var html = makeHtml(content, uri);
           await exportPdf(html, filename, type, uri);
         } else {
-          showErrorMessage('MarkdownPdf().2 Supported formats: html, pdf, png, jpeg.');
+          showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
           return;
         }
       }
     } else {
-      showErrorMessage('MarkdownPdf().3 Supported formats: html, pdf, png, jpeg.');
+      showErrorMessage('markdownPdf().3 Supported formats: html, pdf, png, jpeg.');
       return;
     }
   } catch (error) {
-    showErrorMessage('MarkdownPdf()', error);
+    showErrorMessage('markdownPdf()', error);
   }
 }
 
@@ -115,10 +115,10 @@ function markdownPdfOnSave() {
       return;
     }
     if (!isMarkdownPdfOnSaveExclude()) {
-      MarkdownPdf('settings');
+      markdownPdf('settings');
     }
   } catch (error) {
-    showErrorMessage('arkdownPdfOnSave()', error);
+    showErrorMessage('markdownPdfOnSave()', error);
   }
 }
 
