@@ -148,11 +148,14 @@ function isMarkdownPdfOnSaveExclude() {
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename, type, text) {
+  var grayMatter = require("gray-matter");
+  var matterParts = grayMatter(text);
+
   try {
     try {
       var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
       var hljs = require('highlight.js');
-      var breaks = vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
+      var breaks = matterParts.data.breaks || vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
       var md = require('markdown-it')({
         html: true,
         breaks: breaks,
@@ -217,7 +220,7 @@ function convertMarkdownToHtml(filename, type, text) {
   md.use(require('markdown-it-checkbox'));
 
   // emoji
-  var f = vscode.workspace.getConfiguration('markdown-pdf')['emoji'];
+  var f = matterParts.data.emoji || vscode.workspace.getConfiguration('markdown-pdf')['emoji'];
   if (f) {
     var emojies_defs = require(path.join(__dirname, 'data', 'emoji.json'));
     try {
@@ -266,8 +269,8 @@ function convertMarkdownToHtml(filename, type, text) {
   // PlantUML
   // https://github.com/gmunguia/markdown-it-plantuml
   var plantumlOptions = {
-    openMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
-    closeMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml'
+    openMarker: matterParts.data.plantumlOpenMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
+    closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml'
   }
   md.use(require('markdown-it-plantuml'), plantumlOptions);
 
@@ -283,7 +286,7 @@ function convertMarkdownToHtml(filename, type, text) {
   }
 
   statusbarmessage.dispose();
-  return md.render(text);
+  return md.render(matterParts.content);
 
   } catch (error) {
     statusbarmessage.dispose();
