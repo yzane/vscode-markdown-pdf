@@ -736,7 +736,7 @@ function fixHref(resource, href) {
     }
 
     // Use href as file URI if it is absolute
-    if (path.isAbsolute(href) || hrefUri.scheme === 'file') {
+    if (path.isAbsolute(href)) {
       return vscode.Uri.file(href).toString();
     }
 
