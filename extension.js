@@ -155,7 +155,7 @@ function convertMarkdownToHtml(filename, type, text) {
     try {
       var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
       var hljs = require('highlight.js');
-      var breaks = matterParts.data.breaks || vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
+      var breaks = setBooleanValue(matterParts.data.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
       var md = require('markdown-it')({
         html: true,
         breaks: breaks,
@@ -220,8 +220,8 @@ function convertMarkdownToHtml(filename, type, text) {
   md.use(require('markdown-it-checkbox'));
 
   // emoji
-  var f = matterParts.data.emoji || vscode.workspace.getConfiguration('markdown-pdf')['emoji'];
-  if (f) {
+  var emoji_f = setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
+  if (emoji_f) {
     var emojies_defs = require(path.join(__dirname, 'data', 'emoji.json'));
     try {
       var options = {
@@ -849,6 +849,14 @@ function setProxy() {
   if (https_proxy) {
     process.env.HTTPS_PROXY = https_proxy;
     process.env.HTTP_PROXY = https_proxy;
+  }
+}
+
+function setBooleanValue(a, b) {
+  if (a === false) {
+    return false
+  } else {
+    return a || b
   }
 }
 
