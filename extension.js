@@ -148,11 +148,14 @@ function isMarkdownPdfOnSaveExclude() {
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename, type, text) {
+  var grayMatter = require("gray-matter");
+  var matterParts = grayMatter(text);
+
   try {
     try {
       var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
       var hljs = require('highlight.js');
-      var breaks = vscode.workspace.getConfiguration('markdown-pdf')['breaks'];
+      var breaks = setBooleanValue(matterParts.data.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
       var md = require('markdown-it')({
         html: true,
         breaks: breaks,
@@ -217,8 +220,8 @@ function convertMarkdownToHtml(filename, type, text) {
   md.use(require('markdown-it-checkbox'));
 
   // emoji
-  var f = vscode.workspace.getConfiguration('markdown-pdf')['emoji'];
-  if (f) {
+  var emoji_f = setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
+  if (emoji_f) {
     var emojies_defs = require(path.join(__dirname, 'data', 'emoji.json'));
     try {
       var options = {
@@ -266,8 +269,8 @@ function convertMarkdownToHtml(filename, type, text) {
   // PlantUML
   // https://github.com/gmunguia/markdown-it-plantuml
   var plantumlOptions = {
-    openMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
-    closeMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml'
+    openMarker: matterParts.data.plantumlOpenMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
+    closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml'
   }
   md.use(require('markdown-it-plantuml'), plantumlOptions);
 
@@ -278,12 +281,12 @@ function convertMarkdownToHtml(filename, type, text) {
   if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
     md.use(require("markdown-it-include"), {
       root: path.dirname(filename),
-      includeRe: /\:(?:\[[^\]]*\])?\(([^)]+\.md)\)/i
+      includeRe: /\:(?:\[[^\]]*\])?\(([^)]+\.*)\)/i
     });
   }
 
   statusbarmessage.dispose();
-  return md.render(text);
+  return md.render(matterParts.content);
 
   } catch (error) {
     statusbarmessage.dispose();
@@ -391,7 +394,8 @@ function exportPdf(data, filename, type, uri) {
         var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
         exportHtml(data, tmpfilename);
         var options = {
-          executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath()
+          executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),
+          args: ['--lang='+vscode.env.langauage]
         };
         const browser = await puppeteer.launch(options);
         const page = await browser.newPage();
@@ -448,10 +452,10 @@ function exportPdf(data, filename, type, uri) {
           }
 
           // screenshot size
-          var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'];
-          var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'];
-          var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'];
-          var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'];
+          var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'] || null;
+          var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'] || null;
+          var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'] || null;
+          var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'] || null;
           var options;
           if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
             options = {
@@ -735,7 +739,7 @@ function fixHref(resource, href) {
     }
 
     // Use href as file URI if it is absolute
-    if (path.isAbsolute(href) || hrefUri.scheme === 'file') {
+    if (path.isAbsolute(href)) {
       return vscode.Uri.file(href).toString();
     }
 
@@ -845,6 +849,14 @@ function setProxy() {
   if (https_proxy) {
     process.env.HTTPS_PROXY = https_proxy;
     process.env.HTTP_PROXY = https_proxy;
+  }
+}
+
+function setBooleanValue(a, b) {
+  if (a === false) {
+    return false
+  } else {
+    return a || b
   }
 }
 

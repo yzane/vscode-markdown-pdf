@@ -1,5 +1,16 @@
 # Change Log
 
+## 1.4.2 (2020/02/16)
+* Add: Support [gray-matter](https://github.com/jonschlinkert/gray-matter) (preview)
+    * Avoid to display front matter [#157](https://github.com/yzane/vscode-markdown-pdf/pull/157)
+    * Currently, only some settings can be specified.
+* Fix: Improve the configuration schema of package.json
+    * Some settings can now be set from the settings editor.
+* Fix: Specifying custom style sheets with a relative path does not work [#170](https://github.com/yzane/vscode-markdown-pdf/pull/170)
+* Fix: Pass language to markdown-pdf puppeteer [#172](https://github.com/yzane/vscode-markdown-pdf/pull/172)
+    * Date Format [#95](https://github.com/yzane/vscode-markdown-pdf/issues/95)
+* Improve: Reduce Regex strictness of markdown-it-include [#174](https://github.com/yzane/vscode-markdown-pdf/pull/174)
+
 ## 1.4.1 (2019/10/28)
 * Fix: "ReferenceError: MarkdownPdf is not defined" on auto create PDF on save in VSCodium [#156](https://github.com/yzane/vscode-markdown-pdf/issues/156)
 
