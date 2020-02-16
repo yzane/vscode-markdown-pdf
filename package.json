@@ -129,7 +129,7 @@
     },
     "configuration": {
       "type": "object",
-      "title": "markdown-pdf configuration",
+      "title": "Markdown PDF",
       "properties": {
         "markdown-pdf.type": {
           "type": [
@@ -154,12 +154,9 @@
           "description": "Excluded file name of convertOnSave option"
         },
         "markdown-pdf.outputDirectory": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "",
-          "description": "Output Directory. All '\\' need to be written as '\\\\' (Windows)"
+          "description": "Output Directory."
         },
         "markdown-pdf.outputDirectoryRelativePathFile": {
           "type": "boolean",
@@ -288,9 +285,7 @@
           "description": "Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/"
         },
         "markdown-pdf.executablePath": {
-          "type": [
-            "string"
-          ],
+          "type": "string",
           "default": "",
           "description": "Path to a Chromium or Chrome executable to run instead of the bundled Chromium."
         },
@@ -305,18 +300,12 @@
           "description": "pdf only. Display header and footer."
         },
         "markdown-pdf.headerTemplate": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
           "description": "pdf only. HTML template for the print header."
         },
         "markdown-pdf.footerTemplate": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
           "description": "pdf only. HTML template for the print footer."
         },
@@ -327,22 +316,20 @@
         },
         "markdown-pdf.orientation": {
           "type": "string",
-          "default": "portrait",
+          "enum": [
+            "portrait",
+            "landscape"
+          ],
+         "default": "portrait",
           "description": "pdf only. Paper orientation. portrait or landscape."
         },
         "markdown-pdf.pageRanges": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "",
           "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'."
         },
         "markdown-pdf.format": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "enum": [
             "Letter",
             "Legal",
@@ -360,50 +347,32 @@
           "description": "pdf only. Paper format [Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6]."
         },
         "markdown-pdf.width": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "",
           "description": "pdf only. Paper width, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
         },
         "markdown-pdf.height": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "",
           "description": "pdf only. Paper height, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
         },
         "markdown-pdf.margin.top": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "1.5cm",
           "description": "Page Option. Border Top. units: mm, cm, in, px"
         },
         "markdown-pdf.margin.bottom": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "1cm",
           "description": "Page Option. Border bottom. units: mm, cm, in, px"
         },
         "markdown-pdf.margin.right": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "1cm",
           "description": "Page Option. Border right. units: mm, cm, in, px"
         },
         "markdown-pdf.margin.left": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": "string",
           "default": "1cm",
           "description": "Page Option. Border left. units: mm, cm, in, px"
         },
@@ -413,23 +382,35 @@
           "description": "jpeg only. The quality of the image, between 0-100. Not applicable to png images."
         },
         "markdown-pdf.clip.x": {
-          "type": "number",
-          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": "",
           "description": "x-coordinate of top-left corner of clip area."
         },
         "markdown-pdf.clip.y": {
-          "type": "number",
-          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": "",
           "description": "y-coordinate of top-left corner of clip area."
         },
         "markdown-pdf.clip.width": {
-          "type": "number",
-          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": "",
           "description": "width of clipping area."
         },
         "markdown-pdf.clip.height": {
-          "type": "number",
-          "default": null,
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": "",
           "description": "height of clipping area."
         },
         "markdown-pdf.omitBackground": {
@@ -438,16 +419,12 @@
           "description": "Hides default white background and allows capturing screenshots with transparency."
         },
         "markdown-pdf.plantumlOpenMarker": {
-          "type": [
-            "string"
-          ],
+          "type": "string",
           "default": "@startuml",
           "description": "Oppening delimiter used for the plantuml parser."
         },
         "markdown-pdf.plantumlCloseMarker": {
-          "type": [
-            "string"
-          ],
+          "type": "string",
           "default": "@enduml",
           "description": "Closing delimiter used for the plantuml parser."
         },

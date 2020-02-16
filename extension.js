@@ -449,10 +449,10 @@ function exportPdf(data, filename, type, uri) {
           }
 
           // screenshot size
-          var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'];
-          var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'];
-          var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'];
-          var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'];
+          var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'] || null;
+          var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'] || null;
+          var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'] || null;
+          var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'] || null;
           var options;
           if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
             options = {
