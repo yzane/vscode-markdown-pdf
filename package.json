@@ -144,7 +144,7 @@
         "markdown-pdf.convertOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "Enable Auto convert on save"
+          "description": "Enable Auto convert on save. To apply the settings, you need to restart Visual Studio Code"
         },
         "markdown-pdf.convertOnSaveExclude": {
           "type": [
@@ -387,7 +387,7 @@
             "null"
           ],
           "default": "",
-          "description": "x-coordinate of top-left corner of clip area."
+          "description": "png and jpeg only. x-coordinate of top-left corner of clip area."
         },
         "markdown-pdf.clip.y": {
           "type": [
@@ -395,7 +395,7 @@
             "null"
           ],
           "default": "",
-          "description": "y-coordinate of top-left corner of clip area."
+          "description": "png and jpeg only. y-coordinate of top-left corner of clip area."
         },
         "markdown-pdf.clip.width": {
           "type": [
@@ -403,7 +403,7 @@
             "null"
           ],
           "default": "",
-          "description": "width of clipping area."
+          "description": "png and jpeg only. width of clipping area."
         },
         "markdown-pdf.clip.height": {
           "type": [
@@ -411,12 +411,12 @@
             "null"
           ],
           "default": "",
-          "description": "height of clipping area."
+          "description": "png and jpeg only. height of clipping area."
         },
         "markdown-pdf.omitBackground": {
           "type": "boolean",
           "default": false,
-          "description": "Hides default white background and allows capturing screenshots with transparency."
+          "description": "png and jpeg only. Hides default white background and allows capturing screenshots with transparency."
         },
         "markdown-pdf.plantumlOpenMarker": {
           "type": "string",
