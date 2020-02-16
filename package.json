@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -320,7 +320,7 @@
             "portrait",
             "landscape"
           ],
-         "default": "portrait",
+          "default": "portrait",
           "description": "pdf only. Paper orientation. portrait or landscape."
         },
         "markdown-pdf.pageRanges": {
@@ -446,10 +446,10 @@
     "test": "node ./test/runTest.js"
   },
   "devDependencies": {
-    "glob": "^7.1.5",
+    "glob": "^7.1.6",
     "mocha": "^6.2.2",
     "removeNPMAbsolutePaths": "^2.0.0",
-    "vscode-test": "^1.2.0"
+    "vscode-test": "^1.3.0"
   },
   "dependencies": {
     "cheerio": "^0.20.0",
