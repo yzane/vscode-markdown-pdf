@@ -8,8 +8,7 @@ var removeNPMAbsolutePaths = require('removeNPMAbsolutePaths');
 // Delete the unnecessary files in order to reduce the size of the package
 console.log('delete file...');
 deleteFile(path.join(__dirname, '..', 'node_modules', 'emoji-images', 'json'));
-deleteFile(path.join(__dirname, '..', 'node_modules', 'puppeteer', '.local-chromium'));
-deleteFile(path.join(__dirname, '..', 'sample', 'README.*'));
+deleteFile(path.join(__dirname, '..', 'node_modules', 'puppeteer-core', '.local-chromium'));
 
 removeNPMAbsolutePaths(path.join(__dirname, '..', 'node_modules'), { force: true, fields: ['_where', '_args']})
   .then(results => results.forEach(result => {

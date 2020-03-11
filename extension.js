@@ -281,7 +281,7 @@ function convertMarkdownToHtml(filename, type, text) {
   if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
     md.use(require("markdown-it-include"), {
       root: path.dirname(filename),
-      includeRe: /\:(?:\[[^\]]*\])?\(([^)]+\.*)\)/i
+      includeRe: /:\[.+\]\((.+\..+)\)/i
     });
   }
 
@@ -388,15 +388,17 @@ function exportPdf(data, filename, type, uri) {
           return;
         }
 
-        const puppeteer = require('puppeteer');
+        const puppeteer = require('puppeteer-core');
         // create temporary file
         var f = path.parse(filename);
         var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
         exportHtml(data, tmpfilename);
         var options = {
           executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),
-          args: ['--lang='+vscode.env.langauage]
-        };
+          args: ['--lang='+vscode.env.langauage, '--no-sandbox', '--disable-setuid-sandbox']
+          // Setting Up Chrome Linux Sandbox
+          // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
+      };
         const browser = await puppeteer.launch(options);
         const page = await browser.newPage();
         await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
@@ -767,7 +769,7 @@ function checkPuppeteerBinary() {
     }
 
     // bundled Chromium
-    const puppeteer = require('puppeteer');
+    const puppeteer = require('puppeteer-core');
     executablePath = puppeteer.executablePath();
     if (isExistsPath(executablePath)) {
       return true;
@@ -792,9 +794,9 @@ function installChromium() {
     setProxy();
 
     var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
-    const puppeteer = require('puppeteer');
+    const puppeteer = require('puppeteer-core');
     const browserFetcher = puppeteer.createBrowserFetcher();
-    const revision = require(path.join(__dirname, 'node_modules', 'puppeteer', 'package.json')).puppeteer.chromium_revision;
+    const revision = require(path.join(__dirname, 'node_modules', 'puppeteer-core', 'package.json')).puppeteer.chromium_revision;
     const revisionInfo = browserFetcher.revisionInfo(revision);
 
     // download Chromium

@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.4.3 (2020/03/12)
+* Fix: markdown-include regular expression
+    * Fix: Unable to export to pdf from markdown [#166](https://github.com/yzane/vscode-markdown-pdf/issues/166)
+    * Fix: python code export err [#178](https://github.com/yzane/vscode-markdown-pdf/issues/178)
+* Fix: Add support for Ubuntu and Centos
+    * Fix: Error: Failed to lanuch chrome! [#97](https://github.com/yzane/vscode-markdown-pdf/issues/97)
+    * Fix: I failed to launch chrome in WSL [#160](https://github.com/yzane/vscode-markdown-pdf/issues/160)
+    * Fix: Unable to export to pdf from markdown [#166](https://github.com/yzane/vscode-markdown-pdf/issues/166)
+
 ## 1.4.2 (2020/02/16)
 * Add: Support [gray-matter](https://github.com/jonschlinkert/gray-matter) (preview)
     * Avoid to display front matter [#157](https://github.com/yzane/vscode-markdown-pdf/pull/157)
