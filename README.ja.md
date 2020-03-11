@@ -560,16 +560,14 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.4.2 (2020/02/16)
-* Add: Support [gray-matter](https://github.com/jonschlinkert/gray-matter) (preview)
-    * Avoid to display front matter [#157](https://github.com/yzane/vscode-markdown-pdf/pull/157)
-    * Currently, only some settings can be specified.
-* Fix: Improve the configuration schema of package.json
-    * Some settings can now be set from the settings editor.
-* Fix: Specifying custom style sheets with a relative path does not work [#170](https://github.com/yzane/vscode-markdown-pdf/pull/170)
-* Fix: Pass language to markdown-pdf puppeteer [#172](https://github.com/yzane/vscode-markdown-pdf/pull/172)
-    * Date Format [#95](https://github.com/yzane/vscode-markdown-pdf/issues/95)
-* Improve: Reduce Regex strictness of markdown-it-include [#174](https://github.com/yzane/vscode-markdown-pdf/pull/174)
+### 1.4.3 (2020/03/12)
+* Fix: markdown-include regular expression
+    * Fix: Unable to export to pdf from markdown [#166](https://github.com/yzane/vscode-markdown-pdf/issues/166)
+    * Fix: python code export err [#178](https://github.com/yzane/vscode-markdown-pdf/issues/178)
+* Fix: Add support for Ubuntu and Centos
+    * Fix: Error: Failed to lanuch chrome! [#97](https://github.com/yzane/vscode-markdown-pdf/issues/97)
+    * Fix: I failed to launch chrome in WSL [#160](https://github.com/yzane/vscode-markdown-pdf/issues/160)
+    * Fix: Unable to export to pdf from markdown [#166](https://github.com/yzane/vscode-markdown-pdf/issues/166)
 
 
 ## License
