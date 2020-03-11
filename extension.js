@@ -423,7 +423,7 @@ function exportPdf(data, filename, type, uri) {
             path: exportFilename,
             scale: vscode.workspace.getConfiguration('markdown-pdf')['scale'],
             displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf')['displayHeaderFooter'],
-            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['headerTemplate'] || '',
+            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
             footerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['footerTemplate'] || '',
             printBackground: vscode.workspace.getConfiguration('markdown-pdf')['printBackground'],
             landscape: landscape_option,
