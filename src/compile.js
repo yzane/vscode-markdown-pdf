@@ -9,7 +9,6 @@ var removeNPMAbsolutePaths = require('removeNPMAbsolutePaths');
 console.log('delete file...');
 deleteFile(path.join(__dirname, '..', 'node_modules', 'emoji-images', 'json'));
 deleteFile(path.join(__dirname, '..', 'node_modules', 'puppeteer', '.local-chromium'));
-deleteFile(path.join(__dirname, '..', 'sample', 'README.*'));
 
 removeNPMAbsolutePaths(path.join(__dirname, '..', 'node_modules'), { force: true, fields: ['_where', '_args']})
   .then(results => results.forEach(result => {
