@@ -467,7 +467,7 @@
     "mermaid": "^8.4.0",
     "mkdirp": "^0.5.1",
     "mustache": "^3.1.0",
-    "puppeteer": "^1.20.0",
+    "puppeteer-core": "^2.1.1",
     "rimraf": "^3.0.0"
   }
 }
