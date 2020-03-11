@@ -7,3 +7,4 @@ jsconfig.json
 work/**
 *.bat
 .eslintrc.json
+sample/**
