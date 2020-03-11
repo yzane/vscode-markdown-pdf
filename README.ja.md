@@ -118,7 +118,7 @@ OUTPUT
 
 ## インストール
 
-Markdown PDF をインストールして、Visutal Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
+Markdown PDF をインストールして、Visual Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
 
 しかしサイズが大きい為 (~170Mb Mac, ~282Mb Linux, ~280Mb Win) 、環境によっては時間がかかります。
 ダウンロード中は、ステータスバーに `Installing Puppeteer` のメッセージが表示されます。
