@@ -120,7 +120,7 @@ OUTPUT
 
 ## Install
 
-Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visutal Studio Code.
+Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visual Studio Code.
 
 However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).
 
