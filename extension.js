@@ -395,7 +395,7 @@ function exportPdf(data, filename, type, uri) {
         exportHtml(data, tmpfilename);
         var options = {
           executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),
-          args: ['--lang='+vscode.env.langauage, '--no-sandbox', '--disable-setuid-sandbox']
+          args: ['--lang='+vscode.env.language, '--no-sandbox', '--disable-setuid-sandbox']
           // Setting Up Chrome Linux Sandbox
           // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
       };
