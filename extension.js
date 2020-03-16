@@ -300,12 +300,14 @@ function convertMarkdownToHtml(filename, type, text) {
  */
 function Slug(string) {
   try {
-    var stg = encodeURI(string.trim()
-      .toLowerCase()
-      .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/^\-+/, '')
-      .replace(/\-+$/, ''));
+    var stg = encodeURI(
+      string.trim()
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`]/g, '')
+            .replace(/^\-+/, '')
+            .replace(/\-+$/, '')
+    );
     return stg;
   } catch (error) {
     showErrorMessage('Slug()', error);
