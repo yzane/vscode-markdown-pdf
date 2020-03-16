@@ -1,13 +1,14 @@
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-body {
-	font-family: "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
-	font-size: 14px;
-	padding: 0 12px;
-	line-height: 22px;
+ html, body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
 	word-wrap: break-word;
 }
 
@@ -31,7 +32,6 @@ body {
 	background-color:#007acc;
 	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
 }
-
 
 body.scrollBeyondLastLine {
 	margin-bottom: calc(100vh - 22px);
@@ -64,12 +64,20 @@ body.showEditorSelection li.code-line:hover:before {
 	border-left: 3px solid rgba(0, 0, 0, 0.40);
 }
 
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
 .vscode-dark.showEditorSelection .code-active-line:before {
 	border-left: 3px solid rgba(255, 255, 255, 0.4);
 }
 
 .vscode-dark.showEditorSelection .code-line:hover:before {
 	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
 }
 
 .vscode-high-contrast.showEditorSelection .code-active-line:before {
@@ -80,14 +88,21 @@ body.showEditorSelection li.code-line:hover:before {
 	border-left: 3px solid rgba(255, 160, 0, 1);
 }
 
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
 img {
 	max-width: 100%;
 	max-height: 100%;
 }
 
 a {
-	color: #4080D0;
 	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
 }
 
 a:focus,
@@ -115,21 +130,6 @@ h1, h2, h3 {
 	font-weight: normal;
 }
 
-h1 code,
-h2 code,
-h3 code,
-h4 code,
-h5 code,
-h6 code {
-	font-size: inherit;
-	line-height: auto;
-}
-
-a:hover {
-	color: #4080D0;
-	text-decoration: underline;
-}
-
 table {
 	border-collapse: collapse;
 }
@@ -153,22 +153,18 @@ table > tbody > tr + tr > td {
 blockquote {
 	margin: 0 7px 0 5px;
 	padding: 0 16px 0 10px;
-	border-left: 5px solid;
+	border-left-width: 5px;
+	border-left-style: solid;
 }
 
 code {
 	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
-	font-size: 14px;
-	line-height: 19px;
+	font-size: 1em;
+	line-height: 1.357em;
 }
 
 body.wordWrap pre {
 	white-space: pre-wrap;
-}
-
-.mac code {
-	font-size: 12px;
-	line-height: 18px;
 }
 
 pre:not(.hljs),
@@ -178,43 +174,22 @@ pre.hljs code > div {
 	overflow: auto;
 }
 
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
 /** Theming */
 
-.vscode-light,
-.vscode-light pre code {
-	color: rgb(30, 30, 30);
-}
-
-.vscode-dark,
-.vscode-dark pre code {
-	color: #DDD;
-}
-
-.vscode-high-contrast,
-.vscode-high-contrast pre code {
-	color: white;
-}
-
-.vscode-light code {
-	color: #A31515;
-}
-
-.vscode-dark code {
-	color: #D7BA7D;
-}
-
-.vscode-light pre:not(.hljs),
-.vscode-light code > div {
+.vscode-light pre {
 	background-color: rgba(220, 220, 220, 0.4);
 }
 
-.vscode-dark pre:not(.hljs),
-.vscode-dark code > div {
+.vscode-dark pre {
 	background-color: rgba(10, 10, 10, 0.4);
 }
 
-.vscode-high-contrast pre:not(.hljs),
-.vscode-high-contrast code > div {
+.vscode-high-contrast pre {
 	background-color: rgb(0, 0, 0);
 }
 
@@ -240,15 +215,4 @@ pre.hljs code > div {
 .vscode-dark hr,
 .vscode-dark table > tbody > tr + tr > td {
 	border-color: rgba(255, 255, 255, 0.18);
-}
-
-.vscode-light blockquote,
-.vscode-dark blockquote {
-	background: rgba(127, 127, 127, 0.1);
-	border-color: rgba(0, 122, 204, 0.5);
-}
-
-.vscode-high-contrast blockquote {
-	background: transparent;
-	border-color: #fff;
 }
