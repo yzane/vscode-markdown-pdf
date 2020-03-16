@@ -303,7 +303,7 @@ function Slug(string) {
       string.trim()
             .toLowerCase()
             .replace(/\s+/g, '-') // Replace whitespace with -
-            .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`]/g, '') // Remove known punctuators
+            .replace(/[\]\[\!\'\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
             .replace(/^\-+/, '') // Remove leading -
             .replace(/\-+$/, '') // Remove trailing -
     );
