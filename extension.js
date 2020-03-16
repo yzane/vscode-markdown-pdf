@@ -295,18 +295,17 @@ function convertMarkdownToHtml(filename, type, text) {
 }
 
 /*
- * https://github.com/Microsoft/vscode/blob/b3a1b98d54e2f7293d6f018c97df30d07a6c858f/extensions/markdown/src/markdownEngine.ts
- * https://github.com/Microsoft/vscode/blob/b3a1b98d54e2f7293d6f018c97df30d07a6c858f/extensions/markdown/src/tableOfContentsProvider.ts
+ * https://github.com/microsoft/vscode/blob/ca4ceeb87d4ff935c52a7af0671ed9779657e7bd/extensions/markdown-language-features/src/slugify.ts#L26
  */
 function Slug(string) {
   try {
     var stg = encodeURI(
       string.trim()
             .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`]/g, '')
-            .replace(/^\-+/, '')
-            .replace(/\-+$/, '')
+            .replace(/\s+/g, '-') // Replace whitespace with -
+            .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`]/g, '') // Remove known punctuators
+            .replace(/^\-+/, '') // Remove leading -
+            .replace(/\-+$/, '') // Remove trailing -
     );
     return stg;
   } catch (error) {
