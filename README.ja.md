@@ -180,44 +180,44 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 
 ### List
 
-|Category| Option name|
-|:---|:---|
-|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)|
-||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)|
-||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)|
-||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)|
-||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)|
-|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)|
-||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)|
-||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)|
-|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)|
-||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)|
-|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)|
-|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)|
-|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)|
-|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)|
-|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|
-||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|
-||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|
-||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|
-||[markdown-pdf.orientation](#markdown-pdforientation)|
-||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|
-||[markdown-pdf.format](#markdown-pdfformat)|
-||[markdown-pdf.width](#markdown-pdfwidth)|
-||[markdown-pdf.height](#markdown-pdfheight)|
-||[markdown-pdf.margin.top](#markdown-pdfmargintop)|
-||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|
-||[markdown-pdf.margin.right](#markdown-pdfmarginright)|
-||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|
-|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)|
-||[markdown-pdf.clip.x](#markdown-pdfclipx)|
-||[markdown-pdf.clip.y](#markdown-pdfclipy)|
-||[markdown-pdf.clip.width](#markdown-pdfclipwidth)|
-||[markdown-pdf.clip.height](#markdown-pdfclipheight)|
-||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
-|[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)|
-||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)|
-|[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)|
+|Category|Option name|[Configuration scope](https://code.visualstudio.com/api/references/contribution-points#Configuration-property-schema)|
+|:---|:---|:---|
+|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)| |
+||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)| |
+||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)| |
+||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)| |
+||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)| |
+|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)| |
+||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)| |
+||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)| |
+|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)| |
+||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)| |
+|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)| |
+|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)| |
+|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)| |
+|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)| |
+|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|resource|
+||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|resource|
+||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|resource|
+||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|resource|
+||[markdown-pdf.orientation](#markdown-pdforientation)|resource|
+||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|resource|
+||[markdown-pdf.format](#markdown-pdfformat)|resource|
+||[markdown-pdf.width](#markdown-pdfwidth)|resource|
+||[markdown-pdf.height](#markdown-pdfheight)|resource|
+||[markdown-pdf.margin.top](#markdown-pdfmargintop)|resource|
+||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|resource|
+||[markdown-pdf.margin.right](#markdown-pdfmarginright)|resource|
+||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|resource|
+|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)| |
+||[markdown-pdf.clip.x](#markdown-pdfclipx)| |
+||[markdown-pdf.clip.y](#markdown-pdfclipy)| |
+||[markdown-pdf.clip.width](#markdown-pdfclipwidth)| |
+||[markdown-pdf.clip.height](#markdown-pdfclipheight)| |
+||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)| |
+|[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
+||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
+|[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 
 ### Save options
 

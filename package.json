@@ -297,7 +297,8 @@
         "markdown-pdf.displayHeaderFooter": {
           "type": "boolean",
           "default": true,
-          "description": "pdf only. Display header and footer."
+          "description": "pdf only. Display header and footer.",
+          "scope": "resource"
         },
         "markdown-pdf.headerTemplate": {
           "type": "string",
@@ -308,12 +309,14 @@
         "markdown-pdf.footerTemplate": {
           "type": "string",
           "default": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
-          "description": "pdf only. HTML template for the print footer."
+          "description": "pdf only. HTML template for the print footer.",
+          "scope": "resource"
         },
         "markdown-pdf.printBackground": {
           "type": "boolean",
           "default": true,
-          "description": "pdf only. Print background graphics."
+          "description": "pdf only. Print background graphics.",
+          "scope": "resource"
         },
         "markdown-pdf.orientation": {
           "type": "string",
@@ -322,12 +325,14 @@
             "landscape"
           ],
           "default": "portrait",
-          "description": "pdf only. Paper orientation. portrait or landscape."
+          "description": "pdf only. Paper orientation. portrait or landscape.",
+          "scope": "resource"
         },
         "markdown-pdf.pageRanges": {
           "type": "string",
           "default": "",
-          "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'."
+          "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'.",
+          "scope": "resource"
         },
         "markdown-pdf.format": {
           "type": "string",
@@ -345,37 +350,44 @@
             "A6"
           ],
           "default": "A4",
-          "description": "pdf only. Paper format [Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6]."
+          "description": "pdf only. Paper format [Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6].",
+          "scope": "resource"
         },
         "markdown-pdf.width": {
           "type": "string",
           "default": "",
-          "description": "pdf only. Paper width, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
+          "description": "pdf only. Paper width, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option.",
+          "scope": "resource"
         },
         "markdown-pdf.height": {
           "type": "string",
           "default": "",
-          "description": "pdf only. Paper height, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
+          "description": "pdf only. Paper height, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option.",
+          "scope": "resource"
         },
         "markdown-pdf.margin.top": {
           "type": "string",
           "default": "1.5cm",
-          "description": "Page Option. Border Top. units: mm, cm, in, px"
+          "description": "Page Option. Border Top. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.margin.bottom": {
           "type": "string",
           "default": "1cm",
-          "description": "Page Option. Border bottom. units: mm, cm, in, px"
+          "description": "Page Option. Border bottom. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.margin.right": {
           "type": "string",
           "default": "1cm",
-          "description": "Page Option. Border right. units: mm, cm, in, px"
+          "description": "Page Option. Border right. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.margin.left": {
           "type": "string",
           "default": "1cm",
-          "description": "Page Option. Border left. units: mm, cm, in, px"
+          "description": "Page Option. Border left. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.quality": {
           "type": "number",

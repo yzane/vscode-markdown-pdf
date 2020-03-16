@@ -407,35 +407,35 @@ function exportPdf(data, filename, type, uri) {
         if (type == 'pdf') {
           // If width or height option is set, it overrides the format option.
           // In order to set the default value of page size to A4, we changed it from the specification of puppeteer.
-          var width_option = vscode.workspace.getConfiguration('markdown-pdf')['width'] || '';
-          var height_option = vscode.workspace.getConfiguration('markdown-pdf')['height'] || '';
+          var width_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '';
+          var height_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '';
           var format_option = '';
           if (!width_option && !height_option) {
-            format_option = vscode.workspace.getConfiguration('markdown-pdf')['format'] || 'A4';
+            format_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4';
           }
           var landscape_option;
-          if (vscode.workspace.getConfiguration('markdown-pdf')['orientation'] == 'landscape') {
+          if (vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] == 'landscape') {
             landscape_option = true;
           } else {
             landscape_option = false;
           }
           var options = {
             path: exportFilename,
-            scale: vscode.workspace.getConfiguration('markdown-pdf')['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf')['displayHeaderFooter'],
+            scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
+            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
             headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
-            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['footerTemplate'] || '',
-            printBackground: vscode.workspace.getConfiguration('markdown-pdf')['printBackground'],
+            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || '',
+            printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
             landscape: landscape_option,
-            pageRanges: vscode.workspace.getConfiguration('markdown-pdf')['pageRanges'] || '',
+            pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
             format: format_option,
-            width: vscode.workspace.getConfiguration('markdown-pdf')['width'] || '',
-            height: vscode.workspace.getConfiguration('markdown-pdf')['height'] || '',
+            width: vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '',
+            height: vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '',
             margin: {
-              top: vscode.workspace.getConfiguration('markdown-pdf')['margin']['top'] || '',
-              right: vscode.workspace.getConfiguration('markdown-pdf')['margin']['right'] || '',
-              bottom: vscode.workspace.getConfiguration('markdown-pdf')['margin']['bottom'] || '',
-              left: vscode.workspace.getConfiguration('markdown-pdf')['margin']['left'] || ''
+              top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
+              right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
+              bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
+              left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
             }
           }
           await page.pdf(options);
