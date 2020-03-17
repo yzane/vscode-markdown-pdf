@@ -221,6 +221,7 @@ If the download is not successful or you want to avoid downloading every time yo
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
+|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)||
 
 ### Save options
 
@@ -514,6 +515,12 @@ If the download is not successful or you want to avoid downloading every time yo
 #### `markdown-pdf.markdown-it-include.enable`
   - Enable markdown-it-include.
   - boolean. Default: true
+
+### mermaid options
+
+#### `markdown-pdf.mermaidServer`
+  - mermaid server
+  - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
 <div class="page"/>
 
