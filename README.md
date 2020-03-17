@@ -220,8 +220,9 @@ If the download is not successful or you want to avoid downloading every time yo
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)| |
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
+||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
-|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)||
+|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 
 ### Save options
 
@@ -509,6 +510,10 @@ If the download is not successful or you want to avoid downloading every time yo
 #### `markdown-pdf.plantumlCloseMarker`
   - Closing delimiter used for the plantuml parser.
   - Default: @enduml
+
+#### `markdown-pdf.plantumlServer`
+  - Plantuml server. e.g. http://localhost:8080
+  - Default: http://www.plantuml.com/plantuml
 
 ### markdown-it-include options
 

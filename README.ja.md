@@ -217,8 +217,9 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)| |
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
+||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
-|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)||
+|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 
 ### Save options
 
@@ -503,6 +504,10 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 #### `markdown-pdf.plantumlCloseMarker`
   - plantuml パーサーの終了区切り文字
   - Default: @enduml
+
+#### `markdown-pdf.plantumlServer`
+  - Plantuml server. e.g. http://localhost:8080
+  - Default: http://www.plantuml.com/plantuml
 
 ### markdown-it-include options
 

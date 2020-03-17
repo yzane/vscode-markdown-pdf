@@ -441,6 +441,11 @@
           "default": "@enduml",
           "description": "Closing delimiter used for the plantuml parser."
         },
+        "markdown-pdf.plantumlServer": {
+          "type": "string",
+          "default": "http://www.plantuml.com/plantuml",
+          "description": "plantuml server"
+        },
         "markdown-pdf.StatusbarMessageTimeout": {
           "type": "number",
           "default": 10000,
