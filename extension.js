@@ -329,8 +329,9 @@ function makeHtml(data, uri) {
     var filename = path.join(__dirname, 'template', 'template.html');
     var template = readFile(filename);
 
-     // read mermaid javascripts
-     var mermaid = readFile(path.join(__dirname, 'node_modules', 'mermaid', 'dist', 'mermaid.min.js'));
+    // read mermaid javascripts
+    var mermaidServer = vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || '';
+    var mermaid = '<script src=\"' + mermaidServer + '\"></script>';
 
     // compile template
     var mustache = require('mustache');

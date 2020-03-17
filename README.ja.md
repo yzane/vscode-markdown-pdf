@@ -218,6 +218,7 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
+|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)||
 
 ### Save options
 
@@ -508,6 +509,12 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 #### `markdown-pdf.markdown-it-include.enable`
   - markdown-it-include を有効にします
   - boolean. Default: true
+
+### mermaid options
+
+#### `markdown-pdf.mermaidServer`
+  - mermaid server
+  - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
 <div class="page"/>
 

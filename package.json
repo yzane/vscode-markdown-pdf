@@ -450,6 +450,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable markdown-it-include. "
+        },
+        "markdown-pdf.mermaidServer": {
+          "type": "string",
+          "default": "https://unpkg.com/mermaid/dist/mermaid.min.js",
+          "description": "mermaid server."
         }
       }
     }
@@ -477,7 +482,6 @@
     "markdown-it-include": "^1.1.0",
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
-    "mermaid": "^8.4.0",
     "mkdirp": "^0.5.1",
     "mustache": "^3.1.0",
     "puppeteer-core": "^2.1.1",
