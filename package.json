@@ -274,7 +274,7 @@
             "atelier-cave-light.css"
           ],
           "default": "",
-          "description": "Set the style file name. for example: github.css, monokai.css ... https://github.com/isagalaev/highlight.js/tree/master/src/styles"
+          "markdownDescription": "Set the style file name. [highlight.js demo](https://highlightjs.org/static/demo/) [highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/master/src/styles)"
         },
         "markdown-pdf.breaks": {
           "type": "boolean",
