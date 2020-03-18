@@ -26,7 +26,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 Supports the following features
 * [Syntax highlighting](https://highlightjs.org/static/demo/)
-* [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
+* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
