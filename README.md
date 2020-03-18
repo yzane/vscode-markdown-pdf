@@ -30,7 +30,7 @@ Supports the following features
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](http://plantuml.com/)
+* [PlantUML](https://plantuml.com/)
   * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [mermaid](https://mermaid-js.github.io/mermaid/)
 
