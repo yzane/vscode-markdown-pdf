@@ -284,7 +284,7 @@
         "markdown-pdf.emoji": {
           "type": "boolean",
           "default": true,
-          "description": "Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/"
+          "markdownDescription": "Enable emoji. [Emoji cheat sheet](https://www.webfx.com/tools/emoji-cheat-sheet/)"
         },
         "markdown-pdf.executablePath": {
           "type": "string",
