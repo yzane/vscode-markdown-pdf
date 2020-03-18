@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -132,13 +132,13 @@
       "title": "Markdown PDF",
       "properties": {
         "markdown-pdf.type": {
-          "type": [
-            "array",
-            "string"
-          ],
+          "type": "array",
           "default": [
             "pdf"
           ],
+          "items": {
+            "type": "string"
+          },
           "description": "Output format: pdf, html, png, jpeg. Multiple output formats support"
         },
         "markdown-pdf.convertOnSave": {
@@ -147,10 +147,11 @@
           "description": "Enable Auto convert on save. To apply the settings, you need to restart Visual Studio Code"
         },
         "markdown-pdf.convertOnSaveExclude": {
-          "type": [
-            "array"
-          ],
+          "type": "array",
           "default": [],
+          "items": {
+            "type": "string"
+          },
           "description": "Excluded file name of convertOnSave option"
         },
         "markdown-pdf.outputDirectory": {
@@ -164,10 +165,11 @@
           "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
         },
         "markdown-pdf.styles": {
-          "type": [
-            "array"
-          ],
+          "type": "array",
           "default": [],
+          "items": {
+            "type": "string"
+          },
           "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
         },
         "markdown-pdf.stylesRelativePathFile": {
@@ -191,6 +193,17 @@
             "null"
           ],
           "enum": [
+            "",
+            "a11y-dark.css",
+            "a11y-light.css",
+            "agate.css",
+            "androidstudio.css",
+            "an-old-hope.css",
+            "arduino-light.css",
+            "arta.css",
+            "ascetic.css",
+            "atelier-cave-dark.css",
+            "atelier-cave-light.css",
             "atelier-dune-dark.css",
             "atelier-dune-light.css",
             "atelier-estuary-dark.css",
@@ -210,6 +223,7 @@
             "atelier-sulphurpool-dark.css",
             "atelier-sulphurpool-light.css",
             "atom-one-dark.css",
+            "atom-one-dark-reasonable.css",
             "atom-one-light.css",
             "brown-paper.css",
             "codepen-embed.css",
@@ -224,7 +238,9 @@
             "foundation.css",
             "github.css",
             "github-gist.css",
+            "gml.css",
             "googlecode.css",
+            "gradient-dark.css",
             "grayscale.css",
             "gruvbox-dark.css",
             "gruvbox-light.css",
@@ -232,12 +248,17 @@
             "hybrid.css",
             "idea.css",
             "ir-black.css",
+            "isbl-editor-dark.css",
+            "isbl-editor-light.css",
             "kimbie.dark.css",
             "kimbie.light.css",
+            "lightfair.css",
             "magula.css",
             "mono-blue.css",
             "monokai.css",
             "monokai-sublime.css",
+            "night-owl.css",
+            "nord.css",
             "obsidian.css",
             "ocean.css",
             "paraiso-dark.css",
@@ -250,6 +271,7 @@
             "rainbow.css",
             "routeros.css",
             "school-book.css",
+            "shades-of-purple.css",
             "solarized-dark.css",
             "solarized-light.css",
             "sunburst.css",
@@ -262,17 +284,10 @@
             "vs2015.css",
             "xcode.css",
             "xt256.css",
-            "zenburn.css",
-            "agate.css",
-            "androidstudio.css",
-            "arduino-light.css",
-            "arta.css",
-            "ascetic.css",
-            "atelier-cave-dark.css",
-            "atelier-cave-light.css"
+            "zenburn.css"
           ],
           "default": "",
-          "description": "Set the style file name. for example: github.css, monokai.css ... https://github.com/isagalaev/highlight.js/tree/master/src/styles"
+          "markdownDescription": "Set the style file name. [highlight.js demo](https://highlightjs.org/static/demo/) [highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/master/src/styles)"
         },
         "markdown-pdf.breaks": {
           "type": "boolean",
@@ -282,7 +297,7 @@
         "markdown-pdf.emoji": {
           "type": "boolean",
           "default": true,
-          "description": "Enable emoji. http://www.webpagefx.com/tools/emoji-cheat-sheet/"
+          "markdownDescription": "Enable emoji. [Emoji cheat sheet](https://www.webfx.com/tools/emoji-cheat-sheet/)"
         },
         "markdown-pdf.executablePath": {
           "type": "string",
@@ -297,22 +312,26 @@
         "markdown-pdf.displayHeaderFooter": {
           "type": "boolean",
           "default": true,
-          "description": "pdf only. Display header and footer."
+          "description": "pdf only. Display header and footer.",
+          "scope": "resource"
         },
         "markdown-pdf.headerTemplate": {
           "type": "string",
           "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
-          "description": "pdf only. HTML template for the print header."
+          "description": "pdf only. HTML template for the print header.",
+          "scope": "resource"
         },
         "markdown-pdf.footerTemplate": {
           "type": "string",
           "default": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
-          "description": "pdf only. HTML template for the print footer."
+          "description": "pdf only. HTML template for the print footer.",
+          "scope": "resource"
         },
         "markdown-pdf.printBackground": {
           "type": "boolean",
           "default": true,
-          "description": "pdf only. Print background graphics."
+          "description": "pdf only. Print background graphics.",
+          "scope": "resource"
         },
         "markdown-pdf.orientation": {
           "type": "string",
@@ -321,12 +340,14 @@
             "landscape"
           ],
           "default": "portrait",
-          "description": "pdf only. Paper orientation. portrait or landscape."
+          "description": "pdf only. Paper orientation. portrait or landscape.",
+          "scope": "resource"
         },
         "markdown-pdf.pageRanges": {
           "type": "string",
           "default": "",
-          "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'."
+          "description": "pdf only. Paper ranges to print, e.g., '1-5, 8, 11-13'.",
+          "scope": "resource"
         },
         "markdown-pdf.format": {
           "type": "string",
@@ -344,37 +365,44 @@
             "A6"
           ],
           "default": "A4",
-          "description": "pdf only. Paper format [Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6]."
+          "description": "pdf only. Paper format [Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6].",
+          "scope": "resource"
         },
         "markdown-pdf.width": {
           "type": "string",
           "default": "",
-          "description": "pdf only. Paper width, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
+          "description": "pdf only. Paper width, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option.",
+          "scope": "resource"
         },
         "markdown-pdf.height": {
           "type": "string",
           "default": "",
-          "description": "pdf only. Paper height, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option."
+          "description": "pdf only. Paper height, accepts values labeled with units(mm, cm, in, px). If it is set, it overrides the markdown-pdf.format option.",
+          "scope": "resource"
         },
         "markdown-pdf.margin.top": {
           "type": "string",
           "default": "1.5cm",
-          "description": "Page Option. Border Top. units: mm, cm, in, px"
+          "description": "Page Option. Border Top. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.margin.bottom": {
           "type": "string",
           "default": "1cm",
-          "description": "Page Option. Border bottom. units: mm, cm, in, px"
+          "description": "Page Option. Border bottom. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.margin.right": {
           "type": "string",
           "default": "1cm",
-          "description": "Page Option. Border right. units: mm, cm, in, px"
+          "description": "Page Option. Border right. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.margin.left": {
           "type": "string",
           "default": "1cm",
-          "description": "Page Option. Border left. units: mm, cm, in, px"
+          "description": "Page Option. Border left. units: mm, cm, in, px",
+          "scope": "resource"
         },
         "markdown-pdf.quality": {
           "type": "number",
@@ -428,6 +456,11 @@
           "default": "@enduml",
           "description": "Closing delimiter used for the plantuml parser."
         },
+        "markdown-pdf.plantumlServer": {
+          "type": "string",
+          "default": "http://www.plantuml.com/plantuml",
+          "description": "plantuml server"
+        },
         "markdown-pdf.StatusbarMessageTimeout": {
           "type": "number",
           "default": 10000,
@@ -437,6 +470,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable markdown-it-include. "
+        },
+        "markdown-pdf.mermaidServer": {
+          "type": "string",
+          "default": "https://unpkg.com/mermaid/dist/mermaid.min.js",
+          "description": "mermaid server."
         }
       }
     }
@@ -447,7 +485,7 @@
   },
   "devDependencies": {
     "glob": "^7.1.6",
-    "mocha": "^6.2.2",
+    "mocha": "^7.1.1",
     "removeNPMAbsolutePaths": "^2.0.0",
     "vscode-test": "^1.3.0"
   },
@@ -456,7 +494,7 @@
     "d3": "^4.13.0",
     "emoji-images": "^0.1.1",
     "gray-matter": "^4.0.2",
-    "highlight.js": "^9.15.10",
+    "highlight.js": "^9.18.1",
     "markdown-it": "^10.0.0",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-container": "^2.0.0",
@@ -464,10 +502,9 @@
     "markdown-it-include": "^1.1.0",
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
-    "mermaid": "^8.4.0",
-    "mkdirp": "^0.5.1",
-    "mustache": "^3.1.0",
+    "mkdirp": "^1.0.3",
+    "mustache": "^4.0.1",
     "puppeteer-core": "^2.1.1",
-    "rimraf": "^3.0.0"
+    "rimraf": "^3.0.2"
   }
 }
