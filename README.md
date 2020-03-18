@@ -32,8 +32,7 @@ Supports the following features
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
 * [PlantUML](http://plantuml.com/)
   * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](http://knsv.github.io/mermaid/)
-  * [knsv/mermaid](https://github.com/knsv/mermaid)
+* [mermaid](https://mermaid-js.github.io/mermaid/)
 
 Sample files
  * [pdf](sample/README.pdf)
@@ -611,7 +610,7 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [camelaissani/markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [knsv/mermaid](https://github.com/knsv/mermaid)
+* [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
 * [jonschlinkert/gray-matter](https://github.com/jonschlinkert/gray-matter)
 
 and
