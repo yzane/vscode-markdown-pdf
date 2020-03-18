@@ -508,6 +508,11 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 #### `markdown-pdf.plantumlServer`
   - Plantuml server. e.g. http://localhost:8080
   - Default: http://www.plantuml.com/plantuml
+  - 例えば、PlantUMLサーバをローカルで実行するには次のようにします [#139](https://github.com/yzane/vscode-markdown-pdf/issues/139) :
+    ```
+    docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+    ```
+    [plantuml/plantuml-server - Docker Hub](https://hub.docker.com/r/plantuml/plantuml-server/)
 
 ### markdown-it-include options
 

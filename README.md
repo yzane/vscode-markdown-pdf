@@ -514,6 +514,11 @@ If the download is not successful or you want to avoid downloading every time yo
 #### `markdown-pdf.plantumlServer`
   - Plantuml server. e.g. http://localhost:8080
   - Default: http://www.plantuml.com/plantuml
+  - For example, to run Plantuml Server locally [#139](https://github.com/yzane/vscode-markdown-pdf/issues/139) :
+    ```
+    docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+    ```
+    [plantuml/plantuml-server - Docker Hub](https://hub.docker.com/r/plantuml/plantuml-server/)
 
 ### markdown-it-include options
 
