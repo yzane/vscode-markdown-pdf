@@ -132,13 +132,13 @@
       "title": "Markdown PDF",
       "properties": {
         "markdown-pdf.type": {
-          "type": [
-            "array",
-            "string"
-          ],
+          "type": "array",
           "default": [
             "pdf"
           ],
+          "items": {
+            "type": "string"
+          },
           "description": "Output format: pdf, html, png, jpeg. Multiple output formats support"
         },
         "markdown-pdf.convertOnSave": {
@@ -147,10 +147,11 @@
           "description": "Enable Auto convert on save. To apply the settings, you need to restart Visual Studio Code"
         },
         "markdown-pdf.convertOnSaveExclude": {
-          "type": [
-            "array"
-          ],
+          "type": "array",
           "default": [],
+          "items": {
+            "type": "string"
+          },
           "description": "Excluded file name of convertOnSave option"
         },
         "markdown-pdf.outputDirectory": {
@@ -164,10 +165,11 @@
           "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
         },
         "markdown-pdf.styles": {
-          "type": [
-            "array"
-          ],
+          "type": "array",
           "default": [],
+          "items": {
+            "type": "string"
+          },
           "description": "A list of local paths to the stylesheets to use from the markdown-pdf. All '\\' need to be written as '\\\\'."
         },
         "markdown-pdf.stylesRelativePathFile": {
