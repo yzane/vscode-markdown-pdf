@@ -270,7 +270,8 @@ function convertMarkdownToHtml(filename, type, text) {
   // https://github.com/gmunguia/markdown-it-plantuml
   var plantumlOptions = {
     openMarker: matterParts.data.plantumlOpenMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
-    closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml'
+    closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml',
+    server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
   }
   md.use(require('markdown-it-plantuml'), plantumlOptions);
 
@@ -295,17 +296,18 @@ function convertMarkdownToHtml(filename, type, text) {
 }
 
 /*
- * https://github.com/Microsoft/vscode/blob/b3a1b98d54e2f7293d6f018c97df30d07a6c858f/extensions/markdown/src/markdownEngine.ts
- * https://github.com/Microsoft/vscode/blob/b3a1b98d54e2f7293d6f018c97df30d07a6c858f/extensions/markdown/src/tableOfContentsProvider.ts
+ * https://github.com/microsoft/vscode/blob/ca4ceeb87d4ff935c52a7af0671ed9779657e7bd/extensions/markdown-language-features/src/slugify.ts#L26
  */
 function Slug(string) {
   try {
-    var stg = encodeURI(string.trim()
-      .toLowerCase()
-      .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/^\-+/, '')
-      .replace(/\-+$/, ''));
+    var stg = encodeURI(
+      string.trim()
+            .toLowerCase()
+            .replace(/\s+/g, '-') // Replace whitespace with -
+            .replace(/[\]\[\!\'\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
+            .replace(/^\-+/, '') // Remove leading -
+            .replace(/\-+$/, '') // Remove trailing -
+    );
     return stg;
   } catch (error) {
     showErrorMessage('Slug()', error);
@@ -328,8 +330,9 @@ function makeHtml(data, uri) {
     var filename = path.join(__dirname, 'template', 'template.html');
     var template = readFile(filename);
 
-     // read mermaid javascripts
-     var mermaid = readFile(path.join(__dirname, 'node_modules', 'mermaid', 'dist', 'mermaid.min.js'));
+    // read mermaid javascripts
+    var mermaidServer = vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || '';
+    var mermaid = '<script src=\"' + mermaidServer + '\"></script>';
 
     // compile template
     var mustache = require('mustache');
@@ -395,7 +398,7 @@ function exportPdf(data, filename, type, uri) {
         exportHtml(data, tmpfilename);
         var options = {
           executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),
-          args: ['--lang='+vscode.env.langauage, '--no-sandbox', '--disable-setuid-sandbox']
+          args: ['--lang='+vscode.env.language, '--no-sandbox', '--disable-setuid-sandbox']
           // Setting Up Chrome Linux Sandbox
           // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
       };
@@ -407,35 +410,35 @@ function exportPdf(data, filename, type, uri) {
         if (type == 'pdf') {
           // If width or height option is set, it overrides the format option.
           // In order to set the default value of page size to A4, we changed it from the specification of puppeteer.
-          var width_option = vscode.workspace.getConfiguration('markdown-pdf')['width'] || '';
-          var height_option = vscode.workspace.getConfiguration('markdown-pdf')['height'] || '';
+          var width_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '';
+          var height_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '';
           var format_option = '';
           if (!width_option && !height_option) {
-            format_option = vscode.workspace.getConfiguration('markdown-pdf')['format'] || 'A4';
+            format_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4';
           }
           var landscape_option;
-          if (vscode.workspace.getConfiguration('markdown-pdf')['orientation'] == 'landscape') {
+          if (vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] == 'landscape') {
             landscape_option = true;
           } else {
             landscape_option = false;
           }
           var options = {
             path: exportFilename,
-            scale: vscode.workspace.getConfiguration('markdown-pdf')['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf')['displayHeaderFooter'],
-            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['headerTemplate'] || '',
-            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf')['footerTemplate'] || '',
-            printBackground: vscode.workspace.getConfiguration('markdown-pdf')['printBackground'],
+            scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
+            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
+            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
+            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || '',
+            printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
             landscape: landscape_option,
-            pageRanges: vscode.workspace.getConfiguration('markdown-pdf')['pageRanges'] || '',
+            pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
             format: format_option,
-            width: vscode.workspace.getConfiguration('markdown-pdf')['width'] || '',
-            height: vscode.workspace.getConfiguration('markdown-pdf')['height'] || '',
+            width: vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '',
+            height: vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '',
             margin: {
-              top: vscode.workspace.getConfiguration('markdown-pdf')['margin']['top'] || '',
-              right: vscode.workspace.getConfiguration('markdown-pdf')['margin']['right'] || '',
-              bottom: vscode.workspace.getConfiguration('markdown-pdf')['margin']['bottom'] || '',
-              left: vscode.workspace.getConfiguration('markdown-pdf')['margin']['left'] || ''
+              top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
+              right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
+              bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
+              left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
             }
           }
           await page.pdf(options);
