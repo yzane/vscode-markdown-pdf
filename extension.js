@@ -426,8 +426,8 @@ function exportPdf(data, filename, type, uri) {
             path: exportFilename,
             scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
             displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
-            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
-            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || '',
+            headerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || ''),
+            footerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''),
             printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
             landscape: landscape_option,
             pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
@@ -502,6 +502,27 @@ function exportPdf(data, filename, type, uri) {
       }
     } // async
   ); // vscode.window.withProgress
+}
+
+/**
+ * Transform the text of the header or footer template, replacing the following supported placeholders:
+ *
+ * - `%%ISO-DATETIME%%` – For an ISO-based date and time format: `YYYY-MM-DD hh:mm:ss`
+ * - `%%ISO-DATE%%` – For an ISO-based date format: `YYYY-MM-DD`
+ * - `%%ISO-TIME%%` – For an ISO-based time format: `hh:mm:ss`
+ */
+function transformTemplate(templateText) {
+  if (templateText.indexOf('%%ISO-DATETIME%%') !== -1) {
+    templateText = templateText.replace('%%ISO-DATETIME%%', new Date().toISOString().substr(0, 19).replace('T', ' '));
+  }
+  if (templateText.indexOf('%%ISO-DATE%%') !== -1) {
+    templateText = templateText.replace('%%ISO-DATE%%', new Date().toISOString().substr(0, 10));
+  }
+  if (templateText.indexOf('%%ISO-TIME%%') !== -1) {
+    templateText = templateText.replace('%%ISO-TIME%%', new Date().toISOString().substr(11, 8));
+  }
+
+  return templateText;
 }
 
 function isExistsPath(path) {

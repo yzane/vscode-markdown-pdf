@@ -407,6 +407,9 @@ If the download is not successful or you want to avoid downloading every time yo
   - `<span class='url'></span>` : markdown full path name
   - `<span class='pageNumber'></span>` : current page number
   - `<span class='totalPages'></span>` : total pages in the document
+  - `%%ISO-DATETIME%%` : current date and time in ISO-based format (`YYYY-MM-DD hh:mm:ss`)
+  - `%%ISO-DATE%%` : current date in ISO-based format (`YYYY-MM-DD`)
+  - `%%ISO-TIME%%` : current time in ISO-based format (`hh:mm:ss`)
 
 ```javascript
 "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
