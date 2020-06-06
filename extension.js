@@ -216,6 +216,9 @@ function convertMarkdownToHtml(filename, type, text) {
     };
   }
 
+  // mathjax
+  md.use(require('markdown-it-mathjax3'));
+
   // checkbox
   md.use(require('markdown-it-checkbox'));
 
