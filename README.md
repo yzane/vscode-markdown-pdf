@@ -30,6 +30,7 @@ Supports the following features
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
+* [markdown-it-mathjax3](https://github.com/tani/markdown-it-mathjax3)
 * [PlantUML](https://plantuml.com/)
   * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [mermaid](https://mermaid-js.github.io/mermaid/)
@@ -620,6 +621,7 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [camelaissani/markdown-it-include](https://github.com/camelaissani/markdown-it-include)
+* [markdown-it-mathjax3](https://github.com/tani/markdown-it-mathjax3/)
 * [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
 * [jonschlinkert/gray-matter](https://github.com/jonschlinkert/gray-matter)
 
