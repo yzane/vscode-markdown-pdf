@@ -1,0 +1,23 @@
+name: CLI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: repo
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12'
+    - run: mkdir work
+    - run: |
+        npm init --yes
+        npm install $GITHUB_WORKSPACE/repo
+        pwd
+      working-directory: ./work
+    - run: xvfb-run -a npx vscode-markdown-pdf pdf $GITHUB_WORKSPACE/repo/test/suite/mermaid.md
+      working-directory: ./work
