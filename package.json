@@ -162,7 +162,7 @@
         "markdown-pdf.outputDirectoryRelativePathFile": {
           "type": "boolean",
           "default": false,
-          "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+          "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.outputDirectory is interpreted as relative from the file"
         },
         "markdown-pdf.styles": {
           "type": "array",
