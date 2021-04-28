@@ -286,6 +286,9 @@ function convertMarkdownToHtml(filename, type, text) {
     });
   }
 
+  md.use(require('markdown-it-footnote'));
+  md.render(text);
+
   statusbarmessage.dispose();
   return md.render(matterParts.content);
 
