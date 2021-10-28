@@ -24,14 +24,13 @@
 
 以下の機能をサポートしています。
 * [Syntax highlighting](https://highlightjs.org/static/demo/)
-* [emoji](http://www.webpagefx.com/tools/emoji-cheat-sheet/)
+* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](http://plantuml.com/)
+* [PlantUML](https://plantuml.com/)
   * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](http://knsv.github.io/mermaid/)
-  * [knsv/mermaid](https://github.com/knsv/mermaid)
+* [mermaid](https://mermaid-js.github.io/mermaid/)
 
 サンプルファイル
  * [pdf](sample/README.pdf)
@@ -118,7 +117,7 @@ OUTPUT
 
 ## インストール
 
-Markdown PDF をインストールして、Visutal Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
+Markdown PDF をインストールして、Visual Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
 
 しかしサイズが大きい為 (~170Mb Mac, ~282Mb Linux, ~280Mb Win) 、環境によっては時間がかかります。
 ダウンロード中は、ステータスバーに `Installing Puppeteer` のメッセージが表示されます。
@@ -180,44 +179,46 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
 
 ### List
 
-|Category| Option name|
-|:---|:---|
-|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)|
-||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)|
-||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)|
-||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)|
-||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)|
-|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)|
-||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)|
-||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)|
-|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)|
-||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)|
-|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)|
-|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)|
-|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)|
-|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)|
-|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|
-||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|
-||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|
-||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|
-||[markdown-pdf.orientation](#markdown-pdforientation)|
-||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|
-||[markdown-pdf.format](#markdown-pdfformat)|
-||[markdown-pdf.width](#markdown-pdfwidth)|
-||[markdown-pdf.height](#markdown-pdfheight)|
-||[markdown-pdf.margin.top](#markdown-pdfmargintop)|
-||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|
-||[markdown-pdf.margin.right](#markdown-pdfmarginright)|
-||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|
-|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)|
-||[markdown-pdf.clip.x](#markdown-pdfclipx)|
-||[markdown-pdf.clip.y](#markdown-pdfclipy)|
-||[markdown-pdf.clip.width](#markdown-pdfclipwidth)|
-||[markdown-pdf.clip.height](#markdown-pdfclipheight)|
-||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)|
-|[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)|
-||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)|
-|[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)|
+|Category|Option name|[Configuration scope](https://code.visualstudio.com/api/references/contribution-points#Configuration-property-schema)|
+|:---|:---|:---|
+|[Save options](#save-options)|[markdown-pdf.type](#markdown-pdftype)| |
+||[markdown-pdf.convertOnSave](#markdown-pdfconvertonsave)| |
+||[markdown-pdf.convertOnSaveExclude](#markdown-pdfconvertonsaveexclude)| |
+||[markdown-pdf.outputDirectory](#markdown-pdfoutputdirectory)| |
+||[markdown-pdf.outputDirectoryRelativePathFile](#markdown-pdfoutputdirectoryrelativepathfile)| |
+|[Styles options](#styles-options)|[markdown-pdf.styles](#markdown-pdfstyles)| |
+||[markdown-pdf.stylesRelativePathFile](#markdown-pdfstylesrelativepathfile)| |
+||[markdown-pdf.includeDefaultStyles](#markdown-pdfincludedefaultstyles)| |
+|[Syntax highlight options](#syntax-highlight-options)|[markdown-pdf.highlight](#markdown-pdfhighlight)| |
+||[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle)| |
+|[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)| |
+|[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)| |
+|[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)| |
+|[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)| |
+|[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|resource|
+||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|resource|
+||[markdown-pdf.footerTemplate](#markdown-pdffootertemplate)|resource|
+||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|resource|
+||[markdown-pdf.orientation](#markdown-pdforientation)|resource|
+||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|resource|
+||[markdown-pdf.format](#markdown-pdfformat)|resource|
+||[markdown-pdf.width](#markdown-pdfwidth)|resource|
+||[markdown-pdf.height](#markdown-pdfheight)|resource|
+||[markdown-pdf.margin.top](#markdown-pdfmargintop)|resource|
+||[markdown-pdf.margin.bottom](#markdown-pdfmarginbottom)|resource|
+||[markdown-pdf.margin.right](#markdown-pdfmarginright)|resource|
+||[markdown-pdf.margin.left](#markdown-pdfmarginleft)|resource|
+|[PNG JPEG options](#png-jpeg-options)|[markdown-pdf.quality](#markdown-pdfquality)| |
+||[markdown-pdf.clip.x](#markdown-pdfclipx)| |
+||[markdown-pdf.clip.y](#markdown-pdfclipy)| |
+||[markdown-pdf.clip.width](#markdown-pdfclipwidth)| |
+||[markdown-pdf.clip.height](#markdown-pdfclipheight)| |
+||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)| |
+|[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
+||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
+||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
+|[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
+|[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 
 ### Save options
 
@@ -503,11 +504,26 @@ Markdown PDF をインストールして、Visutal Studio Code で Markdownフ�
   - plantuml パーサーの終了区切り文字
   - Default: @enduml
 
+#### `markdown-pdf.plantumlServer`
+  - Plantuml server. e.g. http://localhost:8080
+  - Default: http://www.plantuml.com/plantuml
+  - 例えば、PlantUMLサーバをローカルで実行するには次のようにします [#139](https://github.com/yzane/vscode-markdown-pdf/issues/139) :
+    ```
+    docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+    ```
+    [plantuml/plantuml-server - Docker Hub](https://hub.docker.com/r/plantuml/plantuml-server/)
+
 ### markdown-it-include options
 
 #### `markdown-pdf.markdown-it-include.enable`
   - markdown-it-include を有効にします
   - boolean. Default: true
+
+### mermaid options
+
+#### `markdown-pdf.mermaidServer`
+  - mermaid server
+  - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
 <div class="page"/>
 
@@ -560,12 +576,24 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.4.1 (2019/10/28)
-* Fix: "ReferenceError: MarkdownPdf is not defined" on auto create PDF on save in VSCodium [#156](https://github.com/yzane/vscode-markdown-pdf/issues/156)
-
-### 1.4.0 (2019/10/27)
-* Add: Support [mermaid](https://github.com/knsv/mermaid)
-    * Added mermaid support. [#144](https://github.com/yzane/vscode-markdown-pdf/pull/144)
+## 1.4.4 (2020/03/19)
+* Change: mermaid javascript reads from URL instead of from local file
+  * Add: `markdown-pdf.mermaidServer` option
+  * add an option to disable mermaid [#175](https://github.com/yzane/vscode-markdown-pdf/issues/175)
+* Add: `markdown-pdf.plantumlServer` option
+  * support configuration of plantUML server [#139](https://github.com/yzane/vscode-markdown-pdf/issues/139)
+* Add: configuration scope
+  * extend setting 'headerTemplate' with scope\.\.\. [#184](https://github.com/yzane/vscode-markdown-pdf/pull/184)
+* Update: [slug](https://github.com/yzane/vscode-markdown-pdf/commit/3f4aeaa724999c46fc37423d4b188fd7ce72ffce) for markdown-it-named-headers
+* Update: markdown.css, markdown-pdf.css
+* Update: dependent packages
+* Fix: Fix for issue \#186 [#187](https://github.com/yzane/vscode-markdown-pdf/pull/187)
+* Fix: move the Meiryo font to the end of the font-family setting
+  * Meiryo font causing \\ to show as Â¥ [#83](https://github.com/yzane/vscode-markdown-pdf/issues/83)
+  * Backslash false encoded [#124](https://github.com/yzane/vscode-markdown-pdf/issues/124)
+  * Errors in which í•œê¸€\(korean word\) is not properly printed [#148](https://github.com/yzane/vscode-markdown-pdf/issues/148)
+* Fix: Improve the configuration schema of package.json
+    * Some settings can now be set from the settings editor.
 
 
 ## License
@@ -586,7 +614,8 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [camelaissani/markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [knsv/mermaid](https://github.com/knsv/mermaid)
+* [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
+* [jonschlinkert/gray-matter](https://github.com/jonschlinkert/gray-matter)
 
 and
 

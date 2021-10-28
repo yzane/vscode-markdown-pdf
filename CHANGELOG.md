@@ -1,5 +1,44 @@
 # Change Log
 
+## 1.4.4 (2020/03/19)
+* Change: mermaid javascript reads from URL instead of from local file
+  * Add: `markdown-pdf.mermaidServer` option
+  * add an option to disable mermaid [#175](https://github.com/yzane/vscode-markdown-pdf/issues/175)
+* Add: `markdown-pdf.plantumlServer` option
+  * support configuration of plantUML server [#139](https://github.com/yzane/vscode-markdown-pdf/issues/139)
+* Add: configuration scope
+  * extend setting 'headerTemplate' with scope\.\.\. [#184](https://github.com/yzane/vscode-markdown-pdf/pull/184)
+* Update: [slug](https://github.com/yzane/vscode-markdown-pdf/commit/3f4aeaa724999c46fc37423d4b188fd7ce72ffce) for markdown-it-named-headers
+* Update: markdown.css, markdown-pdf.css
+* Update: dependent packages
+* Fix: Fix for issue \#186 [#187](https://github.com/yzane/vscode-markdown-pdf/pull/187)
+* Fix: move the Meiryo font to the end of the font-family setting
+  * Meiryo font causing \\ to show as ¥ [#83](https://github.com/yzane/vscode-markdown-pdf/issues/83)
+  * Backslash false encoded [#124](https://github.com/yzane/vscode-markdown-pdf/issues/124)
+  * Errors in which 한글\(korean word\) is not properly printed [#148](https://github.com/yzane/vscode-markdown-pdf/issues/148)
+* Fix: Improve the configuration schema of package.json
+    * Some settings can now be set from the settings editor.
+
+## 1.4.3 (2020/03/12)
+* Fix: markdown-include regular expression
+    * Fix: Unable to export to pdf from markdown [#166](https://github.com/yzane/vscode-markdown-pdf/issues/166)
+    * Fix: python code export err [#178](https://github.com/yzane/vscode-markdown-pdf/issues/178)
+* Fix: Add support for Ubuntu and Centos
+    * Fix: Error: Failed to lanuch chrome! [#97](https://github.com/yzane/vscode-markdown-pdf/issues/97)
+    * Fix: I failed to launch chrome in WSL [#160](https://github.com/yzane/vscode-markdown-pdf/issues/160)
+    * Fix: Unable to export to pdf from markdown [#166](https://github.com/yzane/vscode-markdown-pdf/issues/166)
+
+## 1.4.2 (2020/02/16)
+* Add: Support [gray-matter](https://github.com/jonschlinkert/gray-matter) (preview)
+    * Avoid to display front matter [#157](https://github.com/yzane/vscode-markdown-pdf/pull/157)
+    * Currently, only some settings can be specified.
+* Fix: Improve the configuration schema of package.json
+    * Some settings can now be set from the settings editor.
+* Fix: Specifying custom style sheets with a relative path does not work [#170](https://github.com/yzane/vscode-markdown-pdf/pull/170)
+* Fix: Pass language to markdown-pdf puppeteer [#172](https://github.com/yzane/vscode-markdown-pdf/pull/172)
+    * Date Format [#95](https://github.com/yzane/vscode-markdown-pdf/issues/95)
+* Improve: Reduce Regex strictness of markdown-it-include [#174](https://github.com/yzane/vscode-markdown-pdf/pull/174)
+
 ## 1.4.1 (2019/10/28)
 * Fix: "ReferenceError: MarkdownPdf is not defined" on auto create PDF on save in VSCodium [#156](https://github.com/yzane/vscode-markdown-pdf/issues/156)
 

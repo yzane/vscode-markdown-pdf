@@ -3,7 +3,8 @@
  */
 
  body {
-	font-family:  "Meiryo", "Segoe WPC", "Segoe UI", "SFUIText-Light", "HelveticaNeue-Light", sans-serif, "Droid Sans Fallback";
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
 }
 
 pre {
@@ -27,6 +28,11 @@ blockquote {
 
 .emoji {
 	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
 }
 
 /* for inline code */
