@@ -404,6 +404,7 @@ function exportPdf(data, filename, type, uri) {
       };
         const browser = await puppeteer.launch(options);
         const page = await browser.newPage();
+        await page.setDefaultNavigationTimeout(0);
         await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
