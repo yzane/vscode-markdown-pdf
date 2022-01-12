@@ -495,7 +495,7 @@
     "emoji-images": "^0.1.1",
     "gray-matter": "^4.0.2",
     "highlight.js": "^9.18.1",
-    "markdown-it": "^10.0.0",
+    "markdown-it": "^12.3.2",
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-container": "^2.0.0",
     "markdown-it-emoji": "^1.4.0",
