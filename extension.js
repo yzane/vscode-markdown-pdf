@@ -253,6 +253,48 @@ function convertMarkdownToHtml(filename, type, text) {
 
   // markdown-it-container
   // https://github.com/markdown-it/markdown-it-container
+  
+  const pluginKeyword = 'mermaid';
+  const tokenTypeInline = 'inline';
+  const ttContainerOpen = 'container_' + pluginKeyword + '_open';
+  const ttContainerClose = 'container_' + pluginKeyword + '_close';
+  const empty = [];
+
+  md.use(require('markdown-it-container'), pluginKeyword, {
+    validate: (info) => {
+      return info.trim() === pluginKeyword;
+    },
+    
+    render: (tokens, idx) => {
+      var token = tokens[idx];
+      
+      var src = '';
+      if (token.type === ttContainerOpen) {
+          for (var i = idx + 1; i < tokens.length; i++) {
+              var value = tokens[i]
+              if (value === undefined || value.type === ttContainerClose) {
+                  break;
+              }
+              src += value.content;
+              if (value.block && value.nesting <= 0) {
+                  src += '\n';
+              }
+              // Clear these out so markdown-it doesn't try to render them
+              value.tag = '';
+              value.type = tokenTypeInline;
+              value.content = ''; 
+              value.children = empty;
+          }
+      }
+
+      if (token.nesting === 1) {
+          return `<div class="${pluginKeyword}">${md.utils.escapeHtml(src)}`;
+      } else {
+          return '</div>\n';
+      }
+    }
+  });
+
   md.use(require('markdown-it-container'), '', {
     validate: function (name) {
       return name.trim().length;
