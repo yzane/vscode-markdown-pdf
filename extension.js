@@ -666,6 +666,7 @@ function readStyles(uri) {
     var i;
 
     includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
+    var includeStylesAsStyletag = vscode.workspace.getConfiguration('markdown-pdf')['importStylesheetAsStyletag'] || '';
 
     // 1. read the style of the vscode.
     if (includeDefaultStyles) {
@@ -709,7 +710,13 @@ function readStyles(uri) {
     if (styles && Array.isArray(styles) && styles.length > 0) {
       for (i = 0; i < styles.length; i++) {
         var href = fixHref(uri, styles[i]);
-        style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
+        if (includeStylesAsStyletag) {
+          var newpath = href.slice(7);
+          var tag = '<style>' + fs.readFileSync(newpath) + '</style>';
+          style += tag;
+        } else {
+          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
+        }
       }
     }
 

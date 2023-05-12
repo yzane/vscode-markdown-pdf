@@ -177,6 +177,11 @@
           "default": false,
           "description": "If markdown-pdf.stylesRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
         },
+        "markdown-pdf.importStylesheetAsStyletag": {
+          "type": "boolean",
+          "default": false,
+          "description": "If markdown-pdf.importStylesheetAsStyletag option is set to true, any contents of local stylesheets imported from the external stylesheet list will be included in the HTML file in a seperate <style>-tag, rather than refering to the local files in a <ref>-tag." 
+        },
         "markdown-pdf.includeDefaultStyles": {
           "type": "boolean",
           "default": true,
