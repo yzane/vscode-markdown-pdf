@@ -711,9 +711,8 @@ function readStyles(uri) {
       for (i = 0; i < styles.length; i++) {
         var href = fixHref(uri, styles[i]);
         if (includeStylesAsStyletag) {
-          var newpath = href.slice(7);
-          var tag = '<style>' + fs.readFileSync(newpath) + '</style>';
-          style += tag;
+          var filename = href.slice(7);
+          style += makeCss(filename);
         } else {
           style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
         }
