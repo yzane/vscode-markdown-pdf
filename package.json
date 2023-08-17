@@ -317,7 +317,7 @@
         },
         "markdown-pdf.headerTemplate": {
           "type": "string",
-          "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
+          "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>",
           "description": "pdf only. HTML template for the print header.",
           "scope": "resource"
         },

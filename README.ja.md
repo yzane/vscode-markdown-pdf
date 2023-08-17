@@ -396,18 +396,22 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 
 #### `markdown-pdf.headerTemplate`, `markdown-pdf.footerTemplate`
   - ヘッダーとフッターを出力する為のHTMLテンプレートを指定します
-  - `<span class='date'></span>` : 日付
+  - `<span class='date'></span>` : 日付。フォーマットは環境に依存します
   - `<span class='title'></span>` : Markdown ファイル名
   - `<span class='url'></span>` : Markdown フルパスファイル名
   - `<span class='pageNumber'></span>` : 現在のページ番号
   - `<span class='totalPages'></span>` : ドキュメントの総ページ数
-
-```javascript
-"markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
-```
-```javascript
-"markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
-```
+  - `%%ISO-DATETIME%%` : 現在の日付と時刻。ISOベース フォーマット (`YYYY-MM-DD hh:mm:ss`)
+  - `%%ISO-DATE%%` : 現在の日付。ISOベース フォーマット (`YYYY-MM-DD`)
+  - `%%ISO-TIME%%` : 現在の時刻。ISOベース フォーマット (`hh:mm:ss`)
+  - Default (headerTemplate):
+    ```javascript
+    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>"
+    ```
+  - Default (footerTemplate):
+    ```javascript
+    "markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
+    ```
 
 #### `markdown-pdf.printBackground`
   - 背景のグラフィックを出力
@@ -579,6 +583,8 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 ### 1.5.0 (2023/xx/xx)
 * Fix: Broken link in README
 * Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
+* Improve: Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
+  * The default date format has been changed to ISO-based format (YYYY-MM-DD).
 
 
 ## License

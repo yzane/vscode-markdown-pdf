@@ -402,7 +402,7 @@ If the download is not successful or you want to avoid downloading every time yo
 #### `markdown-pdf.headerTemplate`
 #### `markdown-pdf.footerTemplate`
   - HTML template for the print header and footer
-  - `<span class='date'></span>` : formatted print date
+  - `<span class='date'></span>` : formatted print date. The format depends on the environment
   - `<span class='title'></span>` : markdown file name
   - `<span class='url'></span>` : markdown full path name
   - `<span class='pageNumber'></span>` : current page number
@@ -410,13 +410,14 @@ If the download is not successful or you want to avoid downloading every time yo
   - `%%ISO-DATETIME%%` : current date and time in ISO-based format (`YYYY-MM-DD hh:mm:ss`)
   - `%%ISO-DATE%%` : current date in ISO-based format (`YYYY-MM-DD`)
   - `%%ISO-TIME%%` : current time in ISO-based format (`hh:mm:ss`)
-
-```javascript
-"markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
-```
-```javascript
-"markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
-```
+  - Default (headerTemplate):
+    ```javascript
+    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>"
+    ```
+  - Default (footerTemplate):
+    ```javascript
+    "markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
+    ```
 
 #### `markdown-pdf.printBackground`
   - Print background graphics
@@ -588,6 +589,8 @@ Please use the following to insert a page break.
 ### 1.5.0 (2023/xx/xx)
 * Fix: Broken link in README
 * Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
+* Improve: Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
+  * The default date format has been changed to ISO-based format (YYYY-MM-DD).
 
 
 ## License
