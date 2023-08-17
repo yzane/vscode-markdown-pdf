@@ -584,6 +584,7 @@ Please use the following to insert a page break.
 
 ### 1.5.0 (2023/xx/xx)
 * Fix: Broken link in README
+* Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
 
 
 ## License
