@@ -404,6 +404,7 @@ function exportPdf(data, filename, type, uri) {
       };
         const browser = await puppeteer.launch(options);
         const page = await browser.newPage();
+        await page.setDefaultTimeout(0);
         await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
@@ -439,8 +440,9 @@ function exportPdf(data, filename, type, uri) {
               right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
               bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
               left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
-            }
-          }
+            },
+            timeout: 0
+          };
           await page.pdf(options);
         }
 
