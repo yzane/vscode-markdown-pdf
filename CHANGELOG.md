@@ -1,5 +1,14 @@
 # Change Log
 
+## 1.5.0 (2023/09/05)
+* Improve: The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
+  * Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
+* Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
+* Fix: Fix description of outputDirectoryRelativePathFile [#238](https://github.com/yzane/vscode-markdown-pdf/pull/238)
+* README
+  * Add: Specification Changes
+  * Fix: Broken link
+
 ## 1.4.4 (2020/03/19)
 * Change: mermaid javascript reads from URL instead of from local file
   * Add: `markdown-pdf.mermaidServer` option
