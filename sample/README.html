@@ -371,6 +371,7 @@ code {
 <h2 id="table-of-contents">Table of Contents</h2>
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 <ul>
+<li><a href="#specification-changes">Specification Changes</a></li>
 <li><a href="#features">Features</a></li>
 <li><a href="#install">Install</a></li>
 <li><a href="#usage">Usage</a></li>
@@ -384,6 +385,16 @@ code {
 </ul>
 <!-- /TOC -->
 <div class="page"/>
+<h2 id="specification-changes">Specification Changes</h2>
+<ul>
+<li>Default Date Format for PDF Headers and Footers Modified
+<ul>
+<li>Starting from version 1.5.0, the default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).</li>
+<li>This change aims to improve the consistency of date displays, as the previous format could vary depending on the environment.</li>
+<li>If you wish to use the previous format, please refer to <a href="#markdown-pdfheadertemplate">markdown-pdf.headerTemplate</a>.</li>
+</ul>
+</li>
+</ul>
 <h2 id="features">Features</h2>
 <p>Supports the following features</p>
 <ul>
@@ -895,27 +906,48 @@ stateDiagram
 </div></code></pre>
 <h3 id="pdf-options">PDF options</h3>
 <ul>
-<li>pdf only. <a href="https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions">puppeteer page.pdf options</a></li>
+<li>pdf only. <a href="https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md">puppeteer page.pdf options</a></li>
 </ul>
 <h4 id="markdown-pdfdisplayheaderfooter"><code>markdown-pdf.displayHeaderFooter</code></h4>
 <ul>
-<li>Enable display header and footer</li>
+<li>Enables header and footer display</li>
 <li>boolean. Default: true</li>
+<li>Activating this option will display both the header and footer</li>
+<li>If you wish to display only one of them, remove the value for the other</li>
+<li>To hide the header<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">""</span>,
+</div></code></pre>
+</li>
+<li>To hide the footer<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.footerTemplate"</span>: <span class="hljs-string">""</span>,
+</div></code></pre>
+</li>
 </ul>
 <h4 id="markdown-pdfheadertemplate"><code>markdown-pdf.headerTemplate</code></h4>
-<h4 id="markdown-pdffootertemplate"><code>markdown-pdf.footerTemplate</code></h4>
 <ul>
-<li>HTML template for the print header and footer</li>
-<li><code>&lt;span class='date'&gt;&lt;/span&gt;</code> : formatted print date</li>
+<li>Specifies the HTML template for outputting the header</li>
+<li>To use this option, you must set <code>markdown-pdf.displayHeaderFooter</code> to <code>true</code></li>
+<li><code>&lt;span class='date'&gt;&lt;/span&gt;</code> : formatted print date. The format depends on the environment</li>
 <li><code>&lt;span class='title'&gt;&lt;/span&gt;</code> : markdown file name</li>
 <li><code>&lt;span class='url'&gt;&lt;/span&gt;</code> : markdown full path name</li>
 <li><code>&lt;span class='pageNumber'&gt;&lt;/span&gt;</code> : current page number</li>
 <li><code>&lt;span class='totalPages'&gt;&lt;/span&gt;</code> : total pages in the document</li>
+<li><code>%%ISO-DATETIME%%</code> : current date and time in ISO-based format (<code>YYYY-MM-DD hh:mm:ss</code>)</li>
+<li><code>%%ISO-DATE%%</code> : current date in ISO-based format (<code>YYYY-MM-DD</code>)</li>
+<li><code>%%ISO-TIME%%</code> : current time in ISO-based format (<code>hh:mm:ss</code>)</li>
+<li>Default (version 1.5.0 and later): Displays the Markdown file name and the date using <code>%%ISO-DATE%%</code><pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin-left: 1cm;\"&gt; &lt;span class='title'&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"&gt;%%ISO-DATE%%&lt;/div&gt;"</span>,
+</div></code></pre>
+</li>
+<li>Default (version 1.4.4 and earlier): Displays the Markdown file name and the date using <code>&lt;span class='date'&gt;&lt;/span&gt;</code><pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin-left: 1cm;\"&gt; &lt;span class='title'&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"&gt; &lt;span class='date'&gt;&lt;/span&gt;&lt;/div&gt;"</span>,
+</div></code></pre>
+</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin-left: 1cm;\"&gt; &lt;span class='title'&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"&gt; &lt;span class='date'&gt;&lt;/span&gt;&lt;/div&gt;"</span>,
+<h4 id="markdown-pdffootertemplate"><code>markdown-pdf.footerTemplate</code></h4>
+<ul>
+<li>Specifies the HTML template for outputting the footer</li>
+<li>For more details, refer to <a href="#markdown-pdfheadertemplate">markdown-pdf.headerTemplate</a></li>
+<li>Default: Displays the {current page number} / {total pages in the document}<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.footerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin: 0 auto;\"&gt; &lt;span class='pageNumber'&gt;&lt;/span&gt; / &lt;span class='totalPages'&gt;&lt;/span&gt;&lt;/div&gt;"</span>,
 </div></code></pre>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.footerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin: 0 auto;\"&gt; &lt;span class='pageNumber'&gt;&lt;/span&gt; / &lt;span class='totalPages'&gt;&lt;/span&gt;&lt;/div&gt;"</span>,
-</div></code></pre>
+</li>
+</ul>
 <h4 id="markdown-pdfprintbackground"><code>markdown-pdf.printBackground</code></h4>
 <ul>
 <li>Print background graphics</li>
@@ -963,7 +995,7 @@ stateDiagram
 <span class="hljs-string">"markdown-pdf.margin.right"</span>: <span class="hljs-string">"1cm"</span>,
 <span class="hljs-string">"markdown-pdf.margin.left"</span>: <span class="hljs-string">"1cm"</span>,
 </div></code></pre>
-<h3 id="png-jpeg-options">PNG JPEG options</h3>
+<h3 id="png-jpeg-options">PNG, JPEG options</h3>
 <ul>
 <li>png and jpeg only. <a href="https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions">puppeteer page.screenshot options</a></li>
 </ul>
@@ -1060,38 +1092,19 @@ stateDiagram
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
-<h3 id="144-20200319">1.4.4 (2020/03/19)</h3>
+<h3 id="150-20230905">1.5.0 (2023/09/05)</h3>
 <ul>
-<li>Change: mermaid javascript reads from URL instead of from local file
+<li>Improve: The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
 <ul>
-<li>Add: <code>markdown-pdf.mermaidServer</code> option</li>
-<li>add an option to disable mermaid <a href="https://github.com/yzane/vscode-markdown-pdf/issues/175">#175</a></li>
+<li>Support different date formats in templates <a href="https://github.com/yzane/vscode-markdown-pdf/pull/197">#197</a></li>
 </ul>
 </li>
-<li>Add: <code>markdown-pdf.plantumlServer</code> option
+<li>Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded <a href="https://github.com/yzane/vscode-markdown-pdf/pull/266">#266</a></li>
+<li>Fix: Fix description of outputDirectoryRelativePathFile <a href="https://github.com/yzane/vscode-markdown-pdf/pull/238">#238</a></li>
+<li>README
 <ul>
-<li>support configuration of plantUML server <a href="https://github.com/yzane/vscode-markdown-pdf/issues/139">#139</a></li>
-</ul>
-</li>
-<li>Add: configuration scope
-<ul>
-<li>extend setting 'headerTemplate' with scope... <a href="https://github.com/yzane/vscode-markdown-pdf/pull/184">#184</a></li>
-</ul>
-</li>
-<li>Update: <a href="https://github.com/yzane/vscode-markdown-pdf/commit/3f4aeaa724999c46fc37423d4b188fd7ce72ffce">slug</a> for markdown-it-named-headers</li>
-<li>Update: markdown.css, markdown-pdf.css</li>
-<li>Update: dependent packages</li>
-<li>Fix: Fix for issue #186 <a href="https://github.com/yzane/vscode-markdown-pdf/pull/187">#187</a></li>
-<li>Fix: move the Meiryo font to the end of the font-family setting
-<ul>
-<li>Meiryo font causing \ to show as Â¥ <a href="https://github.com/yzane/vscode-markdown-pdf/issues/83">#83</a></li>
-<li>Backslash false encoded <a href="https://github.com/yzane/vscode-markdown-pdf/issues/124">#124</a></li>
-<li>Errors in which í•œê¸€(korean word) is not properly printed <a href="https://github.com/yzane/vscode-markdown-pdf/issues/148">#148</a></li>
-</ul>
-</li>
-<li>Fix: Improve the configuration schema of package.json
-<ul>
-<li>Some settings can now be set from the settings editor.</li>
+<li>Add: Specification Changes</li>
+<li>Fix: Broken link</li>
 </ul>
 </li>
 </ul>
