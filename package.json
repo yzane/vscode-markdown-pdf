@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -162,7 +162,7 @@
         "markdown-pdf.outputDirectoryRelativePathFile": {
           "type": "boolean",
           "default": false,
-          "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+          "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.outputDirectory is interpreted as relative from the file"
         },
         "markdown-pdf.styles": {
           "type": "array",
@@ -317,7 +317,7 @@
         },
         "markdown-pdf.headerTemplate": {
           "type": "string",
-          "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
+          "default": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>",
           "description": "pdf only. HTML template for the print header.",
           "scope": "resource"
         },
@@ -491,7 +491,6 @@
   },
   "dependencies": {
     "cheerio": "^0.20.0",
-    "d3": "^4.13.0",
     "emoji-images": "^0.1.1",
     "gray-matter": "^4.0.2",
     "highlight.js": "^9.18.1",
