@@ -5,6 +5,7 @@
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
+- [仕様変更](#仕様変更)
 - [機能](#機能)
 - [インストール](#インストール)
 - [使い方](#使い方)
@@ -19,6 +20,13 @@
 <!-- /TOC -->
 
 <div class="page"/>
+
+## 仕様変更
+
+- PDFのヘッダーとフッターのデフォルトの日付書式変更
+  - バージョン1.5.0から、ヘッダーとフッターのデフォルトの日付書式がISOベースの書式（YYYY-MM-DD）に変更されました。
+  - この変更は、以前の書式が環境によって異なる可能性があったため、日付表示の一貫性を向上させることを目的としています。
+  - 以前の書式を使用したい場合は、[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)を参照してください。
 
 ## 機能
 
@@ -393,9 +401,20 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 #### `markdown-pdf.displayHeaderFooter`
   - ヘッダーとフッター表示を有効にします
   - boolean. Default: true
+  - このオプションを有効にすると、ヘッダーとフッターが両方表示されます
+  - 片方を表示したくない場合は、もう片方の値を削除します
+  - ヘッダー非表示
+    ```javascript
+    "markdown-pdf.headerTemplate": "",
+    ```
+  - フッター非表示
+    ```javascript
+    "markdown-pdf.footerTemplate": "",
+    ```
 
-#### `markdown-pdf.headerTemplate`, `markdown-pdf.footerTemplate`
-  - ヘッダーとフッターを出力する為のHTMLテンプレートを指定します
+#### `markdown-pdf.headerTemplate`
+  - ヘッダーを出力する為のHTMLテンプレートを指定します
+  - このオプションを使用するには、`markdown-pdf.displayHeaderFooter` を `true` に設定する必要があります。
   - `<span class='date'></span>` : 日付。フォーマットは環境に依存します
   - `<span class='title'></span>` : Markdown ファイル名
   - `<span class='url'></span>` : Markdown フルパスファイル名
@@ -404,11 +423,18 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
   - `%%ISO-DATETIME%%` : 現在の日付と時刻。ISOベース フォーマット (`YYYY-MM-DD hh:mm:ss`)
   - `%%ISO-DATE%%` : 現在の日付。ISOベース フォーマット (`YYYY-MM-DD`)
   - `%%ISO-TIME%%` : 現在の時刻。ISOベース フォーマット (`hh:mm:ss`)
-  - Default (headerTemplate):
+  - Default (version1.5.0以降): Markdown ファイル名 と 日付を `%%ISO-DATE%%` で表示します
     ```javascript
-    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>"
+    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>",
     ```
-  - Default (footerTemplate):
+  - Default (version1.4.4以前): Markdown ファイル名 と 日付を `<span class='date'></span>` で表示します
+    ```javascript
+    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
+    ```
+#### `markdown-pdf.footerTemplate`
+  - フッターを出力する為のHTMLテンプレートを指定します
+  - 詳細は、[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate) を参照してください
+  - Default: {現在のページ番号} / {ドキュメントの総ページ数} を表示します
     ```javascript
     "markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
     ```
@@ -580,12 +606,13 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.5.0 (2023/xx/xx)
-* Fix: Broken link in README
+### 1.5.0 (2023/09/05)
+* The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
+  * Improve: Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
 * Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
-* Improve: Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
-  * The default date format has been changed to ISO-based format (YYYY-MM-DD).
-
+* README
+  * Add: Specification Changes
+  * Fix: Broken link
 
 ## License
 

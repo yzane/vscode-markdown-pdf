@@ -7,6 +7,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
+- [Specification Changes](#specification-changes)
 - [Features](#features)
 - [Install](#install)
 - [Usage](#usage)
@@ -21,6 +22,13 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 <!-- /TOC -->
 
 <div class="page"/>
+
+## Specification Changes
+
+- Default Date Format for PDF Headers and Footers Modified
+  - Starting from version 1.5.0, the default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
+  - This change aims to improve the consistency of date displays, as the previous format could vary depending on the environment.
+  - If you wish to use the previous format, please refer to [markdown-pdf.headerTemplate](#markdown-pdfheadertemplate).
 
 ## Features
 
@@ -396,12 +404,22 @@ If the download is not successful or you want to avoid downloading every time yo
   - pdf only. [puppeteer page.pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md)
 
 #### `markdown-pdf.displayHeaderFooter`
-  - Enable display header and footer
+  - Enables header and footer display
   - boolean. Default: true
+  - Activating this option will display both the header and footer
+  - If you wish to display only one of them, remove the value for the other
+  - To hide the header
+    ```javascript
+    "markdown-pdf.headerTemplate": "",
+    ```
+  - To hide the footer
+    ```javascript
+    "markdown-pdf.footerTemplate": "",
+    ```
 
 #### `markdown-pdf.headerTemplate`
-#### `markdown-pdf.footerTemplate`
-  - HTML template for the print header and footer
+  - Specifies the HTML template for outputting the header
+  - To use this option, you must set `markdown-pdf.displayHeaderFooter` to `true`
   - `<span class='date'></span>` : formatted print date. The format depends on the environment
   - `<span class='title'></span>` : markdown file name
   - `<span class='url'></span>` : markdown full path name
@@ -410,11 +428,19 @@ If the download is not successful or you want to avoid downloading every time yo
   - `%%ISO-DATETIME%%` : current date and time in ISO-based format (`YYYY-MM-DD hh:mm:ss`)
   - `%%ISO-DATE%%` : current date in ISO-based format (`YYYY-MM-DD`)
   - `%%ISO-TIME%%` : current time in ISO-based format (`hh:mm:ss`)
-  - Default (headerTemplate):
+  - Default (version 1.5.0 and later): Displays the Markdown file name and the date using `%%ISO-DATE%%`
     ```javascript
-    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>"
+    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \">%%ISO-DATE%%</div>",
     ```
-  - Default (footerTemplate):
+  - Default (version 1.4.4 and earlier): Displays the Markdown file name and the date using `<span class='date'></span>`
+    ```javascript
+    "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
+    ```
+
+#### `markdown-pdf.footerTemplate`
+  - Specifies the HTML template for outputting the footer
+  - For more details, refer to [markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)
+  - Default: Displays the {current page number} / {total pages in the document}
     ```javascript
     "markdown-pdf.footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
     ```
@@ -586,12 +612,13 @@ Please use the following to insert a page break.
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.5.0 (2023/xx/xx)
-* Fix: Broken link in README
+### 1.5.0 (2023/09/05)
+* The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
+  * Improve: Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
 * Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
-* Improve: Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
-  * The default date format has been changed to ISO-based format (YYYY-MM-DD).
-
+* README
+  * Add: Specification Changes
+  * Fix: Broken link
 
 ## License
 
