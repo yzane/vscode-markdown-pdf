@@ -121,6 +121,19 @@ stateDiagram
 ```
 </pre>
 
+or
+
+<pre>
+::: mermaid
+stateDiagram
+    [*] --> First
+    state First {
+        [*] --> second
+        second --> [*]
+    }
+:::
+</pre>
+
 OUTPUT
 
 ![mermaid](images/mermaid.png)
