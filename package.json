@@ -30,6 +30,7 @@
     "onCommand:extension.markdown-pdf.html",
     "onCommand:extension.markdown-pdf.png",
     "onCommand:extension.markdown-pdf.jpeg",
+    "onCommand:extension.markdown-pdf.mdEx",
     "onCommand:extension.markdown-pdf.all",
     "onLanguage:markdown"
   ],
@@ -62,6 +63,11 @@
         "group": "markdown-pdf"
       },
       {
+        "command": "extension.markdown-pdf.mdEx",
+        "title": "Markdown PDF: Export (mdEx)",
+        "group": "markdown-pdf"
+      },
+      {
         "command": "extension.markdown-pdf.all",
         "title": "Markdown PDF: Export (all: pdf, html, png, jpeg)",
         "group": "markdown-pdf"
@@ -88,6 +94,10 @@
         {
           "when": "resourceLangId == markdown",
           "command": "extension.markdown-pdf.jpeg"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.mdEx"
         },
         {
           "when": "resourceLangId == markdown",
@@ -118,6 +128,11 @@
         {
           "when": "resourceLangId == markdown",
           "command": "extension.markdown-pdf.jpeg",
+          "group": "markdown-pdf@5"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.mdEx",
           "group": "markdown-pdf@5"
         },
         {

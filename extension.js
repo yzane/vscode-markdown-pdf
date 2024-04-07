@@ -15,6 +15,7 @@ function activate(context) {
     vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.mdEx', async function () { await markdownmdEx(); }),
     vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); })
   ];
   commands.forEach(function (command) {
@@ -72,7 +73,7 @@ async function markdownPdf(option_type) {
     } else if (option_type === 'settings') {
       var types_tmp = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
       if (types_tmp && !Array.isArray(types_tmp)) {
-          types[0] = types_tmp;
+        types[0] = types_tmp;
       } else {
         types = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
       }
@@ -107,6 +108,96 @@ async function markdownPdf(option_type) {
   }
 }
 
+async function markdownmdEx() {
+  try {
+
+    // check active window
+    var editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showWarningMessage('No active Editor!');
+      return;
+    }
+
+    // check markdown mode
+    var mode = editor.document.languageId;
+    if (mode != 'markdown') {
+      vscode.window.showWarningMessage('It is not a markdown mode!');
+      return;
+    }
+
+    var sourceFilePath = editor.document.uri.fsPath;
+    if (!isExistsPath(sourceFilePath)) {
+      if (editor.document.isUntitled) {
+        vscode.window.showWarningMessage('Please save the file!');
+        return;
+      }
+      vscode.window.showWarningMessage('File name does not get!');
+      return;
+    }
+
+    let ext = path.extname(sourceFilePath);
+    if (ext != ".md") {
+      vscode.window.showWarningMessage('File Extension does not md!');
+      return;
+    }
+
+
+    let sourceFileDic = path.dirname(sourceFilePath);
+    let saveFilePathUri = await vscode.window.showSaveDialog({
+      defaultUri: editor.document.uri,
+      filters: {
+        'markdown': ['md']
+      }
+    });
+
+    if (saveFilePathUri == undefined || saveFilePathUri == null || saveFilePathUri == ""
+      || saveFilePathUri.fsPath == undefined || saveFilePathUri.fsPath == null || saveFilePathUri.fsPath == "") {
+      return;
+    }
+
+    let saveFilePath = saveFilePathUri.fsPath;
+    if (saveFilePath == sourceFilePath) {
+      vscode.window.showWarningMessage('Cannot Overwrite Current File');
+      return;
+    }
+
+
+    let text = editor.document.getText();
+
+
+    // get image 
+    let regMath = /^!\[[^\[\]]*\]\([^\(\)]*\)$/gm
+    let mathArray = text.match(regMath);
+
+    // Loop images
+    for (const item of mathArray) {
+
+      // get real file path
+      let imageFilePath = item.slice(item.indexOf("(") + 1, item.indexOf(")"));
+      let imageFileUri = path.join(sourceFileDic, imageFilePath);
+
+      // read image file to base64
+      let imageFile = fs.readFileSync(imageFileUri);
+      let imageBase = imageFile.base64Slice();
+
+      // Convert images in text to base64
+      let imageTxt = item.replace(imageFilePath, "data:image/png;base64," + imageBase);
+      text = text.replace(item, imageTxt);
+    }
+
+    // save file
+    fs.writeFileSync(saveFilePath, text);
+    vscode.window.showInformationMessage('success save ' + saveFilePath);
+    return;
+
+
+  } catch (error) {
+    showErrorMessage('markdownmdEx()', error);
+  }
+
+
+}
+
 function markdownPdfOnSave() {
   try {
     var editor = vscode.window.activeTextEditor;
@@ -123,7 +214,7 @@ function markdownPdfOnSave() {
 }
 
 function isMarkdownPdfOnSaveExclude() {
-  try{
+  try {
     var editor = vscode.window.activeTextEditor;
     var filename = path.basename(editor.document.fileName);
     var patterns = vscode.workspace.getConfiguration('markdown-pdf')['convertOnSaveExclude'] || '';
@@ -184,110 +275,110 @@ function convertMarkdownToHtml(filename, type, text) {
       showErrorMessage('require(\'markdown-it\')', error);
     }
 
-  // convert the img src of the markdown
-  var cheerio = require('cheerio');
-  var defaultRender = md.renderer.rules.image;
-  md.renderer.rules.image = function (tokens, idx, options, env, self) {
-    var token = tokens[idx];
-    var href = token.attrs[token.attrIndex('src')][1];
-    // console.log("original href: " + href);
-    if (type === 'html') {
-      href = decodeURIComponent(href).replace(/("|')/g, '');
-    } else {
-      href = convertImgPath(href, filename);
-    }
-    // console.log("converted href: " + href);
-    token.attrs[token.attrIndex('src')][1] = href;
-    // // pass token to default renderer.
-    return defaultRender(tokens, idx, options, env, self);
-  };
-
-  if (type !== 'html') {
-    // convert the img src of the html
-    md.renderer.rules.html_block = function (tokens, idx) {
-      var html = tokens[idx].content;
-      var $ = cheerio.load(html);
-      $('img').each(function () {
-        var src = $(this).attr('src');
-        var href = convertImgPath(src, filename);
-        $(this).attr('src', href);
-      });
-      return $.html();
+    // convert the img src of the markdown
+    var cheerio = require('cheerio');
+    var defaultRender = md.renderer.rules.image;
+    md.renderer.rules.image = function (tokens, idx, options, env, self) {
+      var token = tokens[idx];
+      var href = token.attrs[token.attrIndex('src')][1];
+      // console.log("original href: " + href);
+      if (type === 'html') {
+        href = decodeURIComponent(href).replace(/("|')/g, '');
+      } else {
+        href = convertImgPath(href, filename);
+      }
+      // console.log("converted href: " + href);
+      token.attrs[token.attrIndex('src')][1] = href;
+      // // pass token to default renderer.
+      return defaultRender(tokens, idx, options, env, self);
     };
-  }
 
-  // checkbox
-  md.use(require('markdown-it-checkbox'));
-
-  // emoji
-  var emoji_f = setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
-  if (emoji_f) {
-    var emojies_defs = require(path.join(__dirname, 'data', 'emoji.json'));
-    try {
-      var options = {
-        defs: emojies_defs
+    if (type !== 'html') {
+      // convert the img src of the html
+      md.renderer.rules.html_block = function (tokens, idx) {
+        var html = tokens[idx].content;
+        var $ = cheerio.load(html);
+        $('img').each(function () {
+          var src = $(this).attr('src');
+          var href = convertImgPath(src, filename);
+          $(this).attr('src', href);
+        });
+        return $.html();
       };
-    } catch (error) {
-      statusbarmessage.dispose();
-      showErrorMessage('markdown-it-emoji:options', error);
     }
-    md.use(require('markdown-it-emoji'), options);
-    md.renderer.rules.emoji = function (token, idx) {
-      var emoji = token[idx].markup;
-      var emojipath = path.join(__dirname, 'node_modules', 'emoji-images', 'pngs', emoji + '.png');
-      var emojidata = readFile(emojipath, null).toString('base64');
-      if (emojidata) {
-        return '<img class="emoji" alt="' + emoji + '" src="data:image/png;base64,' + emojidata + '" />';
-      } else {
-        return ':' + emoji + ':';
-      }
-    };
-  }
 
-  // toc
-  // https://github.com/leff/markdown-it-named-headers
-  var options = {
-    slugify: Slug
-  }
-  md.use(require('markdown-it-named-headers'), options);
+    // checkbox
+    md.use(require('markdown-it-checkbox'));
 
-  // markdown-it-container
-  // https://github.com/markdown-it/markdown-it-container
-  md.use(require('markdown-it-container'), '', {
-    validate: function (name) {
-      return name.trim().length;
-    },
-    render: function (tokens, idx) {
-      if (tokens[idx].info.trim() !== '') {
-        return `<div class="${tokens[idx].info.trim()}">\n`;
-      } else {
-        return `</div>\n`;
+    // emoji
+    var emoji_f = setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
+    if (emoji_f) {
+      var emojies_defs = require(path.join(__dirname, 'data', 'emoji.json'));
+      try {
+        var options = {
+          defs: emojies_defs
+        };
+      } catch (error) {
+        statusbarmessage.dispose();
+        showErrorMessage('markdown-it-emoji:options', error);
       }
+      md.use(require('markdown-it-emoji'), options);
+      md.renderer.rules.emoji = function (token, idx) {
+        var emoji = token[idx].markup;
+        var emojipath = path.join(__dirname, 'node_modules', 'emoji-images', 'pngs', emoji + '.png');
+        var emojidata = readFile(emojipath, null).toString('base64');
+        if (emojidata) {
+          return '<img class="emoji" alt="' + emoji + '" src="data:image/png;base64,' + emojidata + '" />';
+        } else {
+          return ':' + emoji + ':';
+        }
+      };
     }
-  });
 
-  // PlantUML
-  // https://github.com/gmunguia/markdown-it-plantuml
-  var plantumlOptions = {
-    openMarker: matterParts.data.plantumlOpenMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
-    closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml',
-    server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
-  }
-  md.use(require('markdown-it-plantuml'), plantumlOptions);
+    // toc
+    // https://github.com/leff/markdown-it-named-headers
+    var options = {
+      slugify: Slug
+    }
+    md.use(require('markdown-it-named-headers'), options);
 
-  // markdown-it-include
-  // https://github.com/camelaissani/markdown-it-include
-  // the syntax is :[alt-text](relative-path-to-file.md)
-  // https://talk.commonmark.org/t/transclusion-or-including-sub-documents-for-reuse/270/13
-  if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
-    md.use(require("markdown-it-include"), {
-      root: path.dirname(filename),
-      includeRe: /:\[.+\]\((.+\..+)\)/i
+    // markdown-it-container
+    // https://github.com/markdown-it/markdown-it-container
+    md.use(require('markdown-it-container'), '', {
+      validate: function (name) {
+        return name.trim().length;
+      },
+      render: function (tokens, idx) {
+        if (tokens[idx].info.trim() !== '') {
+          return `<div class="${tokens[idx].info.trim()}">\n`;
+        } else {
+          return `</div>\n`;
+        }
+      }
     });
-  }
 
-  statusbarmessage.dispose();
-  return md.render(matterParts.content);
+    // PlantUML
+    // https://github.com/gmunguia/markdown-it-plantuml
+    var plantumlOptions = {
+      openMarker: matterParts.data.plantumlOpenMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
+      closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml',
+      server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
+    }
+    md.use(require('markdown-it-plantuml'), plantumlOptions);
+
+    // markdown-it-include
+    // https://github.com/camelaissani/markdown-it-include
+    // the syntax is :[alt-text](relative-path-to-file.md)
+    // https://talk.commonmark.org/t/transclusion-or-including-sub-documents-for-reuse/270/13
+    if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
+      md.use(require("markdown-it-include"), {
+        root: path.dirname(filename),
+        includeRe: /:\[.+\]\((.+\..+)\)/i
+      });
+    }
+
+    statusbarmessage.dispose();
+    return md.render(matterParts.content);
 
   } catch (error) {
     statusbarmessage.dispose();
@@ -302,11 +393,11 @@ function Slug(string) {
   try {
     var stg = encodeURI(
       string.trim()
-            .toLowerCase()
-            .replace(/\s+/g, '-') // Replace whitespace with -
-            .replace(/[\]\[\!\'\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
-            .replace(/^\-+/, '') // Remove leading -
-            .replace(/\-+$/, '') // Remove trailing -
+        .toLowerCase()
+        .replace(/\s+/g, '-') // Replace whitespace with -
+        .replace(/[\]\[\!\'\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
+        .replace(/^\-+/, '') // Remove leading -
+        .replace(/\-+$/, '') // Remove trailing -
     );
     return stg;
   } catch (error) {
@@ -382,127 +473,127 @@ function exportPdf(data, filename, type, uri) {
   return vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
     title: '[Markdown PDF]: Exporting (' + type + ') ...'
-    }, async () => {
-      try {
-        // export html
-        if (type == 'html') {
-          exportHtml(data, exportFilename);
-          vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
-          return;
-        }
-
-        const puppeteer = require('puppeteer-core');
-        // create temporary file
-        var f = path.parse(filename);
-        var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
-        exportHtml(data, tmpfilename);
-        var options = {
-          executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),
-          args: ['--lang='+vscode.env.language, '--no-sandbox', '--disable-setuid-sandbox']
-          // Setting Up Chrome Linux Sandbox
-          // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
-      };
-        const browser = await puppeteer.launch(options);
-        const page = await browser.newPage();
-        await page.setDefaultTimeout(0);
-        await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
-        // generate pdf
-        // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
-        if (type == 'pdf') {
-          // If width or height option is set, it overrides the format option.
-          // In order to set the default value of page size to A4, we changed it from the specification of puppeteer.
-          var width_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '';
-          var height_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '';
-          var format_option = '';
-          if (!width_option && !height_option) {
-            format_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4';
-          }
-          var landscape_option;
-          if (vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] == 'landscape') {
-            landscape_option = true;
-          } else {
-            landscape_option = false;
-          }
-          var options = {
-            path: exportFilename,
-            scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
-            headerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || ''),
-            footerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''),
-            printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
-            landscape: landscape_option,
-            pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
-            format: format_option,
-            width: vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '',
-            height: vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '',
-            margin: {
-              top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
-              right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
-              bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
-              left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
-            },
-            timeout: 0
-          };
-          await page.pdf(options);
-        }
-
-        // generate png and jpeg
-        // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions
-        if (type == 'png' || type == 'jpeg') {
-          // Quality options do not apply to PNG images.
-          var quality_option;
-          if (type == 'png') {
-            quality_option = undefined;
-          }
-          if (type == 'jpeg') {
-            quality_option = vscode.workspace.getConfiguration('markdown-pdf')['quality'] || 100;
-          }
-
-          // screenshot size
-          var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'] || null;
-          var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'] || null;
-          var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'] || null;
-          var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'] || null;
-          var options;
-          if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
-            options = {
-              path: exportFilename,
-              quality: quality_option,
-              fullPage: false,
-              clip: {
-                x: clip_x_option,
-                y: clip_y_option,
-                width: clip_width_option,
-                height: clip_height_option,
-              },
-              omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
-            }
-          } else {
-            options = {
-              path: exportFilename,
-              quality: quality_option,
-              fullPage: true,
-              omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
-            }
-          }
-          await page.screenshot(options);
-        }
-
-        await browser.close();
-
-        // delete temporary file
-        var debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
-        if (!debug) {
-          if (isExistsPath(tmpfilename)) {
-            deleteFile(tmpfilename);
-          }
-        }
-
+  }, async () => {
+    try {
+      // export html
+      if (type == 'html') {
+        exportHtml(data, exportFilename);
         vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
-      } catch (error) {
-        showErrorMessage('exportPdf()', error);
+        return;
       }
-    } // async
+
+      const puppeteer = require('puppeteer-core');
+      // create temporary file
+      var f = path.parse(filename);
+      var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
+      exportHtml(data, tmpfilename);
+      var options = {
+        executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),
+        args: ['--lang=' + vscode.env.language, '--no-sandbox', '--disable-setuid-sandbox']
+        // Setting Up Chrome Linux Sandbox
+        // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
+      };
+      const browser = await puppeteer.launch(options);
+      const page = await browser.newPage();
+      await page.setDefaultTimeout(0);
+      await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
+      // generate pdf
+      // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
+      if (type == 'pdf') {
+        // If width or height option is set, it overrides the format option.
+        // In order to set the default value of page size to A4, we changed it from the specification of puppeteer.
+        var width_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '';
+        var height_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '';
+        var format_option = '';
+        if (!width_option && !height_option) {
+          format_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4';
+        }
+        var landscape_option;
+        if (vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] == 'landscape') {
+          landscape_option = true;
+        } else {
+          landscape_option = false;
+        }
+        var options = {
+          path: exportFilename,
+          scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
+          displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
+          headerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || ''),
+          footerTemplate: transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''),
+          printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
+          landscape: landscape_option,
+          pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
+          format: format_option,
+          width: vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '',
+          height: vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '',
+          margin: {
+            top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
+            right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
+            bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
+            left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
+          },
+          timeout: 0
+        };
+        await page.pdf(options);
+      }
+
+      // generate png and jpeg
+      // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions
+      if (type == 'png' || type == 'jpeg') {
+        // Quality options do not apply to PNG images.
+        var quality_option;
+        if (type == 'png') {
+          quality_option = undefined;
+        }
+        if (type == 'jpeg') {
+          quality_option = vscode.workspace.getConfiguration('markdown-pdf')['quality'] || 100;
+        }
+
+        // screenshot size
+        var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'] || null;
+        var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'] || null;
+        var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'] || null;
+        var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'] || null;
+        var options;
+        if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
+          options = {
+            path: exportFilename,
+            quality: quality_option,
+            fullPage: false,
+            clip: {
+              x: clip_x_option,
+              y: clip_y_option,
+              width: clip_width_option,
+              height: clip_height_option,
+            },
+            omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
+          }
+        } else {
+          options = {
+            path: exportFilename,
+            quality: quality_option,
+            fullPage: true,
+            omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
+          }
+        }
+        await page.screenshot(options);
+      }
+
+      await browser.close();
+
+      // delete temporary file
+      var debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
+      if (!debug) {
+        if (isExistsPath(tmpfilename)) {
+          deleteFile(tmpfilename);
+        }
+      }
+
+      vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
+    } catch (error) {
+      showErrorMessage('exportPdf()', error);
+    }
+  } // async
   ); // vscode.window.withProgress
 }
 
@@ -548,7 +639,7 @@ function isExistsDir(dirname) {
     if (fs.statSync(dirname).isDirectory()) {
       return true;
     } else {
-      console.warn('Directory does not exist!') ;
+      console.warn('Directory does not exist!');
       return false;
     }
   } catch (error) {
@@ -557,7 +648,7 @@ function isExistsDir(dirname) {
   }
 }
 
-function deleteFile (path) {
+function deleteFile(path) {
   var rimraf = require('rimraf')
   rimraf.sync(path);
 }
@@ -626,7 +717,7 @@ function readFile(filename, encode) {
   if (filename.indexOf('file://') === 0) {
     if (process.platform === 'win32') {
       filename = filename.replace(/^file:\/\/\//, '')
-                 .replace(/^file:\/\//, '');
+        .replace(/^file:\/\//, '');
     } else {
       filename = filename.replace(/^file:\/\//, '');
     }
@@ -642,16 +733,16 @@ function convertImgPath(src, filename) {
   try {
     var href = decodeURIComponent(src);
     href = href.replace(/("|')/g, '')
-          .replace(/\\/g, '/')
-          .replace(/#/g, '%23');
+      .replace(/\\/g, '/')
+      .replace(/#/g, '%23');
     var protocol = url.parse(href).protocol;
-    if (protocol === 'file:' && href.indexOf('file:///') !==0) {
+    if (protocol === 'file:' && href.indexOf('file:///') !== 0) {
       return href.replace(/^file:\/\//, 'file:///');
     } else if (protocol === 'file:') {
       return href;
     } else if (!protocol || path.isAbsolute(href)) {
       href = path.resolve(path.dirname(filename), href).replace(/\\/g, '/')
-                                                      .replace(/#/g, '%23');
+        .replace(/#/g, '%23');
       if (href.indexOf('//') === 0) {
         return 'file:' + href;
       } else if (href.indexOf('/') === 0) {
@@ -856,7 +947,7 @@ function installChromium() {
 
     function onProgress(downloadedBytes, totalBytes) {
       var progress = parseInt(downloadedBytes / totalBytes * 100);
-      vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ' + progress + '%' , StatusbarMessageTimeout);
+      vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ' + progress + '%', StatusbarMessageTimeout);
     }
   } catch (error) {
     showErrorMessage('installChromium()', error);
