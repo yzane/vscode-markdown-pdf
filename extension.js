@@ -778,8 +778,8 @@ function fixHref(resource, href) {
       return vscode.Uri.file(path.join(root.uri.fsPath, href)).toString();
     }
 
-    // Otherwise look relative to the markdown file
-    return vscode.Uri.file(path.join(path.dirname(resource.fsPath), href)).toString();
+    // Otherwise, leave it as is
+    return href;
   } catch (error) {
     showErrorMessage('fixHref()', error);
   }

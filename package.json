@@ -175,7 +175,7 @@
         "markdown-pdf.stylesRelativePathFile": {
           "type": "boolean",
           "default": false,
-          "description": "If markdown-pdf.stylesRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
+          "description": "If checked, the relative paths in markdown-pdf.styles are referenced by the output HTML as is"
         },
         "markdown-pdf.includeDefaultStyles": {
           "type": "boolean",
