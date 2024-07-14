@@ -4,6 +4,8 @@ var path = require('path');
 var fs = require('fs');
 var url = require('url');
 var os = require('os');
+const yaml = require('js-yaml');
+
 var INSTALL_CHECK = false;
 
 function activate(context) {
@@ -443,6 +445,29 @@ function exportPdf(data, filename, type, uri) {
             },
             timeout: 0
           };
+          { 
+            // 从markdown文件中读取模板信息
+            const mdfilename = uri.fsPath;
+            const markdownContent = readFile(mdfilename, 'utf8');
+            // 使用正则表达式匹配 YAML 前置元数据
+            const yamlFrontMatterRegex = /^---([\s\S]+?)---\n([\s\S]*)$/;
+            const match = markdownContent.match(yamlFrontMatterRegex);
+
+            if (match) {
+              // 第一个匹配项是整个匹配的内容，第二个匹配项是 YAML 前置元数据
+              const yamlString = match[1].trim();
+              try {
+                // 使用 js-yaml 解析 YAML 字符串
+                const metadata = yaml.safeLoad(yamlString);
+                if (metadata.headerTemplate)
+                  options.headerTemplate = metadata.headerTemplate;
+                if (metadata.footerTemplate)
+                  options.footerTemplate = metadata.footerTemplate;
+              } catch (error) {
+                console.error('无法解析markdown文件中的YAML前置元数据:', error, '文件名:', mdfilename);
+              }
+            }
+          }
           await page.pdf(options);
         }
 
