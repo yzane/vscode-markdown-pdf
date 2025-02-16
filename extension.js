@@ -334,6 +334,9 @@ function makeHtml(data, uri) {
     var mermaidServer = vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || '';
     var mermaid = '<script src=\"' + mermaidServer + '\"></script>';
 
+    // read MATHJax javascript
+    var mathjax = '<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>' || '';
+
     // compile template
     var mustache = require('mustache');
 
@@ -341,7 +344,8 @@ function makeHtml(data, uri) {
       title: title,
       style: style,
       content: data,
-      mermaid: mermaid
+      mermaid: mermaid,
+      mathjax: mathjax
     };
     return mustache.render(template, view);
   } catch (error) {
