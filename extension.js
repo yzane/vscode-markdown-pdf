@@ -304,7 +304,7 @@ function Slug(string) {
       string.trim()
             .toLowerCase()
             .replace(/\s+/g, '-') // Replace whitespace with -
-            .replace(/[\]\[\!\'\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
+            .replace(/[\]\[\!\'\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~\`。，、；：？！…—·ˉ¨‘'""々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '') // Remove known punctuators
             .replace(/^\-+/, '') // Remove leading -
             .replace(/\-+$/, '') // Remove trailing -
     );
@@ -711,9 +711,21 @@ function readStyles(uri) {
     var highlightStyle = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || '';
     var ishighlight = vscode.workspace.getConfiguration('markdown-pdf')['highlight'];
     if (ishighlight) {
+      // Get the output format from the uri
+      var outputFormat = path.extname(uri.fsPath).toLowerCase().substring(1);
+      
+      // Get the highlight style configuration
+      var highlightStyleConfig = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'];
+      
+      // If highlightStyle is an object, use the format-specific style
+      if (highlightStyleConfig && typeof highlightStyleConfig === 'object') {
+        highlightStyle = highlightStyleConfig[outputFormat] || highlightStyleConfig['default'] || '';
+      } else {
+        highlightStyle = highlightStyleConfig || '';
+      }
+
       if (highlightStyle) {
-        var css = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || 'github.css';
-        filename = path.join(__dirname, 'node_modules', 'highlight.js', 'styles', css);
+        filename = path.join(__dirname, 'node_modules', 'highlight.js', 'styles', highlightStyle);
         style += makeCss(filename);
       } else {
         filename = path.join(__dirname, 'styles', 'tomorrow.css');

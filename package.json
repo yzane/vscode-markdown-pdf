@@ -190,6 +190,7 @@
         "markdown-pdf.highlightStyle": {
           "type": [
             "string",
+            "object",
             "null"
           ],
           "enum": [
@@ -287,7 +288,7 @@
             "zenburn.css"
           ],
           "default": "",
-          "markdownDescription": "Set the style file name. [highlight.js demo](https://highlightjs.org/static/demo/) [highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/master/src/styles)"
+          "markdownDescription": "Set the style file name. Can be a string for a single style, or an object to specify different styles for different output formats. Example: `{ \"pdf\": \"github.css\", \"html\": \"monokai.css\", \"default\": \"github.css\" }`. [highlight.js demo](https://highlightjs.org/static/demo/) [highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/master/src/styles)"
         },
         "markdown-pdf.breaks": {
           "type": "boolean",

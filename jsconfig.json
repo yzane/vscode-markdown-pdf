@@ -2,7 +2,11 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "ES5",
-        "noLib": true
+        "noLib": false,
+        "lib": ["ES2015", "DOM"],
+        "checkJs": true,
+        "types": ["node", "vscode"],
+        "moduleResolution": "node"
     },
     "exclude": [
         "node_modules"
