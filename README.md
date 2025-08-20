@@ -137,6 +137,8 @@ If you are behind a proxy, set the `http.proxy` option to settings.json and rest
 
 If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed [Chrome](https://www.google.co.jp/chrome/) or 'Chromium' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
 
+<strong>Note (ARM Macs)</strong>: Puppeteer v2.1.1 downloads an older x86_64 Chromium build. On Apple Silicon, ensure that you have Rosetta or set `markdown-pdf.executablePath` to a native Chromium binary installation.
+
 <div class="page"/>
 
 ## Usage
