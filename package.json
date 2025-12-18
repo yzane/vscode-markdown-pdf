@@ -304,6 +304,11 @@
           "default": "",
           "description": "Path to a Chromium or Chrome executable to run instead of the bundled Chromium."
         },
+				"markdown-pdf.preferredLanguage": {
+					"type": "string",
+					"default": "en-US",
+					"description": "Preferred language to pass for the Puppeteer. This changes e.g. date format."
+				},
         "markdown-pdf.scale": {
           "type": "number",
           "default": 1,
