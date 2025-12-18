@@ -306,7 +306,7 @@
         },
 				"markdown-pdf.preferredLanguage": {
 					"type": "string",
-					"default": "fi-FI",
+					"default": "en-US",
 					"description": "Preferred language to pass for the Puppeteer. This changes e.g. date format."
 				},
         "markdown-pdf.scale": {
