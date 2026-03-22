@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.6.0 (2025/xx/xx)
+* Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
+* Update: align slug generation with [latest VSCode behavior](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27)
+
 ## 1.5.0 (2023/09/08)
 * Improve: The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
   * Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
