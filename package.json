@@ -484,7 +484,8 @@
   },
   "scripts": {
     "vscode:prepublish": "node ./src/compile",
-    "test": "node ./test/runTest.js"
+    "test": "node ./test/runTest.js",
+    "test:unit": "node ./node_modules/mocha/bin/mocha test/unit/**/*.test.js"
   },
   "devDependencies": {
     "glob": "^7.1.6",
