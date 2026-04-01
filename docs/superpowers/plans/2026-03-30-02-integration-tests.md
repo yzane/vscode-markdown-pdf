@@ -6,11 +6,11 @@
 
 **Architecture:** `.vscode-test.mjs` にプラットフォーム検出ロジック（VS Codeパス検出、WSL2 UNCパス変換）を集約し、旧ボイラープレート（`test/runTest.js`、`test/suite/index.js`）を廃止する。テストコードは `test/integration/` 配下に機能ごとのフィクスチャとHTMLスナップショットを配置する。
 
-**Tech Stack:** `@vscode/test-cli` ^0.0.12, `@vscode/test-electron` ^2.4.0, Mocha (TDD), VS Code Extension API
+**Tech Stack:** `@vscode/test-cli` ^0.0.12, `@vscode/test-electron` ^2.5.2, Mocha, VS Code Extension API
 
-**前提:** ユニットテスト計画が完了済みであること（`src/utils.js` 抽出、mocha ^11 インストール、`test:unit` スクリプト追加済み）。
+**前提:** ユニットテスト計画が完了済みであること（`src/utils.js` 抽出、`test:unit` スクリプト追加済み）。
 
-**設計ドキュメント:** `docs/superpowers/specs/2026-03-30-integration-tests-design.md`
+**設計ドキュメント:** `docs/superpowers/specs/2026-03-30-02-integration-tests-design.md`
 
 ---
 
@@ -44,7 +44,7 @@ node -e "const p = require('./package.json'); console.log(JSON.stringify(p.devDe
 期待: 以下のパッケージが存在し、`glob` と `vscode-test` が存在しないこと。
 - `@vscode/test-cli`
 - `@vscode/test-electron`
-- `mocha` (^11.0.0)
+- `mocha` (^7.1.1)
 - `removeNPMAbsolutePaths` (既存、変更なし)
 
 - [ ] **Step 4: コミット**
@@ -169,7 +169,7 @@ node --input-type=module -e "import('./.vscode-test.mjs').then(m => console.log(
 npm run test:unit
 ```
 
-期待: 41 テストケースが全て PASS。
+期待: 42 テストケースが全て PASS。
 
 - [ ] **Step 5: コミット**
 
@@ -536,7 +536,7 @@ rmdir test/suite
 npm run test:unit
 ```
 
-期待: 41 テストケースが全て PASS。
+期待: 42 テストケースが全て PASS。
 
 - [ ] **Step 3: コミット**
 
