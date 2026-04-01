@@ -5,3 +5,4 @@ work/**
 *.vsix
 *.bat
 .eslintrc.json
+.cocoindex_code/
