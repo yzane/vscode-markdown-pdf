@@ -23,7 +23,7 @@
 | # | テストケース | 入力 | 期待値 |
 |---|-------------|------|--------|
 | 1 | スペースを含むパス | `'my image.png'`, `/home/user/doc.md` | `file:///home/user/my image.png` |
-| 2 | `../` を含む相対パス | `'../../assets/img.png'`, `/home/user/docs/sub/doc.md` | `file:///home/user/assets/img.png` |
+| 2 | `../` を含む相対パス | `'../../assets/img.png'`, `/home/user/docs/sub/doc.md` | `file:///home/assets/img.png` |
 | 3 | data: URL パススルー | `'data:image/png;base64,abc'`, `/home/user/doc.md` | そのまま返す |
 | 4 | 空文字 | `''`, `/home/user/doc.md` | `file:///home/user/` (path.resolve結果) |
 | 5 | Windows絶対パス (Win限定) | `'C:\\Users\\img.png'`, `C:\\docs\\doc.md` | `file:///C:/Users/img.png` |
@@ -35,7 +35,7 @@
 |---|-------------|------|--------|
 | 1 | `../` 付き相対パス (workspace有) | `'../styles/custom.css'`, `/home/user/doc.md`, `false`, `/workspace` | `file://` + path.join結果 |
 | 2 | `../` 付き相対パス (file相対) | `'../styles/custom.css'`, `/home/user/doc.md`, `true`, `/workspace` | `file:///home/styles/custom.css` |
-| 3 | data: URL (ワークスペース相対で解決) | `'data:text/css;base64,abc'`, `/home/user/doc.md`, `false`, `/workspace` | `file:///workspace/data:text/css;base64,abc` (注: `url.parse` が `data:` を返すため http/https チェックをすり抜ける) |
+| 3 | data: URL パススルー | `'data:text/css;base64,abc'`, `/home/user/doc.md`, `false`, `/workspace` | そのまま返す |
 | 4 | スペースを含む相対パス | `'my styles/custom.css'`, `/home/user/doc.md`, `false`, `/workspace` | `file:///workspace/my styles/custom.css` |
 | 5 | Windows絶対パス (Win限定) | `'C:\\styles\\custom.css'`, `C:\\docs\\doc.md`, `false`, `C:\\workspace` | `file://C:\\styles\\custom.css` |
 

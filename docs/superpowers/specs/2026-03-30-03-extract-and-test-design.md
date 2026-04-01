@@ -74,10 +74,10 @@ options = {
   includeDefaultStyles: boolean,
   highlight: boolean,
   highlightStyle: string,
-  markdownStyles: string[],       // markdown.styles 設定
-  markdownPdfStyles: string[],    // markdown-pdf.styles 設定
-  baseDir: string,                // __dirname 相当
-  resolveHrefFn: function         // href 解決関数（resolveHref を渡す）
+  markdownStyles: string[],
+  markdownPdfStyles: string[],
+  baseDir: string,
+  resolveHrefFn: function
 }
 ```
 
