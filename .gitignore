@@ -1,4 +1,5 @@
 .history
+.worktrees/
 .vscode-test
 node_modules
 work/**
