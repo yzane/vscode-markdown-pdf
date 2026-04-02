@@ -33,7 +33,7 @@
   - バイナリ生成テストの前提条件と検証内容
   - 異常系テストが「警告を出して戻る」振る舞いを確認していること
 - `How to Run` / `実行方法` は `package.json` の現行スクリプト定義に合わせる。
-- `Notes and Limitations` / `注意点と制約` では `xvfb-run` と Chromium/Chrome 依存、環境依存値の正規化、プラットフォーム依存スキップを明記する。
+- `Notes and Limitations` / `注意点と制約` では Chromium/Chrome 依存、環境依存値の正規化、プラットフォーム依存スキップを明記する。
 
 ## 英日整合性
 
