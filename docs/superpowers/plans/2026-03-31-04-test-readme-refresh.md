@@ -49,7 +49,7 @@ Expected: `Integration HTML Snapshot Tests`、`Integration Binary Generation Tes
 node -e "const p=require('./package.json'); console.log(JSON.stringify(p.scripts, null, 2))"
 ```
 
-Expected: `test`、`test:unit`、`test:integration` の各スクリプト定義が表示される。
+Expected: `test` と `test:unit` のスクリプト定義が表示される。
 
 ### Task 2: 英語版 README を最新のテスト構成に合わせて更新する
 
@@ -76,9 +76,7 @@ Expected: `test`、`test:unit`、`test:integration` の各スクリプト定義�
 
 記述要件:
 - `npm run test:unit`
-- `npm run test:integration`
 - `npm test`
-- `xvfb-run --auto-servernum vscode-test` を使う前提
 - Chromium/Chrome 依存
 - 環境依存値の正規化
 - Windows 固有テストのスキップ

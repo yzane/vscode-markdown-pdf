@@ -8,7 +8,7 @@
 ## テスト構成
 
 - `test/unit/utils.test.js` は `src/utils.js` の補助関数群を対象にします。
-- `test/integration/extension.test.js` は VS Code 拡張テスト環境でエクスポートコマンドを実行します。
+- `test/integration/extension.test.js` は VS Code 拡張テスト環境で HTML スナップショット、バイナリ生成、異常系の 3 系統を検証します。
 - `test/integration/fixtures/` には統合テスト用の Markdown 入力を置きます。
 - `test/integration/expected/` には比較用の正規化済み HTML スナップショットを置きます。
 
@@ -24,6 +24,7 @@
 HTML の検証では、fixture の Markdown を開いて HTML 出力コマンドを実行し、ファイル URI や日時のような環境依存値を正規化したうえで expected スナップショットと比較します。
 PlantUML の fixture は HTML 系テストの中で個別に例外抑制を入れ、ローカルに Java がない環境でも意図した比較が崩れないようにしています。
 バイナリ生成の検証では、複数の fixture を結合した Markdown から PDF、PNG、JPEG を生成し、ファイルの存在、サイズ、マジックバイトを確認します。
+異常系の検証では、非 Markdown ファイルと untitled 文書に対して同じコマンドを実行し、クラッシュせず不要な HTML を生成しないことを確認します。
 
 ## 実行方法
 
@@ -36,4 +37,5 @@ PlantUML の fixture は HTML 系テストの中で個別に例外抑制を入�
 - バイナリ生成テストの実行には、拡張実行環境から利用できる Chromium または Chrome が必要です。
 - 一部の統合テストは比較前に環境依存の出力を正規化します。
 - Windows 専用のユニットテストは非 Windows 環境ではスキップされます。
+- 異常系テストは安全に終了することを確認しますが、警告メッセージ本文までは検証していません。
 - これらのテストは見た目の完全一致や UI 操作の完全 end-to-end までは保証しません。
