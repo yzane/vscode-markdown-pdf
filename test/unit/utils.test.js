@@ -478,10 +478,17 @@ describe('utils', function () {
       );
     });
 
-    (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
+    it('should handle Windows absolute path', function () {
       assert.strictEqual(
         utils.resolveHref('C:\\styles\\custom.css', 'C:\\docs\\doc.md', false, 'C:\\workspace'),
         'file://C:\\styles\\custom.css'
+      );
+    });
+
+    it('should handle UNC absolute path', function () {
+      assert.strictEqual(
+        utils.resolveHref('\\\\server\\share\\styles\\custom.css', 'C:\\docs\\doc.md', false, 'C:\\workspace'),
+        'file://\\\\server\\share\\styles\\custom.css'
       );
     });
   });

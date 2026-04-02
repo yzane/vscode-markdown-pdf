@@ -158,7 +158,7 @@ function resolveHref(href, resourceFsPath, stylesRelativePathFile, workspaceFsPa
     return 'file://' + href.replace(/^~/, os.homedir());
   }
 
-  if (path.isAbsolute(href)) {
+  if (path.isAbsolute(href) || path.win32.isAbsolute(href)) {
     return 'file://' + href;
   }
 
