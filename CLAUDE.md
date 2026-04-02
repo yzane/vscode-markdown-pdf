@@ -27,6 +27,11 @@ Rules:
 - Subagents must not switch to any branch other than the one specified.
 - If the current branch is `develop` and changes need to be committed, ask the user whether to create a new feature or release branch before proceeding.
 
+# Branch Completion Preference
+
+- When finishing a development branch, default to merging back to `develop` locally.
+- Do not present the 4-option completion menu unless the user explicitly asks for alternatives.
+
 # Code Exploration Rules
 
 - Use `cocoindex-code` MCP first when exploring code. Fall back to Grep/Glob if unavailable.
