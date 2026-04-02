@@ -4,7 +4,7 @@
 
 **Goal:** 既存テストスイートに29件のテスト（ユニット23件 + 統合6件）を追加し、エッジケースと機能カバレッジを拡充する。
 
-**Architecture:** フェーズ2で`test/unit/utils.test.js`の既存describeブロックにエッジケーステストを追加。フェーズ3で`test/integration/extension.test.js`に新規fixtureとテストを追加。ソースコード変更なし。
+**Architecture:** フェーズ2で`test/unit/utils.test.js`の既存describeブロックにエッジケーステストを追加。フェーズ3で`test/integration/extension.test.js`に新規fixtureとテストを追加する。原則はテスト追加のみだが、実測で不足が見えた場合は最小限の実装修正を許容する。
 
 **Tech Stack:** Mocha, Node.js assert, VS Code Test CLI
 
@@ -506,7 +506,7 @@ const HTML_FEATURES = [
 
 - [ ] **Step 2: 統合テストを実行してHTMLを生成（初回は失敗する）**
 
-Run: `npm run test:integration`
+Run: `npm test`
 Expected: 新規4件がexpectedファイル不在でFAIL。ただしfixturesディレクトリにHTMLファイルが生成される。
 
 - [ ] **Step 3: 生成されたHTMLを正規化してexpectedに保存**
@@ -539,7 +539,7 @@ function normalizeHtml(html) {
 
 - [ ] **Step 4: 統合テストを再実行して全てパスすることを確認**
 
-Run: `npm run test:integration`
+Run: `npm test`
 Expected: 全テストPASS（HTML snapshot tests 11件 + Binary 3件）
 
 - [ ] **Step 5: expectedファイルの内容を確認**
@@ -615,7 +615,7 @@ suite('Error Handling Tests', () => {
 
 - [ ] **Step 2: 統合テストを実行して全てパスすることを確認**
 
-Run: `npm run test:integration`
+Run: `npm test`
 Expected: 全テストPASS（Error Handling Tests 2件が追加）
 
 - [ ] **Step 3: コミット**

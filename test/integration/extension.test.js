@@ -63,6 +63,10 @@ const HTML_FEATURES = [
   'container',
   'include',
   'mermaid',
+  'frontmatter-breaks',
+  'frontmatter-no-emoji',
+  'breaks',
+  'image',
 ];
 
 suite('Integration HTML Snapshot Tests', () => {
@@ -166,5 +170,41 @@ suite('Integration Binary Generation Tests', () => {
         safeDelete(outputPath);
       }
     });
+  });
+});
+
+suite('Error Handling Tests', () => {
+  test('should not crash when run on a non-markdown file', async function () {
+    this.timeout(30000);
+
+    const txtPath = path.resolve(FIXTURES_DIR, '_error-test.txt');
+    fs.writeFileSync(txtPath, 'This is not markdown', 'utf-8');
+
+    try {
+      const doc = await vscode.workspace.openTextDocument(txtPath);
+      await vscode.window.showTextDocument(doc);
+
+      await assert.doesNotReject(async () => {
+        await vscode.commands.executeCommand('extension.markdown-pdf.html');
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      assert.ok(!fs.existsSync(txtPath.replace('.txt', '.html')), 'HTML file should not be generated for .txt input');
+    } finally {
+      safeDelete(txtPath);
+    }
+  });
+
+  test('should not crash when run on an untitled document', async function () {
+    this.timeout(30000);
+
+    const doc = await vscode.workspace.openTextDocument({ language: 'markdown', content: '# Untitled' });
+    await vscode.window.showTextDocument(doc);
+
+    await assert.doesNotReject(async () => {
+      await vscode.commands.executeCommand('extension.markdown-pdf.html');
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   });
 });
