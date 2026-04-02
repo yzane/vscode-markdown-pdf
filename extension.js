@@ -214,7 +214,7 @@ function convertMarkdownToHtml(filename, type, text) {
   if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
     md.use(require("markdown-it-include"), {
       root: path.dirname(filename),
-      includeRe: /:\[.+\]\((.+\..+)\)/i,
+      includeRe: /:\[.+\](\(.+\..+\))/i,
       bracesAreOptional: true
     });
   }
