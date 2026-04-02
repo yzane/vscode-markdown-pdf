@@ -45,7 +45,7 @@
 - [ ] **Step 3: テスト実行コマンドを確認する**
 
 Run: `node -e "const p=require('./package.json'); console.log(JSON.stringify(p.scripts, null, 2))"`
-Expected: `test`, `test:unit`, `test:integration` の定義が出力される。
+Expected: `test` と `test:unit` の定義が出力される。
 
 - [ ] **Step 4: 作業ツリーを確認する**
 
@@ -119,7 +119,6 @@ Binary-generation tests build a combined Markdown input and verify that generate
 ## How to Run
 
 - `npm run test:unit`
-- `npm run test:integration`
 - `npm test`
 
 ## Notes and Limitations
@@ -199,7 +198,6 @@ HTML の検証では、fixture の Markdown を開いて HTML 出力コマンド
 ## 実行方法
 
 - `npm run test:unit`
-- `npm run test:integration`
 - `npm test`
 
 ## 注意点と制約
@@ -231,7 +229,7 @@ Expected: 言語差はあっても、見出し構成と箇条書きの対応関�
 
 - [ ] **Step 2: テスト実行コマンドとファイル参照を確認する**
 
-Run: `rg -n "test:unit|test:integration|npm test|test/unit/utils.test.js|test/integration/extension.test.js" test/README.md test/README.ja.md`
+Run: `rg -n "test:unit|npm test|test/unit/utils.test.js|test/integration/extension.test.js" test/README.md test/README.ja.md`
 Expected: 両ファイルに正しいコマンドとファイルパスが含まれる。
 
 - [ ] **Step 3: 体裁確認として Markdown を読み直す**
