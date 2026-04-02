@@ -496,7 +496,7 @@
   "dependencies": {
     "cheerio": "^0.20.0",
     "emoji-images": "^0.1.1",
-    "gray-matter": "^4.0.2",
+    "gray-matter": "^4.0.3",
     "highlight.js": "^9.18.1",
     "markdown-it": "^10.0.0",
     "markdown-it-checkbox": "^1.1.0",
@@ -506,7 +506,7 @@
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
     "mkdirp": "^1.0.3",
-    "mustache": "^4.0.1",
+    "mustache": "^4.2.0",
     "puppeteer-core": "^2.1.1",
     "rimraf": "^3.0.2"
   }
