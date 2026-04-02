@@ -665,6 +665,52 @@ describe('utils', function () {
       assert.ok(result.indexOf('<style>') !== -1, 'Expected default highlight style in result');
     });
 
+    it('should map legacy highlight style aliases to supported v11 style names', function () {
+      var legacyResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'github-gist.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      var currentResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'github.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+
+      assert.strictEqual(legacyResult, currentResult);
+    });
+
+    it('should fallback to the default highlight style when the configured style does not exist', function () {
+      var missingResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'darcula.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      var defaultResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+
+      assert.strictEqual(missingResult, defaultResult);
+    });
+
     it('should skip highlight style when highlight is false', function () {
       var result = utils.buildStyleTags({
         includeDefaultStyles: false,

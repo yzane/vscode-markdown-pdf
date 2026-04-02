@@ -192,6 +192,25 @@ function resolveOutputDir(filename, outputDirectory, outputDirectoryRelativePath
   return path.join(path.dirname(resourceFsPath), outputDirectory, path.basename(filename));
 }
 
+var LEGACY_HIGHLIGHT_STYLE_ALIASES = {
+  'github-gist.css': 'github.css',
+  'kimbie.dark.css': 'kimbie-dark.css',
+  'kimbie.light.css': 'kimbie-light.css',
+  'qtcreator_dark.css': 'qtcreator-dark.css',
+  'qtcreator_light.css': 'qtcreator-light.css',
+};
+
+function resolveHighlightStylePath(baseDir, highlightStyle) {
+  var resolvedStyle = LEGACY_HIGHLIGHT_STYLE_ALIASES[highlightStyle] || highlightStyle;
+  var stylePath = path.join(baseDir, 'node_modules', 'highlight.js', 'styles', resolvedStyle);
+
+  if (isExistsPath(stylePath)) {
+    return stylePath;
+  }
+
+  return path.join(baseDir, 'styles', 'tomorrow.css');
+}
+
 function buildStyleTags(options) {
   var style = '';
   var filename = '';
@@ -213,7 +232,7 @@ function buildStyleTags(options) {
 
   if (options.highlight) {
     if (options.highlightStyle) {
-      filename = path.join(options.baseDir, 'node_modules', 'highlight.js', 'styles', options.highlightStyle);
+      filename = resolveHighlightStylePath(options.baseDir, options.highlightStyle);
       style += makeCss(filename);
     } else {
       filename = path.join(options.baseDir, 'styles', 'tomorrow.css');
