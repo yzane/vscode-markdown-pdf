@@ -4,7 +4,7 @@
 
 **Goal:** `docs/superpowers/plans/` にある既存 plan を番号順に適用し、各 plan を `feature/*` ブランチ単位で完結させて `develop` へ順次マージできる状態にする。
 
-**Architecture:** 実装は `docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md` を運用仕様として進める。各 task では対象 plan / spec を確認し、`develop` から専用 `feature/*` ブランチを作成し、対象 plan の実装・狭い検証・必要最小限の文書補正を完了させたうえで `develop` にマージする。
+**Architecture:** 実装は `docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md` を運用仕様として進める。各 task では対象 plan / spec を確認し、`develop` から専用 `feature/*` ブランチを作成し、対象 plan の実装・狭い検証・必要最小限の文書補正を完了させたうえで `develop` にマージする。
 
 **Tech Stack:** Git, Node.js, npm, Mocha, VS Code extension test runner, Markdown
 
@@ -14,7 +14,7 @@
 
 | ファイル | 役割 |
 |---|---|
-| `docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md` | 実行順、ブランチ運用、補正方針、完了条件の基準 |
+| `docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md` | 実行順、ブランチ運用、補正方針、完了条件の基準 |
 | `docs/superpowers/plans/2026-03-30-01-unit-tests.md` | 最初の抽出とユニットテスト導入 |
 | `docs/superpowers/plans/2026-03-30-02-integration-tests.md` | 統合テスト導入 |
 | `docs/superpowers/plans/2026-03-30-03-extract-and-test.md` | 追加抽出とテスト強化 |
@@ -30,13 +30,13 @@
 ### Task 1: 実行前の基準を固定する
 
 **Files:**
-- Read: `docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md`
+- Read: `docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md`
 - Read: `docs/superpowers/plans/2026-03-30-01-unit-tests.md`
 - Read: `docs/superpowers/plans/2026-04-01-01-extract-remaining-logic.md`
 
 - [ ] **Step 1: 運用 spec の成功基準を確認する**
 
-Run: `sed -n '1,220p' docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md`
+Run: `sed -n '1,220p' docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md`
 Expected: 実行順、`plan 1件 = 1 feature branch = 1 develop へのマージ`、補正方針、完了条件の4項目を確認できる
 
 - [ ] **Step 2: 先頭と末尾の plan を読んで粒度を再確認する**
@@ -55,7 +55,7 @@ Expected: 11件の実行対象が番号順で表示される
 ### Task 2: 各 plan の共通実行手順を固定する
 
 **Files:**
-- Read: `docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md`
+- Read: `docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md`
 
 - [ ] **Step 1: 作業開始時のブランチ作成コマンドを確認する**
 
@@ -580,12 +580,12 @@ Expected: `feature/extract-remaining-logic` の変更が `develop` に入る
 ### Task 14: 全体完了を確認する
 
 **Files:**
-- Read: `docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md`
-- Read: `docs/superpowers/plans/2026-04-02-plan-application-workflow.md`
+- Read: `docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md`
+- Read: `docs/superpowers/plans/2026-04-02-01-plan-application-workflow.md`
 
 - [ ] **Step 1: 最終的な実行対象一覧が完了したか確認する**
 
-Run: `sed -n '1,220p' docs/superpowers/specs/2026-04-02-plan-application-workflow-design.md`
+Run: `sed -n '1,220p' docs/superpowers/specs/2026-04-02-01-plan-application-workflow-design.md`
 Expected: 11件の対象 plan がすべて順次適用済みであることを照合できる
 
 - [ ] **Step 2: `develop` 上の履歴で feature ごとの統合を確認する**
