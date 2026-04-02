@@ -45,7 +45,7 @@
 - workspace 不在時のファイル基準フォールバック
 - `../styles/custom.css` の正規化
 - スペースを含む相対パス
-- `data:` URI が URL として素通しされず、現行実装では相対パス扱いになることの固定
+- `data:` URI がそのまま返ることの固定
 
 ### 2. `resolveOutputDir`
 

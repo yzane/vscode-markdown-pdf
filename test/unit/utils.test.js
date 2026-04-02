@@ -306,6 +306,7 @@ describe('utils', function () {
   });
 
   describe('resolveHref', function () {
+    var path = require('path');
     var os = require('os');
 
     it('should return empty string for empty href', function () {
@@ -314,6 +315,10 @@ describe('utils', function () {
 
     it('should return undefined for undefined href', function () {
       assert.strictEqual(utils.resolveHref(undefined, '/home/user/doc.md', false, '/workspace'), undefined);
+    });
+
+    it('should return null for null href', function () {
+      assert.strictEqual(utils.resolveHref(null, '/home/user/doc.md', false, '/workspace'), null);
     });
 
     it('should return http URL unchanged', function () {
@@ -330,6 +335,13 @@ describe('utils', function () {
       );
     });
 
+    it('should return data URL unchanged', function () {
+      assert.strictEqual(
+        utils.resolveHref('data:text/css;base64,abc', '/home/user/doc.md', false, '/workspace'),
+        'data:text/css;base64,abc'
+      );
+    });
+
     it('should expand ~ to the home directory as a file URI', function () {
       var expected = 'file://' + os.homedir() + '/styles/custom.css';
       assert.strictEqual(utils.resolveHref('~/styles/custom.css', '/home/user/doc.md', false, '/workspace'), expected);
@@ -340,31 +352,26 @@ describe('utils', function () {
     });
 
     it('should resolve a workspace-relative path when stylesRelativePathFile is false', function () {
-      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, '/workspace'), 'file:///workspace/assets/style.css');
+      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, '/workspace'), 'file://' + path.join('/workspace', 'assets/style.css'));
     });
 
     it('should resolve a file-relative path when stylesRelativePathFile is true', function () {
-      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', true, '/workspace'), 'file:///home/user/assets/style.css');
+      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', true, '/workspace'), 'file://' + path.join('/home/user', 'assets/style.css'));
     });
 
     it('should resolve a file-relative path when there is no workspace', function () {
-      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, undefined), 'file:///home/user/assets/style.css');
+      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, undefined), 'file://' + path.join('/home/user', 'assets/style.css'));
     });
 
     it('should resolve ../ in workspace-relative path', function () {
-      var path = require('path');
       var expected = 'file://' + path.join('/workspace', '../styles/custom.css');
       assert.strictEqual(utils.resolveHref('../styles/custom.css', '/home/user/doc.md', false, '/workspace'), expected);
     });
 
     it('should resolve ../ in file-relative path', function () {
-      assert.strictEqual(utils.resolveHref('../styles/custom.css', '/home/user/doc.md', true, '/workspace'), 'file:///home/styles/custom.css');
-    });
-
-    it('should return data: URL unchanged', function () {
       assert.strictEqual(
-        utils.resolveHref('data:text/css;base64,abc', '/home/user/doc.md', false, '/workspace'),
-        'data:text/css;base64,abc'
+        utils.resolveHref('../styles/custom.css', '/home/user/doc.md', true, '/workspace'),
+        'file://' + path.join('/home/user', '../styles/custom.css')
       );
     });
 
@@ -403,6 +410,20 @@ describe('utils', function () {
     it('should return filename when outputDirectory is empty', function () {
       assert.strictEqual(
         utils.resolveOutputDir('/home/user/doc.pdf', '', false, '/home/user/doc.md', '/workspace'),
+        '/home/user/doc.pdf'
+      );
+    });
+
+    it('should return filename when outputDirectory is null', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', null, false, '/home/user/doc.md', '/workspace'),
+        '/home/user/doc.pdf'
+      );
+    });
+
+    it('should return filename when outputDirectory is undefined', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', undefined, false, '/home/user/doc.md', '/workspace'),
         '/home/user/doc.pdf'
       );
     });
