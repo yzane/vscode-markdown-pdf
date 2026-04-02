@@ -8,7 +8,7 @@
 
 ## 背景
 
-- `src/utils.js` の18個の全エクスポート関数には130+のユニットテストが存在
+- `src/utils.js` には 143 件のユニットテストと Windows 依存 4 件の pending があり、主要な純粋ロジックはほぼカバー済み
 - `extension.js` の `getOutputDir`, `readStyles`, `fixHref` は既にutils.jsに委譲済み
 - しかし `markdownPdf()`, `convertMarkdownToHtml()`, `exportPdf()` にはまだ抽出可能な純粋ロジックが残っている
 - これらはエクスポート処理の中核であり、バグが全出力フォーマットに影響するため優先度が高い
