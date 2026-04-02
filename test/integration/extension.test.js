@@ -63,6 +63,7 @@ const HTML_FEATURES = [
   'container',
   'include',
   'mermaid',
+  'plantuml-custom-marker',
   'frontmatter-breaks',
   'frontmatter-no-emoji',
   'breaks',

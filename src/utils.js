@@ -235,6 +235,56 @@ function buildStyleTags(options) {
   return style;
 }
 
+function buildPdfOptions(config) {
+  var formatOption = '';
+  if (!config.width && !config.height) {
+    formatOption = config.format || 'A4';
+  }
+
+  return {
+    path: config.path,
+    scale: config.scale,
+    displayHeaderFooter: config.displayHeaderFooter,
+    headerTemplate: transformTemplate(config.headerTemplate || ''),
+    footerTemplate: transformTemplate(config.footerTemplate || ''),
+    printBackground: config.printBackground,
+    landscape: config.orientation === 'landscape',
+    pageRanges: config.pageRanges,
+    format: formatOption,
+    width: config.width,
+    height: config.height,
+    margin: config.margin,
+    timeout: 0,
+  };
+}
+
+function buildImageOptions(config) {
+  var qualityOption = config.type === 'png' ? undefined : config.quality;
+  var clip = config.clip;
+
+  if (clip && clip.x !== null && clip.y !== null && clip.width !== null && clip.height !== null) {
+    return {
+      path: config.path,
+      quality: qualityOption,
+      fullPage: false,
+      clip: {
+        x: clip.x,
+        y: clip.y,
+        width: clip.width,
+        height: clip.height,
+      },
+      omitBackground: config.omitBackground,
+    };
+  }
+
+  return {
+    path: config.path,
+    quality: qualityOption,
+    fullPage: true,
+    omitBackground: config.omitBackground,
+  };
+}
+
 module.exports = {
   setBooleanValue,
   isExistsPath,
@@ -248,4 +298,6 @@ module.exports = {
   resolveHref,
   resolveOutputDir,
   buildStyleTags,
+  buildPdfOptions,
+  buildImageOptions,
 };

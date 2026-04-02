@@ -142,7 +142,7 @@
 
 - [ ] **Step 2: テストを実行して失敗を確認**
 
-Run: `cd /home/z/devlop/github/vscode-markdown-pdf && npm run test:unit`
+Run: `npm run test:unit`
 
 Expected: 6件が `utils.buildPdfOptions is not a function` で FAIL
 
@@ -207,7 +207,7 @@ module.exports = {
 
 - [ ] **Step 2: テストを実行してパスを確認**
 
-Run: `cd /home/z/devlop/github/vscode-markdown-pdf && npm run test:unit`
+Run: `npm run test:unit`
 
 Expected: `buildPdfOptions` の6件全てPASS
 
@@ -285,7 +285,7 @@ git commit -m "feat: extract buildPdfOptions from exportPdf and add unit tests"
 
 - [ ] **Step 2: テストを実行して失敗を確認**
 
-Run: `cd /home/z/devlop/github/vscode-markdown-pdf && npm run test:unit`
+Run: `npm run test:unit`
 
 Expected: 4件が `utils.buildImageOptions is not a function` で FAIL
 
@@ -353,7 +353,7 @@ module.exports = {
 
 - [ ] **Step 2: テストを実行してパスを確認**
 
-Run: `cd /home/z/devlop/github/vscode-markdown-pdf && npm run test:unit`
+Run: `npm run test:unit`
 
 Expected: `buildImageOptions` の4件全てPASS、全ユニットテストPASS
 

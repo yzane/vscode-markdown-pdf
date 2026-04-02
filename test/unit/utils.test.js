@@ -731,4 +731,171 @@ describe('utils', function () {
       }, /resolve failed/);
     });
   });
+
+  describe('buildPdfOptions', function () {
+    it('should use format when width and height are both empty', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.format, 'A4');
+      assert.strictEqual(result.width, '');
+      assert.strictEqual(result.height, '');
+    });
+
+    it('should clear format when width is specified', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '10cm',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.format, '');
+      assert.strictEqual(result.width, '10cm');
+    });
+
+    it('should clear format when height is specified', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '15cm',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.format, '');
+      assert.strictEqual(result.height, '15cm');
+    });
+
+    it('should set landscape true when orientation is landscape', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: 'landscape',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.landscape, true);
+    });
+
+    it('should set landscape false when orientation is not landscape', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: 'portrait',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.landscape, false);
+    });
+
+    it('should apply transformTemplate to headerTemplate and footerTemplate', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: true,
+        headerTemplate: '%%ISO-DATE%%',
+        footerTemplate: '%%ISO-TIME%%',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.ok(result.headerTemplate.match(/^\d{4}-\d{2}-\d{2}$/), 'headerTemplate should be a date: ' + result.headerTemplate);
+      assert.ok(result.footerTemplate.match(/^\d{2}:\d{2}:\d{2}$/), 'footerTemplate should be a time: ' + result.footerTemplate);
+    });
+  });
+
+  describe('buildImageOptions', function () {
+    it('should set quality to undefined for PNG', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.png',
+        type: 'png',
+        quality: 100,
+        clip: { x: null, y: null, width: null, height: null },
+        omitBackground: false,
+      });
+      assert.strictEqual(result.quality, undefined);
+      assert.strictEqual(result.fullPage, true);
+      assert.strictEqual(result.clip, undefined);
+    });
+
+    it('should use quality value for JPEG', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.jpeg',
+        type: 'jpeg',
+        quality: 85,
+        clip: { x: null, y: null, width: null, height: null },
+        omitBackground: false,
+      });
+      assert.strictEqual(result.quality, 85);
+      assert.strictEqual(result.fullPage, true);
+    });
+
+    it('should use clip and set fullPage false when all clip values are non-null', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.jpeg',
+        type: 'jpeg',
+        quality: 100,
+        clip: { x: 0, y: 0, width: 800, height: 600 },
+        omitBackground: false,
+      });
+      assert.strictEqual(result.fullPage, false);
+      assert.deepStrictEqual(result.clip, { x: 0, y: 0, width: 800, height: 600 });
+    });
+
+    it('should ignore clip and set fullPage true when any clip value is null', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.png',
+        type: 'png',
+        quality: 100,
+        clip: { x: 0, y: null, width: 800, height: 600 },
+        omitBackground: true,
+      });
+      assert.strictEqual(result.fullPage, true);
+      assert.strictEqual(result.clip, undefined);
+      assert.strictEqual(result.omitBackground, true);
+    });
+  });
 });
