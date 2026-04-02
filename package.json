@@ -912,7 +912,7 @@
   "devDependencies": {
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "removeNPMAbsolutePaths": "^2.0.0"
+    "removeNPMAbsolutePaths": "^3.0.1"
   },
   "dependencies": {
     "cheerio": "^1.2.0",
