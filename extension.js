@@ -378,8 +378,64 @@ function exportPdf(data, filename, type, uri) {
   ); // vscode.window.withProgress
 }
 
+function isIgnorableRemoveError(error) {
+  return error && error.code === 'ENOENT';
+}
+
+function removePathSyncFallback(targetPath) {
+  var stats;
+  try {
+    stats = fs.lstatSync(targetPath);
+  } catch (error) {
+    if (isIgnorableRemoveError(error)) {
+      return;
+    }
+    throw error;
+  }
+
+  if (stats.isDirectory() && !stats.isSymbolicLink()) {
+    fs.readdirSync(targetPath).forEach(function (entry) {
+      removePathSyncFallback(path.join(targetPath, entry));
+    });
+    try {
+      fs.rmdirSync(targetPath);
+    } catch (error) {
+      if (isIgnorableRemoveError(error)) {
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  try {
+    fs.unlinkSync(targetPath);
+  } catch (error) {
+    if (isIgnorableRemoveError(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
+function removePathSync(targetPath) {
+  if (typeof fs.rmSync === 'function') {
+    try {
+      fs.rmSync(targetPath, { recursive: true, force: true });
+    } catch (error) {
+      if (isIgnorableRemoveError(error)) {
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  removePathSyncFallback(targetPath);
+}
+
 function deleteFile (path) {
-  fs.rmSync(path, { recursive: true, force: true });
+  removePathSync(path);
 }
 
 function getOutputDir(filename, resource) {

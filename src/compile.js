@@ -19,8 +19,99 @@ removeNPMAbsolutePaths(path.join(__dirname, '..', 'node_modules'), { force: true
   .catch(err => console.log(err.message));
 
 function deleteFile (dir) {
-  fs.rm(dir, { recursive: true, force: true }, function(err) {
+  removePath(dir, function(err) {
     if (err) throw err;
     console.log(dir);
   });
+}
+
+function isIgnorableRemoveError(error) {
+  return error && error.code === 'ENOENT';
+}
+
+function removePath(targetPath, callback) {
+  if (typeof fs.rm === 'function') {
+    fs.rm(targetPath, { recursive: true, force: true }, function(err) {
+      if (isIgnorableRemoveError(err)) {
+        callback(null);
+        return;
+      }
+      callback(err || null);
+    });
+    return;
+  }
+
+  removePathFallback(targetPath, callback);
+}
+
+function removePathFallback(targetPath, callback) {
+  fs.lstat(targetPath, function(statError, stats) {
+    if (isIgnorableRemoveError(statError)) {
+      callback(null);
+      return;
+    }
+    if (statError) {
+      callback(statError);
+      return;
+    }
+
+    if (stats.isDirectory() && !stats.isSymbolicLink()) {
+      fs.readdir(targetPath, function(readError, entries) {
+        if (isIgnorableRemoveError(readError)) {
+          callback(null);
+          return;
+        }
+        if (readError) {
+          callback(readError);
+          return;
+        }
+
+        removePathEntries(targetPath, entries, function(entryError) {
+          if (entryError) {
+            callback(entryError);
+            return;
+          }
+
+          fs.rmdir(targetPath, function(rmdirError) {
+            if (isIgnorableRemoveError(rmdirError)) {
+              callback(null);
+              return;
+            }
+            callback(rmdirError || null);
+          });
+        });
+      });
+      return;
+    }
+
+    fs.unlink(targetPath, function(unlinkError) {
+      if (isIgnorableRemoveError(unlinkError)) {
+        callback(null);
+        return;
+      }
+      callback(unlinkError || null);
+    });
+  });
+}
+
+function removePathEntries(targetPath, entries, callback) {
+  var index = 0;
+
+  function next(error) {
+    if (error) {
+      callback(error);
+      return;
+    }
+
+    if (index >= entries.length) {
+      callback(null);
+      return;
+    }
+
+    var entryPath = path.join(targetPath, entries[index]);
+    index += 1;
+    removePathFallback(entryPath, next);
+  }
+
+  next(null);
 }
