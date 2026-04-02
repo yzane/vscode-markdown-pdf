@@ -897,5 +897,276 @@ describe('utils', function () {
       assert.strictEqual(result.clip, undefined);
       assert.strictEqual(result.omitBackground, true);
     });
+
+    it('should set omitBackground false when specified', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.png',
+        type: 'png',
+        quality: 100,
+        clip: { x: null, y: null, width: null, height: null },
+        omitBackground: false,
+      });
+      assert.strictEqual(result.omitBackground, false);
+    });
+
+    it('should set fullPage true when all clip values are null', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.jpeg',
+        type: 'jpeg',
+        quality: 80,
+        clip: { x: null, y: null, width: null, height: null },
+        omitBackground: false,
+      });
+      assert.strictEqual(result.fullPage, true);
+      assert.strictEqual(result.clip, undefined);
+      assert.strictEqual(result.quality, 80);
+    });
+
+    it('should accept quality 0 for JPEG as valid boundary', function () {
+      var result = utils.buildImageOptions({
+        path: '/out/test.jpeg',
+        type: 'jpeg',
+        quality: 0,
+        clip: { x: null, y: null, width: null, height: null },
+        omitBackground: false,
+      });
+      assert.strictEqual(result.quality, 0);
+    });
+  });
+
+  describe('buildHighlightCallback', function () {
+    var hljs = require('highlight.js');
+    var escapeHtml = require('markdown-it')().utils.escapeHtml;
+
+    it('should return mermaid div when lang matches mermaid', function () {
+      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      var result = highlight('graph TD;', 'mermaid');
+      assert.strictEqual(result, '<div class="mermaid">graph TD;</div>');
+    });
+
+    it('should return mermaid div for case-insensitive match', function () {
+      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      var result = highlight('graph TD;', 'Mermaid');
+      assert.strictEqual(result, '<div class="mermaid">graph TD;</div>');
+    });
+
+    it('should highlight known language with hljs', function () {
+      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      var result = highlight('var x = 1;', 'javascript');
+      assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
+      assert.ok(result.indexOf('</div></code></pre>') > 0);
+      assert.ok(result.indexOf('<span') > 0);
+    });
+
+    it('should escape and wrap when lang is unknown', function () {
+      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      var result = highlight('<script>alert("xss")</script>', 'unknownlang999');
+      assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
+      assert.ok(result.indexOf('<script>') === -1, 'should escape HTML');
+      assert.ok(result.indexOf('&lt;script&gt;') > 0);
+    });
+
+    it('should escape and wrap when lang is empty string', function () {
+      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      var result = highlight('plain text', '');
+      assert.strictEqual(result, '<pre class="hljs"><code><div>plain text</div></code></pre>');
+    });
+
+    it('should fallback to escapeHtml when hljs.highlight throws', function () {
+      var badHljs = {
+        getLanguage: function () { return true; },
+        highlight: function () { throw new Error('hljs error'); },
+      };
+      var highlight = utils.buildHighlightCallback(badHljs, escapeHtml);
+      var result = highlight('<b>code</b>', 'javascript');
+      assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
+      assert.ok(result.indexOf('&lt;b&gt;') > 0);
+    });
+  });
+
+  describe('buildMarkdownItOptions', function () {
+    it('should always set html to true', function () {
+      var result = utils.buildMarkdownItOptions({
+        breaks: false,
+        hljs: {},
+        escapeHtml: function (s) { return s; },
+      });
+      assert.strictEqual(result.html, true);
+    });
+
+    it('should pass through breaks value', function () {
+      var result = utils.buildMarkdownItOptions({
+        breaks: true,
+        hljs: {},
+        escapeHtml: function (s) { return s; },
+      });
+      assert.strictEqual(result.breaks, true);
+    });
+
+    it('should set highlight as a function', function () {
+      var result = utils.buildMarkdownItOptions({
+        breaks: false,
+        hljs: { getLanguage: function () { return false; } },
+        escapeHtml: function (s) { return s; },
+      });
+      assert.strictEqual(typeof result.highlight, 'function');
+    });
+
+    it('should handle undefined breaks', function () {
+      var result = utils.buildMarkdownItOptions({
+        breaks: undefined,
+        hljs: {},
+        escapeHtml: function (s) { return s; },
+      });
+      assert.strictEqual(result.breaks, undefined);
+    });
+  });
+
+  describe('buildPlantumlOptions', function () {
+    it('should use frontmatter values when provided', function () {
+      var result = utils.buildPlantumlOptions({
+        frontmatterOpenMarker: '@startgantt',
+        frontmatterCloseMarker: '@endgantt',
+        settingsOpenMarker: '@startuml',
+        settingsCloseMarker: '@enduml',
+        server: 'http://plantuml.example.com',
+      });
+      assert.strictEqual(result.openMarker, '@startgantt');
+      assert.strictEqual(result.closeMarker, '@endgantt');
+      assert.strictEqual(result.server, 'http://plantuml.example.com');
+    });
+
+    it('should fallback to settings when frontmatter is undefined', function () {
+      var result = utils.buildPlantumlOptions({
+        frontmatterOpenMarker: undefined,
+        frontmatterCloseMarker: undefined,
+        settingsOpenMarker: '@startuml',
+        settingsCloseMarker: '@enduml',
+        server: 'http://server.example.com',
+      });
+      assert.strictEqual(result.openMarker, '@startuml');
+      assert.strictEqual(result.closeMarker, '@enduml');
+    });
+
+    it('should fallback to defaults when both frontmatter and settings are empty', function () {
+      var result = utils.buildPlantumlOptions({
+        frontmatterOpenMarker: undefined,
+        frontmatterCloseMarker: undefined,
+        settingsOpenMarker: '',
+        settingsCloseMarker: '',
+        server: '',
+      });
+      assert.strictEqual(result.openMarker, '@startuml');
+      assert.strictEqual(result.closeMarker, '@enduml');
+      assert.strictEqual(result.server, '');
+    });
+
+    it('should pass server value through', function () {
+      var result = utils.buildPlantumlOptions({
+        frontmatterOpenMarker: undefined,
+        frontmatterCloseMarker: undefined,
+        settingsOpenMarker: '@startuml',
+        settingsCloseMarker: '@enduml',
+        server: 'https://custom.plantuml.server/svg',
+      });
+      assert.strictEqual(result.server, 'https://custom.plantuml.server/svg');
+    });
+
+    it('should allow mixed frontmatter and settings overrides', function () {
+      var result = utils.buildPlantumlOptions({
+        frontmatterOpenMarker: '@startmindmap',
+        frontmatterCloseMarker: undefined,
+        settingsOpenMarker: '@startuml',
+        settingsCloseMarker: '@enduml',
+        server: '',
+      });
+      assert.strictEqual(result.openMarker, '@startmindmap');
+      assert.strictEqual(result.closeMarker, '@enduml');
+    });
+  });
+
+  describe('buildHtmlViewData', function () {
+    it('should build script tag from mermaidServer', function () {
+      var result = utils.buildHtmlViewData({
+        content: '<h1>Hello</h1>',
+        title: 'test.md',
+        style: '<style>body{}</style>',
+        mermaidServer: 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js',
+      });
+      assert.strictEqual(result.mermaid, '<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>');
+    });
+
+    it('should pass through title, style, and content', function () {
+      var result = utils.buildHtmlViewData({
+        content: '<p>body</p>',
+        title: 'README.md',
+        style: '<style>h1{color:red}</style>',
+        mermaidServer: '',
+      });
+      assert.strictEqual(result.title, 'README.md');
+      assert.strictEqual(result.style, '<style>h1{color:red}</style>');
+      assert.strictEqual(result.content, '<p>body</p>');
+    });
+
+    it('should handle empty mermaidServer', function () {
+      var result = utils.buildHtmlViewData({
+        content: '',
+        title: '',
+        style: '',
+        mermaidServer: '',
+      });
+      assert.strictEqual(result.mermaid, '<script src=""></script>');
+    });
+
+    it('should pass through empty content fields unchanged', function () {
+      var result = utils.buildHtmlViewData({
+        content: '',
+        title: 'empty.md',
+        style: '',
+        mermaidServer: 'https://example.com/mermaid.js',
+      });
+      assert.strictEqual(result.title, 'empty.md');
+      assert.strictEqual(result.content, '');
+    });
+  });
+
+  describe('buildPdfOptions edge cases', function () {
+    it('should pass through margin object', function () {
+      var margin = { top: '10mm', right: '15mm', bottom: '10mm', left: '15mm' };
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: margin,
+      });
+      assert.deepStrictEqual(result.margin, margin);
+    });
+
+    it('should handle empty headerTemplate and footerTemplate', function () {
+      var result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: true,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.headerTemplate, '');
+      assert.strictEqual(result.footerTemplate, '');
+    });
   });
 });

@@ -155,13 +155,13 @@ mustache テンプレートに渡す view データを組み立てる。
 
 | 関数 | 新規テスト数 |
 |------|------------|
-| `buildHighlightCallback` | 4-5件 |
-| `buildMarkdownItOptions` | 3-4件 |
-| `buildPlantumlOptions` | 4-5件 |
-| `buildHtmlViewData` | 3-4件 |
+| `buildHighlightCallback` | 6件 |
+| `buildMarkdownItOptions` | 4件 |
+| `buildPlantumlOptions` | 5件 |
+| `buildHtmlViewData` | 4件 |
 | `buildPdfOptions` (エッジケース追加) | 2件 |
 | `buildImageOptions` (エッジケース追加) | 3件 |
-| **合計** | **約20件** |
+| **合計** | **24件** |
 
 ## スコープ外
 

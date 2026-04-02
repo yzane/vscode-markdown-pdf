@@ -285,6 +285,51 @@ function buildImageOptions(config) {
   };
 }
 
+function buildHighlightCallback(hljs, escapeHtml) {
+  return function (str, lang) {
+    if (lang && lang.match(/\bmermaid\b/i)) {
+      return '<div class="mermaid">' + str + '</div>';
+    }
+
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        str = hljs.highlight(lang, str, true).value;
+      } catch (error) {
+        str = escapeHtml(str);
+      }
+    } else {
+      str = escapeHtml(str);
+    }
+
+    return '<pre class="hljs"><code><div>' + str + '</div></code></pre>';
+  };
+}
+
+function buildMarkdownItOptions(config) {
+  return {
+    html: true,
+    breaks: config.breaks,
+    highlight: buildHighlightCallback(config.hljs, config.escapeHtml),
+  };
+}
+
+function buildPlantumlOptions(config) {
+  return {
+    openMarker: config.frontmatterOpenMarker || config.settingsOpenMarker || '@startuml',
+    closeMarker: config.frontmatterCloseMarker || config.settingsCloseMarker || '@enduml',
+    server: config.server,
+  };
+}
+
+function buildHtmlViewData(config) {
+  return {
+    title: config.title,
+    style: config.style,
+    content: config.content,
+    mermaid: '<script src="' + config.mermaidServer + '"></script>',
+  };
+}
+
 module.exports = {
   setBooleanValue,
   isExistsPath,
@@ -300,4 +345,8 @@ module.exports = {
   buildStyleTags,
   buildPdfOptions,
   buildImageOptions,
+  buildHighlightCallback,
+  buildMarkdownItOptions,
+  buildPlantumlOptions,
+  buildHtmlViewData,
 };
