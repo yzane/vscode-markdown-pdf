@@ -97,10 +97,10 @@
       );
     });
 
-    it('should keep current behavior for data URIs and resolve them as workspace-relative paths', function () {
+    it('should return data URIs unchanged', function () {
       assert.strictEqual(
         utils.resolveHref('data:text/css;base64,abc', '/home/user/doc.md', false, '/workspace'),
-        'file://' + path.join('/workspace', 'data:text/css;base64,abc')
+        'data:text/css;base64,abc'
       );
     });
 
