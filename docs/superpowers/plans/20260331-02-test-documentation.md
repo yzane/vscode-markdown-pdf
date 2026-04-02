@@ -8,7 +8,7 @@
 
 **Tech Stack:** Markdown, Node.js, npm scripts, Mocha, VS Code extension test runner
 
-**設計ドキュメント:** `docs/superpowers/specs/2026-03-31-02-test-documentation-design.md`
+**設計ドキュメント:** `docs/superpowers/specs/20260331-02-test-documentation-design.md`
 
 ---
 

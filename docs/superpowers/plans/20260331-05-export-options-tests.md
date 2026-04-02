@@ -531,5 +531,5 @@ Run: `git diff develop --stat`
 - `test/integration/extension.test.js` (FEATURES配列に1件追加)
 - `test/integration/fixtures/plantuml-custom-marker.md` (新規)
 - `test/integration/expected/plantuml-custom-marker.html` (新規)
-- `docs/superpowers/specs/2026-03-31-05-export-options-tests-design.md` (新規)
-- `docs/superpowers/plans/2026-03-31-06-export-options-tests.md` (新規)
+- `docs/superpowers/specs/20260331-05-export-options-tests-design.md` (新規)
+- `docs/superpowers/plans/20260331-06-export-options-tests.md` (新規)

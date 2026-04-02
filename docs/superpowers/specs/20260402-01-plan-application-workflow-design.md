@@ -30,28 +30,28 @@
 
 適用対象ファイルは以下の plan / spec の組み合わせとする。
 
-1. `docs/superpowers/plans/2026-03-30-01-unit-tests.md`
-   `docs/superpowers/specs/2026-03-30-01-unit-tests-design.md`
-2. `docs/superpowers/plans/2026-03-30-02-integration-tests.md`
-   `docs/superpowers/specs/2026-03-30-02-integration-tests-design.md`
-3. `docs/superpowers/plans/2026-03-30-03-extract-and-test.md`
-   `docs/superpowers/specs/2026-03-30-03-extract-and-test-design.md`
-4. `docs/superpowers/plans/2026-03-30-04-edge-case-tests.md`
-   `docs/superpowers/specs/2026-03-30-04-edge-case-tests-design.md`
-5. `docs/superpowers/plans/2026-03-31-01-utils-path-tests.md`
-   `docs/superpowers/specs/2026-03-31-01-utils-path-tests-design.md`
-6. `docs/superpowers/plans/2026-03-31-02-test-documentation.md`
-   `docs/superpowers/specs/2026-03-31-02-test-documentation-design.md`
-7. `docs/superpowers/plans/2026-03-31-03-additional-tests.md`
-   `docs/superpowers/specs/2026-03-31-03-additional-tests-design.md`
-8. `docs/superpowers/plans/2026-03-31-04-test-readme-refresh.md`
-   `docs/superpowers/specs/2026-03-31-04-test-readme-refresh-design.md`
-9. `docs/superpowers/plans/2026-03-31-05-export-options-tests.md`
-   `docs/superpowers/specs/2026-03-31-05-export-options-tests-design.md`
-10. `docs/superpowers/plans/2026-03-31-06-extract-convert-html-tests.md`
-   `docs/superpowers/specs/2026-03-31-06-extract-convert-html-tests-design.md`
-11. `docs/superpowers/plans/2026-04-01-01-extract-remaining-logic.md`
-   `docs/superpowers/specs/2026-04-01-01-extract-remaining-logic-design.md`
+1. `docs/superpowers/plans/20260330-01-unit-tests.md`
+   `docs/superpowers/specs/20260330-01-unit-tests-design.md`
+2. `docs/superpowers/plans/20260330-02-integration-tests.md`
+   `docs/superpowers/specs/20260330-02-integration-tests-design.md`
+3. `docs/superpowers/plans/20260330-03-extract-and-test.md`
+   `docs/superpowers/specs/20260330-03-extract-and-test-design.md`
+4. `docs/superpowers/plans/20260330-04-edge-case-tests.md`
+   `docs/superpowers/specs/20260330-04-edge-case-tests-design.md`
+5. `docs/superpowers/plans/20260331-01-utils-path-tests.md`
+   `docs/superpowers/specs/20260331-01-utils-path-tests-design.md`
+6. `docs/superpowers/plans/20260331-02-test-documentation.md`
+   `docs/superpowers/specs/20260331-02-test-documentation-design.md`
+7. `docs/superpowers/plans/20260331-03-additional-tests.md`
+   `docs/superpowers/specs/20260331-03-additional-tests-design.md`
+8. `docs/superpowers/plans/20260331-04-test-readme-refresh.md`
+   `docs/superpowers/specs/20260331-04-test-readme-refresh-design.md`
+9. `docs/superpowers/plans/20260331-05-export-options-tests.md`
+   `docs/superpowers/specs/20260331-05-export-options-tests-design.md`
+10. `docs/superpowers/plans/20260331-06-extract-convert-html-tests.md`
+   `docs/superpowers/specs/20260331-06-extract-convert-html-tests-design.md`
+11. `docs/superpowers/plans/20260401-01-extract-remaining-logic.md`
+   `docs/superpowers/specs/20260401-01-extract-remaining-logic-design.md`
 
 ## ブランチ運用
 

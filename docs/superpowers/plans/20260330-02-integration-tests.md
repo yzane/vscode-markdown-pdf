@@ -10,7 +10,7 @@
 
 **前提:** ユニットテスト計画が完了済みであること（`src/utils.js` 抽出、`test:unit` スクリプト追加済み）。
 
-**設計ドキュメント:** `docs/superpowers/specs/2026-03-30-02-integration-tests-design.md`
+**設計ドキュメント:** `docs/superpowers/specs/20260330-02-integration-tests-design.md`
 
 ---
 
