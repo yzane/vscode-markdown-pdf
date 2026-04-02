@@ -294,7 +294,7 @@ function buildHighlightCallback(hljs, escapeHtml) {
 
     if (lang && hljs.getLanguage(lang)) {
       try {
-        str = hljs.highlight(lang, str, true).value;
+        str = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
       } catch (error) {
         str = escapeHtml(str);
       }

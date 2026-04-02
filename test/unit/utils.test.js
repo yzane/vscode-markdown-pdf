@@ -959,6 +959,20 @@ describe('utils', function () {
       assert.ok(result.indexOf('<span') > 0);
     });
 
+    it('should call hljs.highlight with v11 options object', function () {
+      var stubHljs = {
+        getLanguage: function () { return true; },
+        highlight: function (str, options) {
+          assert.strictEqual(str, 'var x = 1;');
+          assert.deepStrictEqual(options, { language: 'javascript', ignoreIllegals: true });
+          return { value: '<span class="hljs-keyword">var</span> x = 1;' };
+        },
+      };
+      var highlight = utils.buildHighlightCallback(stubHljs, escapeHtml);
+      var result = highlight('var x = 1;', 'javascript');
+      assert.strictEqual(result, '<pre class="hljs"><code><div><span class="hljs-keyword">var</span> x = 1;</div></code></pre>');
+    });
+
     it('should escape and wrap when lang is unknown', function () {
       var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
       var result = highlight('<script>alert("xss")</script>', 'unknownlang999');
