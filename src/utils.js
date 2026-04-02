@@ -200,15 +200,25 @@ var LEGACY_HIGHLIGHT_STYLE_ALIASES = {
   'qtcreator_light.css': 'qtcreator-light.css',
 };
 
-function resolveHighlightStylePath(baseDir, highlightStyle) {
+function resolveHighlightStyle(baseDir, highlightStyle) {
   var resolvedStyle = LEGACY_HIGHLIGHT_STYLE_ALIASES[highlightStyle] || highlightStyle;
   var stylePath = path.join(baseDir, 'node_modules', 'highlight.js', 'styles', resolvedStyle);
 
   if (fs.existsSync(stylePath)) {
-    return stylePath;
+    return {
+      filename: stylePath,
+      requestedStyle: highlightStyle,
+      resolvedStyle: resolvedStyle,
+      usedFallback: resolvedStyle !== highlightStyle,
+    };
   }
 
-  return path.join(baseDir, 'styles', 'tomorrow.css');
+  return {
+    filename: path.join(baseDir, 'styles', 'tomorrow.css'),
+    requestedStyle: highlightStyle,
+    resolvedStyle: 'tomorrow.css',
+    usedFallback: true,
+  };
 }
 
 function buildStyleTags(options) {
@@ -232,7 +242,11 @@ function buildStyleTags(options) {
 
   if (options.highlight) {
     if (options.highlightStyle) {
-      filename = resolveHighlightStylePath(options.baseDir, options.highlightStyle);
+      var resolvedHighlight = resolveHighlightStyle(options.baseDir, options.highlightStyle);
+      filename = resolvedHighlight.filename;
+      if (options.onMissingHighlightStyle && resolvedHighlight.usedFallback) {
+        options.onMissingHighlightStyle(resolvedHighlight.requestedStyle, resolvedHighlight.resolvedStyle);
+      }
       style += makeCss(filename);
     } else {
       filename = path.join(options.baseDir, 'styles', 'tomorrow.css');

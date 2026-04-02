@@ -436,6 +436,12 @@ function readStyles(uri) {
       markdownStyles: markdownStyles,
       markdownPdfStyles: markdownPdfStyles,
       baseDir: __dirname,
+      onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+        vscode.window.showWarningMessage(
+          'The configured markdown-pdf.highlightStyle "' + requestedStyle +
+          '" is no longer supported. Falling back to "' + resolvedStyle + '".'
+        );
+      },
       resolveHrefFn: function (href) {
         return fixHref(uri, href);
       },

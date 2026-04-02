@@ -666,6 +666,7 @@ describe('utils', function () {
     });
 
     it('should map legacy highlight style aliases to supported v11 style names', function () {
+      var fallbacks = [];
       var legacyResult = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
@@ -673,6 +674,9 @@ describe('utils', function () {
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
+        onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+          fallbacks.push([requestedStyle, resolvedStyle]);
+        },
         resolveHrefFn: function (href) { return href; },
       });
       var currentResult = utils.buildStyleTags({
@@ -686,9 +690,11 @@ describe('utils', function () {
       });
 
       assert.strictEqual(legacyResult, currentResult);
+      assert.deepStrictEqual(fallbacks, [['github-gist.css', 'github.css']]);
     });
 
     it('should fallback to the default highlight style when the configured style does not exist', function () {
+      var fallbacks = [];
       var missingResult = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
@@ -696,6 +702,9 @@ describe('utils', function () {
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
+        onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+          fallbacks.push([requestedStyle, resolvedStyle]);
+        },
         resolveHrefFn: function (href) { return href; },
       });
       var defaultResult = utils.buildStyleTags({
@@ -709,6 +718,7 @@ describe('utils', function () {
       });
 
       assert.strictEqual(missingResult, defaultResult);
+      assert.deepStrictEqual(fallbacks, [['darcula.css', 'tomorrow.css']]);
     });
 
     it('should not warn before falling back when the configured highlight style does not exist', function () {
