@@ -204,7 +204,7 @@ function resolveHighlightStylePath(baseDir, highlightStyle) {
   var resolvedStyle = LEGACY_HIGHLIGHT_STYLE_ALIASES[highlightStyle] || highlightStyle;
   var stylePath = path.join(baseDir, 'node_modules', 'highlight.js', 'styles', resolvedStyle);
 
-  if (isExistsPath(stylePath)) {
+  if (fs.existsSync(stylePath)) {
     return stylePath;
   }
 

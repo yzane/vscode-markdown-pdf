@@ -711,6 +711,40 @@ describe('utils', function () {
       assert.strictEqual(missingResult, defaultResult);
     });
 
+    it('should not warn before falling back when the configured highlight style does not exist', function () {
+      var warnings = [];
+      var originalWarn = console.warn;
+      console.warn = function (message) {
+        warnings.push(message);
+      };
+
+      try {
+        var missingResult = utils.buildStyleTags({
+          includeDefaultStyles: false,
+          highlight: true,
+          highlightStyle: 'darcula.css',
+          markdownStyles: [],
+          markdownPdfStyles: [],
+          baseDir: baseDir,
+          resolveHrefFn: function (href) { return href; },
+        });
+        var defaultResult = utils.buildStyleTags({
+          includeDefaultStyles: false,
+          highlight: true,
+          highlightStyle: '',
+          markdownStyles: [],
+          markdownPdfStyles: [],
+          baseDir: baseDir,
+          resolveHrefFn: function (href) { return href; },
+        });
+
+        assert.strictEqual(missingResult, defaultResult);
+        assert.deepStrictEqual(warnings, []);
+      } finally {
+        console.warn = originalWarn;
+      }
+    });
+
     it('should skip highlight style when highlight is false', function () {
       var result = utils.buildStyleTags({
         includeDefaultStyles: false,
