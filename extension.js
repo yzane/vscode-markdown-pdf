@@ -145,29 +145,12 @@ function convertMarkdownToHtml(filename, type, text) {
       var statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
       var hljs = require('highlight.js');
       var breaks = utils.setBooleanValue(matterParts.data.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
-      var md = require('markdown-it')({
-        html: true,
+      var markdownIt = require('markdown-it');
+      var md = markdownIt(utils.buildMarkdownItOptions({
         breaks: breaks,
-        highlight: function (str, lang) {
-
-          if (lang && lang.match(/\bmermaid\b/i)) {
-            return `<div class="mermaid">${str}</div>`;
-          }
-
-          if (lang && hljs.getLanguage(lang)) {
-            try {
-              str = hljs.highlight(lang, str, true).value;
-            } catch (error) {
-              str = md.utils.escapeHtml(str);
-
-              showErrorMessage('markdown-it:highlight', error);
-            }
-          } else {
-            str = md.utils.escapeHtml(str);
-          }
-          return '<pre class="hljs"><code><div>' + str + '</div></code></pre>';
-        }
-      });
+        hljs: hljs,
+        escapeHtml: markdownIt().utils.escapeHtml,
+      }));
     } catch (error) {
       statusbarmessage.dispose();
       showErrorMessage('require(\'markdown-it\')', error);
@@ -257,11 +240,13 @@ function convertMarkdownToHtml(filename, type, text) {
 
   // PlantUML
   // https://github.com/gmunguia/markdown-it-plantuml
-  var plantumlOptions = {
-    openMarker: matterParts.data.plantumlOpenMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '@startuml',
-    closeMarker: matterParts.data.plantumlCloseMarker || vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '@enduml',
+  var plantumlOptions = utils.buildPlantumlOptions({
+    frontmatterOpenMarker: matterParts.data.plantumlOpenMarker,
+    frontmatterCloseMarker: matterParts.data.plantumlCloseMarker,
+    settingsOpenMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '',
+    settingsCloseMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '',
     server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
-  }
+  });
   md.use(require('markdown-it-plantuml'), plantumlOptions);
 
   // markdown-it-include
@@ -301,18 +286,15 @@ function makeHtml(data, uri) {
     var template = utils.readFile(filename);
 
     // read mermaid javascripts
-    var mermaidServer = vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || '';
-    var mermaid = '<script src=\"' + mermaidServer + '\"></script>';
-
     // compile template
     var mustache = require('mustache');
 
-    var view = {
+    var view = utils.buildHtmlViewData({
+      content: data,
       title: title,
       style: style,
-      content: data,
-      mermaid: mermaid
-    };
+      mermaidServer: vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || ''
+    });
     return mustache.render(template, view);
   } catch (error) {
     showErrorMessage('makeHtml()', error);

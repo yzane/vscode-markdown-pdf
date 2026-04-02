@@ -590,9 +590,9 @@ git commit -m "test: add edge case tests for buildPdfOptions and buildImageOptio
 - [ ] **Step 1: 全ユニットテスト実行**
 
 Run: `npm run test:unit 2>&1 | tail -30`
-Expected: All tests pass (131 既存 + 約20 新規 = 約151件)
+Expected: All tests pass (119 既存 + 24 新規 = 143件。非 Windows では別途 pending あり)
 
 - [ ] **Step 2: テスト件数の確認**
 
 Run: `npm run test:unit 2>&1 | grep -E 'passing|failing'`
-Expected: `~151 passing`, `0 failing`
+Expected: `143 passing`, `0 failing`（非 Windows では別途 pending あり）
