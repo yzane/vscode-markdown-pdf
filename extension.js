@@ -379,8 +379,7 @@ function exportPdf(data, filename, type, uri) {
 }
 
 function deleteFile (path) {
-  var rimraf = require('rimraf')
-  rimraf.sync(path);
+  fs.rmSync(path, { recursive: true, force: true });
 }
 
 function getOutputDir(filename, resource) {

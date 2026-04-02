@@ -507,7 +507,6 @@
     "markdown-it-plantuml": "^1.4.1",
     "mkdirp": "^1.0.3",
     "mustache": "^4.2.0",
-    "puppeteer-core": "^2.1.1",
-    "rimraf": "^3.0.2"
+    "puppeteer-core": "^2.1.1"
   }
 }

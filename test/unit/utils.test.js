@@ -1390,4 +1390,23 @@ describe('utils', function () {
       assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/my.file.name.md'), path.join('/path/to', 'my.file.name_tmp.html'));
     });
   });
+
+  describe('cleanup implementation', function () {
+    var fs = require('fs');
+    var path = require('path');
+
+    it('should use fs.rmSync in extension deleteFile instead of rimraf', function () {
+      var source = fs.readFileSync(path.join(__dirname, '..', '..', 'extension.js'), 'utf-8');
+      assert.match(source, /fs\.rmSync\(path,\s*\{\s*recursive:\s*true,\s*force:\s*true\s*\}\)/);
+      assert.doesNotMatch(source, /require\('rimraf'\)/);
+      assert.doesNotMatch(source, /rimraf\.sync/);
+    });
+
+    it('should use fs.rm in compile deleteFile instead of rimraf', function () {
+      var source = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'compile.js'), 'utf-8');
+      assert.match(source, /fs\.rm\(dir,\s*\{\s*recursive:\s*true,\s*force:\s*true\s*\},\s*function\(err\)/);
+      assert.doesNotMatch(source, /require\('rimraf'\)/);
+      assert.doesNotMatch(source, /rimraf\(/);
+    });
+  });
 });
