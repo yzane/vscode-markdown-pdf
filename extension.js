@@ -66,19 +66,8 @@ async function markdownPdf(option_type) {
 
     var types_format = ['html', 'pdf', 'png', 'jpeg'];
     var filename = '';
-    var types = [];
-    if (types_format.indexOf(option_type) >= 0) {
-      types[0] = option_type;
-    } else if (option_type === 'settings') {
-      var types_tmp = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
-      if (types_tmp && !Array.isArray(types_tmp)) {
-          types[0] = types_tmp;
-      } else {
-        types = vscode.workspace.getConfiguration('markdown-pdf')['type'] || 'pdf';
-      }
-    } else if (option_type === 'all') {
-      types = types_format;
-    } else {
+    var types = utils.resolveExportTypes(option_type, vscode.workspace.getConfiguration('markdown-pdf')['type']);
+    if (types === null) {
       showErrorMessage('markdownPdf().1 Supported formats: html, pdf, png, jpeg.');
       return;
     }
@@ -157,34 +146,18 @@ function convertMarkdownToHtml(filename, type, text) {
     }
 
   // convert the img src of the markdown
-  var cheerio = require('cheerio');
   var defaultRender = md.renderer.rules.image;
   md.renderer.rules.image = function (tokens, idx, options, env, self) {
     var token = tokens[idx];
     var href = token.attrs[token.attrIndex('src')][1];
-    // console.log("original href: " + href);
-    if (type === 'html') {
-      href = decodeURIComponent(href).replace(/("|')/g, '');
-    } else {
-      href = utils.convertImgPath(href, filename);
-    }
-    // console.log("converted href: " + href);
+    href = utils.transformImageHref(href, type, filename);
     token.attrs[token.attrIndex('src')][1] = href;
-    // // pass token to default renderer.
     return defaultRender(tokens, idx, options, env, self);
   };
 
   if (type !== 'html') {
-    // convert the img src of the html
     md.renderer.rules.html_block = function (tokens, idx) {
-      var html = tokens[idx].content;
-      var $ = cheerio.load(html);
-      $('img').each(function () {
-        var src = $(this).attr('src');
-        var href = utils.convertImgPath(src, filename);
-        $(this).attr('src', href);
-      });
-      return $.html();
+      return utils.transformHtmlBlockImages(tokens[idx].content, filename);
     };
   }
 
@@ -208,11 +181,7 @@ function convertMarkdownToHtml(filename, type, text) {
       var emoji = token[idx].markup;
       var emojipath = path.join(__dirname, 'node_modules', 'emoji-images', 'pngs', emoji + '.png');
       var emojidata = utils.readFile(emojipath, null).toString('base64');
-      if (emojidata) {
-        return '<img class="emoji" alt="' + emoji + '" src="data:image/png;base64,' + emojidata + '" />';
-      } else {
-        return ':' + emoji + ':';
-      }
+      return utils.buildEmojiTag(emoji, emojidata);
     };
   }
 
@@ -225,18 +194,7 @@ function convertMarkdownToHtml(filename, type, text) {
 
   // markdown-it-container
   // https://github.com/markdown-it/markdown-it-container
-  md.use(require('markdown-it-container'), '', {
-    validate: function (name) {
-      return name.trim().length;
-    },
-    render: function (tokens, idx) {
-      if (tokens[idx].info.trim() !== '') {
-        return `<div class="${tokens[idx].info.trim()}">\n`;
-      } else {
-        return `</div>\n`;
-      }
-    }
-  });
+  md.use(require('markdown-it-container'), '', utils.buildContainerRenderer());
 
   // PlantUML
   // https://github.com/gmunguia/markdown-it-plantuml
@@ -345,8 +303,7 @@ function exportPdf(data, filename, type, uri) {
 
         const puppeteer = require('puppeteer-core');
         // create temporary file
-        var f = path.parse(filename);
-        var tmpfilename = path.join(f.dir, f.name + '_tmp.html');
+        var tmpfilename = utils.generateTmpHtmlFilename(filename);
         exportHtml(data, tmpfilename);
         var options = {
           executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || puppeteer.executablePath(),

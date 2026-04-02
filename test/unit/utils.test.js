@@ -1169,4 +1169,224 @@ describe('utils', function () {
       assert.strictEqual(result.footerTemplate, '');
     });
   });
+
+  describe('resolveExportTypes', function () {
+    it('should return single-element array for direct format "pdf"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('pdf'), ['pdf']);
+    });
+
+    it('should return single-element array for direct format "html"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('html'), ['html']);
+    });
+
+    it('should return single-element array for direct format "png"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('png'), ['png']);
+    });
+
+    it('should return single-element array for direct format "jpeg"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('jpeg'), ['jpeg']);
+    });
+
+    it('should return all formats for "all"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('all'), ['html', 'pdf', 'png', 'jpeg']);
+    });
+
+    it('should wrap string configuredType in array for "settings"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('settings', 'html'), ['html']);
+    });
+
+    it('should return array configuredType as-is for "settings"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('settings', ['pdf', 'html']), ['pdf', 'html']);
+    });
+
+    it('should default to ["pdf"] when configuredType is undefined for "settings"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('settings', undefined), ['pdf']);
+    });
+
+    it('should default to ["pdf"] when configuredType is empty string for "settings"', function () {
+      assert.deepStrictEqual(utils.resolveExportTypes('settings', ''), ['pdf']);
+    });
+
+    it('should return null for invalid type "docx"', function () {
+      assert.strictEqual(utils.resolveExportTypes('docx'), null);
+    });
+
+    it('should return null for empty string', function () {
+      assert.strictEqual(utils.resolveExportTypes(''), null);
+    });
+
+    it('should return null for undefined', function () {
+      assert.strictEqual(utils.resolveExportTypes(undefined), null);
+    });
+  });
+
+  describe('transformImageHref', function () {
+    it('should decode URI and remove quotes for html type', function () {
+      assert.strictEqual(utils.transformImageHref('image%20file.png', 'html', '/doc/test.md'), 'image file.png');
+    });
+
+    it('should remove single quotes from href for html type', function () {
+      assert.strictEqual(utils.transformImageHref('\'image.png\'', 'html', '/doc/test.md'), 'image.png');
+    });
+
+    it('should remove double quotes from href for html type', function () {
+      assert.strictEqual(utils.transformImageHref('"image.png"', 'html', '/doc/test.md'), 'image.png');
+    });
+
+    it('should return plain path unchanged for html type', function () {
+      assert.strictEqual(utils.transformImageHref('image.png', 'html', '/doc/test.md'), 'image.png');
+    });
+
+    it('should delegate to convertImgPath for pdf type', function () {
+      assert.strictEqual(utils.transformImageHref('image.png', 'pdf', '/doc/test.md'), utils.convertImgPath('image.png', '/doc/test.md'));
+    });
+
+    it('should delegate to convertImgPath for png type', function () {
+      assert.strictEqual(utils.transformImageHref('image.png', 'png', '/doc/test.md'), utils.convertImgPath('image.png', '/doc/test.md'));
+    });
+
+    it('should delegate to convertImgPath for jpeg type', function () {
+      assert.strictEqual(utils.transformImageHref('image.png', 'jpeg', '/doc/test.md'), utils.convertImgPath('image.png', '/doc/test.md'));
+    });
+
+    it('should handle encoded special characters for html type', function () {
+      assert.strictEqual(utils.transformImageHref('img%23%26name.png', 'html', '/doc/test.md'), 'img#&name.png');
+    });
+  });
+
+  describe('transformHtmlBlockImages', function () {
+    it('should transform a single img tag src', function () {
+      var result = utils.transformHtmlBlockImages('<img src="photo.png">', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+    });
+
+    it('should transform multiple img tags', function () {
+      var result = utils.transformHtmlBlockImages('<img src="a.png"><img src="b.png">', '/doc/test.md');
+      assert.ok(result.indexOf('a.png') >= 0);
+      assert.ok(result.indexOf('b.png') >= 0);
+      var matches = result.match(/file:\/\//g);
+      assert.strictEqual(matches.length, 2);
+    });
+
+    it('should return html unchanged when no img tags', function () {
+      var result = utils.transformHtmlBlockImages('<p>Hello world</p>', '/doc/test.md');
+      assert.ok(result.indexOf('Hello world') >= 0);
+    });
+
+    it('should handle empty html string', function () {
+      assert.strictEqual(utils.transformHtmlBlockImages('', '/doc/test.md'), '');
+    });
+
+    it('should handle relative path images', function () {
+      var result = utils.transformHtmlBlockImages('<img src="images/photo.png">', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+    });
+
+    it('should handle absolute path images', function () {
+      var result = utils.transformHtmlBlockImages('<img src="/abs/photo.png">', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('/abs/photo.png') >= 0);
+    });
+  });
+
+  describe('buildEmojiTag', function () {
+    it('should return img tag with base64 data when emojiData is provided', function () {
+      assert.strictEqual(utils.buildEmojiTag('smile', 'aGVsbG8='), '<img class="emoji" alt="smile" src="data:image/png;base64,aGVsbG8=" />');
+    });
+
+    it('should return fallback text when emojiData is empty string', function () {
+      assert.strictEqual(utils.buildEmojiTag('smile', ''), ':smile:');
+    });
+
+    it('should return fallback text when emojiData is null', function () {
+      assert.strictEqual(utils.buildEmojiTag('smile', null), ':smile:');
+    });
+
+    it('should return fallback text when emojiData is undefined', function () {
+      assert.strictEqual(utils.buildEmojiTag('smile', undefined), ':smile:');
+    });
+
+    it('should handle emoji name with special characters in alt attribute', function () {
+      assert.strictEqual(utils.buildEmojiTag('+1', 'aGVsbG8='), '<img class="emoji" alt="+1" src="data:image/png;base64,aGVsbG8=" />');
+    });
+
+    it('should handle emoji name with hyphen', function () {
+      assert.strictEqual(utils.buildEmojiTag('heavy-check-mark', 'data123'), '<img class="emoji" alt="heavy-check-mark" src="data:image/png;base64,data123" />');
+    });
+  });
+
+  describe('buildContainerRenderer', function () {
+    var renderer;
+
+    before(function () {
+      renderer = utils.buildContainerRenderer();
+    });
+
+    describe('validate', function () {
+      it('should return truthy for non-empty name', function () {
+        assert.ok(renderer.validate('warning'));
+      });
+
+      it('should return falsy for empty string', function () {
+        assert.ok(!renderer.validate(''));
+      });
+
+      it('should return falsy for whitespace-only string', function () {
+        assert.ok(!renderer.validate('   '));
+      });
+
+      it('should return truthy for name with surrounding spaces', function () {
+        assert.ok(renderer.validate('  warning  '));
+      });
+    });
+
+    describe('render', function () {
+      it('should return opening div with class when info is non-empty', function () {
+        var tokens = [{ info: 'warning' }];
+        assert.strictEqual(renderer.render(tokens, 0), '<div class="warning">\n');
+      });
+
+      it('should return closing div when info is empty', function () {
+        var tokens = [{ info: '' }];
+        assert.strictEqual(renderer.render(tokens, 0), '</div>\n');
+      });
+
+      it('should trim whitespace from class name', function () {
+        var tokens = [{ info: '  note  ' }];
+        assert.strictEqual(renderer.render(tokens, 0), '<div class="note">\n');
+      });
+
+      it('should return closing div when info is whitespace-only', function () {
+        var tokens = [{ info: '   ' }];
+        assert.strictEqual(renderer.render(tokens, 0), '</div>\n');
+      });
+
+      it('should handle class name with multiple words', function () {
+        var tokens = [{ info: 'alert danger' }];
+        assert.strictEqual(renderer.render(tokens, 0), '<div class="alert danger">\n');
+      });
+    });
+  });
+
+  describe('generateTmpHtmlFilename', function () {
+    var path = require('path');
+
+    it('should replace extension with _tmp.html', function () {
+      assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/file.md'), path.join('/path/to', 'file_tmp.html'));
+    });
+
+    it('should handle file without extension', function () {
+      assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/file'), path.join('/path/to', 'file_tmp.html'));
+    });
+
+    it('should handle deeply nested path', function () {
+      assert.strictEqual(utils.generateTmpHtmlFilename('/a/b/c/d/document.md'), path.join('/a/b/c/d', 'document_tmp.html'));
+    });
+
+    it('should handle filename with dots', function () {
+      assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/my.file.name.md'), path.join('/path/to', 'my.file.name_tmp.html'));
+    });
+  });
 });

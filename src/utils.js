@@ -4,6 +4,7 @@ var fs = require('fs');
 var os = require('os');
 var path = require('path');
 var url = require('url');
+var cheerio = require('cheerio');
 
 function setBooleanValue(a, b) {
   if (a === false) {
@@ -330,6 +331,74 @@ function buildHtmlViewData(config) {
   };
 }
 
+function resolveExportTypes(optionType, configuredType) {
+  var typesFormat = ['html', 'pdf', 'png', 'jpeg'];
+
+  if (typesFormat.indexOf(optionType) >= 0) {
+    return [optionType];
+  }
+
+  if (optionType === 'settings') {
+    var resolved = configuredType || 'pdf';
+    if (Array.isArray(resolved)) {
+      return resolved;
+    }
+    return [resolved];
+  }
+
+  if (optionType === 'all') {
+    return typesFormat;
+  }
+
+  return null;
+}
+
+function transformImageHref(href, type, filename) {
+  if (type === 'html') {
+    return decodeURIComponent(href).replace(/("|')/g, '');
+  }
+  return convertImgPath(href, filename);
+}
+
+function transformHtmlBlockImages(html, filename) {
+  if (!html) {
+    return '';
+  }
+  var $ = cheerio.load(html);
+  $('img').each(function () {
+    var src = $(this).attr('src');
+    var href = convertImgPath(src, filename);
+    $(this).attr('src', href);
+  });
+  return $.html();
+}
+
+function buildEmojiTag(emoji, emojiData) {
+  if (emojiData) {
+    return '<img class="emoji" alt="' + emoji + '" src="data:image/png;base64,' + emojiData + '" />';
+  }
+  return ':' + emoji + ':';
+}
+
+function buildContainerRenderer() {
+  return {
+    validate: function (name) {
+      return name.trim().length;
+    },
+    render: function (tokens, idx) {
+      if (tokens[idx].info.trim() !== '') {
+        return '<div class="' + tokens[idx].info.trim() + '">\n';
+      }
+      return '</div>\n';
+    },
+  };
+}
+
+function generateTmpHtmlFilename(filename) {
+  var f = path.parse(filename);
+  return path.join(f.dir, f.name + '_tmp.html');
+}
+
 module.exports = {
   setBooleanValue,
   isExistsPath,
@@ -349,4 +418,10 @@ module.exports = {
   buildMarkdownItOptions,
   buildPlantumlOptions,
   buildHtmlViewData,
+  resolveExportTypes,
+  transformImageHref,
+  transformHtmlBlockImages,
+  buildEmojiTag,
+  buildContainerRenderer,
+  generateTmpHtmlFilename,
 };
