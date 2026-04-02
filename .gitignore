@@ -7,3 +7,4 @@ work/**
 *.bat
 .eslintrc.json
 .cocoindex_code/
+.codex
