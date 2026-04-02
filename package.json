@@ -484,13 +484,13 @@
   },
   "scripts": {
     "vscode:prepublish": "node ./src/compile",
-    "test": "vscode-test --config .vscode-test.mjs",
-    "test:unit": "node ./node_modules/mocha/bin/mocha test/unit/**/*.test.js"
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "node --test test/unit/**/*.test.js",
+    "test:integration": "vscode-test --config .vscode-test.mjs"
   },
   "devDependencies": {
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "mocha": "^7.1.1",
     "removeNPMAbsolutePaths": "^2.0.0"
   },
   "dependencies": {
