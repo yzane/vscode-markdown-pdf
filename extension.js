@@ -379,82 +379,45 @@ function exportPdf(data, filename, type, uri) {
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
         if (type == 'pdf') {
-          // If width or height option is set, it overrides the format option.
-          // In order to set the default value of page size to A4, we changed it from the specification of puppeteer.
-          var width_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '';
-          var height_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '';
-          var format_option = '';
-          if (!width_option && !height_option) {
-            format_option = vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4';
-          }
-          var landscape_option;
-          if (vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] == 'landscape') {
-            landscape_option = true;
-          } else {
-            landscape_option = false;
-          }
           var options = {
             path: exportFilename,
-            scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
-            headerTemplate: utils.transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || ''),
-            footerTemplate: utils.transformTemplate(vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || ''),
-            printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
-            landscape: landscape_option,
-            pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
-            format: format_option,
             width: vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '',
             height: vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '',
+            format: vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4',
+            orientation: vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] || '',
+            scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
+            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
+            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
+            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || '',
+            printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
+            pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
             margin: {
               top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
               right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
               bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
               left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
             },
-            timeout: 0
           };
+          options = utils.buildPdfOptions(options);
           await page.pdf(options);
         }
 
         // generate png and jpeg
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions
         if (type == 'png' || type == 'jpeg') {
-          // Quality options do not apply to PNG images.
-          var quality_option;
-          if (type == 'png') {
-            quality_option = undefined;
-          }
-          if (type == 'jpeg') {
-            quality_option = vscode.workspace.getConfiguration('markdown-pdf')['quality'] || 100;
-          }
-
-          // screenshot size
-          var clip_x_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'] || null;
-          var clip_y_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'] || null;
-          var clip_width_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'] || null;
-          var clip_height_option = vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'] || null;
           var options;
-          if (clip_x_option !== null && clip_y_option !== null && clip_width_option !== null && clip_height_option !== null) {
-            options = {
-              path: exportFilename,
-              quality: quality_option,
-              fullPage: false,
-              clip: {
-                x: clip_x_option,
-                y: clip_y_option,
-                width: clip_width_option,
-                height: clip_height_option,
-              },
-              omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
-            }
-          } else {
-            options = {
-              path: exportFilename,
-              quality: quality_option,
-              fullPage: true,
-              omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
-            }
-          }
+          options = utils.buildImageOptions({
+            path: exportFilename,
+            type: type,
+            quality: vscode.workspace.getConfiguration('markdown-pdf')['quality'] || 100,
+            clip: {
+              x: vscode.workspace.getConfiguration('markdown-pdf')['clip']['x'] || null,
+              y: vscode.workspace.getConfiguration('markdown-pdf')['clip']['y'] || null,
+              width: vscode.workspace.getConfiguration('markdown-pdf')['clip']['width'] || null,
+              height: vscode.workspace.getConfiguration('markdown-pdf')['clip']['height'] || null,
+            },
+            omitBackground: vscode.workspace.getConfiguration('markdown-pdf')['omitBackground'],
+          });
           await page.screenshot(options);
         }
 
