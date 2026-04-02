@@ -127,6 +127,25 @@ suite('Integration Binary Generation Tests', () => {
     safeDelete(combinedMd);
   });
 
+  test('combined fixture renders an emoji signal', async function () {
+    this.timeout(60000);
+
+    const outputPath = `${combinedBase}.html`;
+
+    try {
+      await executeMarkdownPdfCommand('_combined.md', 'extension.markdown-pdf.html');
+      await waitForFile(outputPath);
+
+      const generatedHtml = normalizeHtml(fs.readFileSync(outputPath, 'utf-8'));
+      assert.ok(
+        generatedHtml.includes('<img class="emoji" alt="smile"'),
+        'combined HTML should include rendered emoji output'
+      );
+    } finally {
+      safeDelete(outputPath);
+    }
+  });
+
   const binaryFormats = [
     {
       type: 'pdf',
