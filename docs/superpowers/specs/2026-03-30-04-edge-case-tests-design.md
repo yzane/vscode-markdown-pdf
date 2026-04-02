@@ -6,7 +6,7 @@
 
 ## 背景
 
-- 既存テスト: 12関数41件のユニットテストで基本パスはカバー済み
+- 既存テスト: 12関数69件のユニットテストで基本パスはカバー済み
 - パス変換系関数は実際のユーザー環境で多様な入力を受けるが、スペース入りパス、`../` を含む相対パス、data: URL、Windowsパスなどのテストが不足
 - 前回設計（`2026-03-30-extract-and-test-design.md`）で計画した4関数の抽出とテストは全て完了済み
 
@@ -23,7 +23,7 @@
 | # | テストケース | 入力 | 期待値 |
 |---|-------------|------|--------|
 | 1 | スペースを含むパス | `'my image.png'`, `/home/user/doc.md` | `file:///home/user/my image.png` |
-| 2 | `../` を含む相対パス | `'../../assets/img.png'`, `/home/user/docs/sub/doc.md` | `file:///home/assets/img.png` |
+| 2 | `../` を含む相対パス | `'../../assets/img.png'`, `/home/user/docs/sub/doc.md` | `file:///home/user/assets/img.png` |
 | 3 | data: URL パススルー | `'data:image/png;base64,abc'`, `/home/user/doc.md` | そのまま返す |
 | 4 | 空文字 | `''`, `/home/user/doc.md` | `file:///home/user/` (path.resolve結果) |
 | 5 | Windows絶対パス (Win限定) | `'C:\\Users\\img.png'`, `C:\\docs\\doc.md` | `file:///C:/Users/img.png` |

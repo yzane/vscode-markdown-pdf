@@ -33,7 +33,7 @@
 ```javascript
     it('should resolve ../ in relative path', function () {
       var result = utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md');
-      assert.strictEqual(result, 'file:///home/assets/img.png');
+      assert.strictEqual(result, 'file:///home/user/assets/img.png');
     });
 ```
 
@@ -320,10 +320,10 @@ git commit -m "test: add readFile edge cases for spaces in path, file:// with sp
 - [ ] **Step 1: 全ユニットテスト実行**
 
 Run: `npx mocha test/unit/utils.test.js`
-Expected: 既存41件 + 新規18件 = 59件 PASS (Windows限定テスト4件はLinuxでskip → 55 passing, 4 pending)
+Expected: 既存69件 + 新規18件 = 87件 PASS (Windows限定テスト4件はLinuxでskip → 83 passing, 4 pending)
 
 - [ ] **Step 2: 結果を確認**
 
-- 55 passing
+- 83 passing
 - 4 pending (Windows限定テスト)
 - 0 failing

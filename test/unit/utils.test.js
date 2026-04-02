@@ -130,18 +130,24 @@ describe('utils', function () {
 
   describe('readFile', function () {
     var fs = require('fs');
+    var os = require('os');
     var path = require('path');
     var tmpFile;
+    var tmpFileWithSpace;
 
     before(function () {
       tmpFile = path.join(__dirname, 'test-read-file.tmp');
       fs.writeFileSync(tmpFile, 'hello world', 'utf-8');
+      tmpFileWithSpace = path.join(__dirname, 'test read file.tmp');
+      fs.writeFileSync(tmpFileWithSpace, 'space content', 'utf-8');
     });
 
     after(function () {
-      if (fs.existsSync(tmpFile)) {
-        fs.unlinkSync(tmpFile);
-      }
+      [tmpFile, tmpFileWithSpace].forEach(function (filename) {
+        if (fs.existsSync(filename)) {
+          fs.unlinkSync(filename);
+        }
+      });
     });
 
     it('should return file contents for an existing file', function () {
@@ -164,6 +170,27 @@ describe('utils', function () {
 
     it('should handle file:// prefix on non-Windows paths', function () {
       assert.strictEqual(utils.readFile('file://' + tmpFile), 'hello world');
+    });
+
+    it('should read file with spaces in path', function () {
+      assert.strictEqual(utils.readFile(tmpFileWithSpace), 'space content');
+    });
+
+    it('should handle file:// prefix with spaces in path', function () {
+      assert.strictEqual(utils.readFile('file://' + tmpFileWithSpace), 'space content');
+    });
+
+    (process.platform === 'win32' ? it : it.skip)('should handle file:///C:/ prefix on Windows', function () {
+      var winTmpFile = path.join(os.tmpdir(), 'mdpdf-test-win.tmp');
+      fs.writeFileSync(winTmpFile, 'win content', 'utf-8');
+      try {
+        var result = utils.readFile('file:///' + winTmpFile.replace(/\\/g, '/'));
+        assert.strictEqual(result, 'win content');
+      } finally {
+        if (fs.existsSync(winTmpFile)) {
+          fs.unlinkSync(winTmpFile);
+        }
+      }
     });
   });
 
@@ -227,6 +254,32 @@ describe('utils', function () {
 
     it('should return file:/// URLs unchanged', function () {
       assert.strictEqual(utils.convertImgPath('file:///home/user/image.png', '/home/user/doc.md'), 'file:///home/user/image.png');
+    });
+
+    it('should handle path with spaces', function () {
+      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+    });
+
+    it('should resolve ../ in relative path', function () {
+      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), 'file:///home/user/assets/img.png');
+    });
+
+    it('should return data: URL unchanged', function () {
+      assert.strictEqual(utils.convertImgPath('data:image/png;base64,abc', '/home/user/doc.md'), 'data:image/png;base64,abc');
+    });
+
+    it('should handle empty string src', function () {
+      var path = require('path');
+      var expected = 'file://' + path.resolve('/home/user', '');
+      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), expected);
+    });
+
+    (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
+      assert.strictEqual(utils.convertImgPath('C:\\Users\\img.png', 'C:\\docs\\doc.md'), 'file:///C:/Users/img.png');
+    });
+
+    it('should decode %20 encoded spaces in path', function () {
+      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
     });
   });
 
@@ -297,6 +350,37 @@ describe('utils', function () {
     it('should resolve a file-relative path when there is no workspace', function () {
       assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, undefined), 'file:///home/user/assets/style.css');
     });
+
+    it('should resolve ../ in workspace-relative path', function () {
+      var path = require('path');
+      var expected = 'file://' + path.join('/workspace', '../styles/custom.css');
+      assert.strictEqual(utils.resolveHref('../styles/custom.css', '/home/user/doc.md', false, '/workspace'), expected);
+    });
+
+    it('should resolve ../ in file-relative path', function () {
+      assert.strictEqual(utils.resolveHref('../styles/custom.css', '/home/user/doc.md', true, '/workspace'), 'file:///home/styles/custom.css');
+    });
+
+    it('should return data: URL unchanged', function () {
+      assert.strictEqual(
+        utils.resolveHref('data:text/css;base64,abc', '/home/user/doc.md', false, '/workspace'),
+        'data:text/css;base64,abc'
+      );
+    });
+
+    it('should handle relative path with spaces', function () {
+      assert.strictEqual(
+        utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
+        'file:///workspace/my styles/custom.css'
+      );
+    });
+
+    (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
+      assert.strictEqual(
+        utils.resolveHref('C:\\styles\\custom.css', 'C:\\docs\\doc.md', false, 'C:\\workspace'),
+        'file://C:\\styles\\custom.css'
+      );
+    });
   });
 
   describe('resolveOutputDir', function () {
@@ -304,9 +388,12 @@ describe('utils', function () {
     var os = require('os');
     var path = require('path');
     var tmpDir;
+    var spaceDir;
 
     before(function () {
       tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdpdf-test-'));
+      spaceDir = path.join(tmpDir, 'my output');
+      fs.mkdirSync(spaceDir);
     });
 
     after(function () {
@@ -359,6 +446,34 @@ describe('utils', function () {
       assert.strictEqual(
         utils.resolveOutputDir('/home/user/doc.pdf', 'build', false, '/home/user/doc.md', undefined),
         path.join('/home/user', 'build', 'doc.pdf')
+      );
+    });
+
+    it('should handle relative path with spaces', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', 'my output', false, '/home/user/doc.md', '/workspace'),
+        path.join('/workspace', 'my output', 'doc.pdf')
+      );
+    });
+
+    it('should handle relative path with ../', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', '../build', false, '/home/user/doc.md', '/workspace'),
+        path.join('/workspace', '../build', 'doc.pdf')
+      );
+    });
+
+    it('should handle absolute path with spaces', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', spaceDir, false, '/home/user/doc.md', '/workspace'),
+        path.join(spaceDir, 'doc.pdf')
+      );
+    });
+
+    (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('C:\\docs\\doc.pdf', 'build', false, 'C:\\docs\\doc.md', 'C:\\workspace'),
+        path.join('C:\\workspace', 'build', 'doc.pdf')
       );
     });
   });

@@ -144,7 +144,7 @@ function resolveHref(href, resourceFsPath, stylesRelativePathFile, workspaceFsPa
   }
 
   var parsed = url.parse(href);
-  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+  if (parsed.protocol === 'http:' || parsed.protocol === 'https:' || parsed.protocol === 'data:') {
     return href;
   }
 
