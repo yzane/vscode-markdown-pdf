@@ -473,11 +473,7 @@ function getOutputDir(filename, resource) {
 }
 
 function mkdir(path) {
-  if (utils.isExistsDir(path)) {
-    return;
-  }
-  var mkdirp = require('mkdirp');
-  return mkdirp.sync(path);
+  fs.mkdirSync(path, { recursive: true });
 }
 
 function readStyles(uri) {
