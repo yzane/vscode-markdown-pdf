@@ -378,64 +378,8 @@ function exportPdf(data, filename, type, uri) {
   ); // vscode.window.withProgress
 }
 
-function isIgnorableRemoveError(error) {
-  return error && error.code === 'ENOENT';
-}
-
-function removePathSyncFallback(targetPath) {
-  var stats;
-  try {
-    stats = fs.lstatSync(targetPath);
-  } catch (error) {
-    if (isIgnorableRemoveError(error)) {
-      return;
-    }
-    throw error;
-  }
-
-  if (stats.isDirectory() && !stats.isSymbolicLink()) {
-    fs.readdirSync(targetPath).forEach(function (entry) {
-      removePathSyncFallback(path.join(targetPath, entry));
-    });
-    try {
-      fs.rmdirSync(targetPath);
-    } catch (error) {
-      if (isIgnorableRemoveError(error)) {
-        return;
-      }
-      throw error;
-    }
-    return;
-  }
-
-  try {
-    fs.unlinkSync(targetPath);
-  } catch (error) {
-    if (isIgnorableRemoveError(error)) {
-      return;
-    }
-    throw error;
-  }
-}
-
-function removePathSync(targetPath) {
-  if (typeof fs.rmSync === 'function') {
-    try {
-      fs.rmSync(targetPath, { recursive: true, force: true });
-    } catch (error) {
-      if (isIgnorableRemoveError(error)) {
-        return;
-      }
-      throw error;
-    }
-    return;
-  }
-
-  removePathSyncFallback(targetPath);
-}
-
 function deleteFile (path) {
-  removePathSync(path);
+  fs.rmSync(path, { recursive: true, force: true });
 }
 
 function getOutputDir(filename, resource) {
@@ -472,43 +416,8 @@ function getOutputDir(filename, resource) {
   }
 }
 
-function isDirectoryPath(targetPath) {
-  try {
-    return fs.statSync(targetPath).isDirectory();
-  } catch (error) {
-    return false;
-  }
-}
-
-function mkdirFallback(targetPath) {
-  if (isDirectoryPath(targetPath)) {
-    return;
-  }
-
-  var parentPath = path.dirname(targetPath);
-  if (parentPath !== targetPath) {
-    mkdirFallback(parentPath);
-  }
-
-  try {
-    fs.mkdirSync(targetPath);
-  } catch (error) {
-    if (error && error.code === 'EEXIST' && isDirectoryPath(targetPath)) {
-      return;
-    }
-    throw error;
-  }
-}
-
 function mkdir(path) {
-  try {
-    fs.mkdirSync(path, { recursive: true });
-  } catch (error) {
-    if (error && error.code === 'EEXIST' && isDirectoryPath(path)) {
-      return;
-    }
-    mkdirFallback(path);
-  }
+  fs.mkdirSync(path, { recursive: true });
 }
 
 function readStyles(uri) {
