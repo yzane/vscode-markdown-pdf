@@ -480,14 +480,6 @@ function isDirectoryPath(targetPath) {
   }
 }
 
-function isUnsupportedRecursiveMkdirError(error) {
-  return error && (
-    error.code === 'ERR_INVALID_ARG_VALUE' ||
-    error.code === 'ERR_INVALID_OPT_VALUE' ||
-    error.code === 'ERR_INVALID_OPT_VALUE_ENCODING'
-  );
-}
-
 function mkdirFallback(targetPath) {
   if (isDirectoryPath(targetPath)) {
     return;
@@ -515,11 +507,7 @@ function mkdir(path) {
     if (error && error.code === 'EEXIST' && isDirectoryPath(path)) {
       return;
     }
-    if (isUnsupportedRecursiveMkdirError(error)) {
-      mkdirFallback(path);
-      return;
-    }
-    throw error;
+    mkdirFallback(path);
   }
 }
 

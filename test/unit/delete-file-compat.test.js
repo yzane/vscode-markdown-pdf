@@ -64,7 +64,6 @@ function createFsWithoutRecursiveMkdir() {
     mkdirSync: function (targetPath, options) {
       if (options && typeof options === 'object' && options.recursive) {
         var error = new TypeError('mkdirSync recursive option is not supported');
-        error.code = 'ERR_INVALID_ARG_VALUE';
         throw error;
       }
       return fs.mkdirSync(targetPath);
