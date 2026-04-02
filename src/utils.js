@@ -1,6 +1,7 @@
 'use strict';
 
 var fs = require('fs');
+var os = require('os');
 var path = require('path');
 var url = require('url');
 
@@ -124,6 +125,111 @@ function convertImgPath(src, filename) {
   }
 }
 
+function isExcludeFile(filename, patterns) {
+  if (!patterns || !Array.isArray(patterns) || patterns.length === 0) {
+    return false;
+  }
+  for (var i = 0; i < patterns.length; i++) {
+    var re = new RegExp(patterns[i]);
+    if (re.test(filename)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function resolveHref(href, resourceFsPath, stylesRelativePathFile, workspaceFsPath) {
+  if (!href) {
+    return href;
+  }
+
+  var parsed = url.parse(href);
+  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    return href;
+  }
+
+  if (href.indexOf('~') === 0) {
+    return 'file://' + href.replace(/^~/, os.homedir());
+  }
+
+  if (path.isAbsolute(href)) {
+    return 'file://' + href;
+  }
+
+  if (stylesRelativePathFile === false && workspaceFsPath) {
+    return 'file://' + path.join(workspaceFsPath, href);
+  }
+
+  return 'file://' + path.join(path.dirname(resourceFsPath), href);
+}
+
+function resolveOutputDir(filename, outputDirectory, outputDirectoryRelativePathFile, resourceFsPath, workspaceFsPath) {
+  if (!outputDirectory || outputDirectory.length === 0) {
+    return filename;
+  }
+
+  if (outputDirectory.indexOf('~') === 0) {
+    return path.join(outputDirectory.replace(/^~/, os.homedir()), path.basename(filename));
+  }
+
+  if (path.isAbsolute(outputDirectory)) {
+    if (!isExistsDir(outputDirectory)) {
+      return null;
+    }
+    return path.join(outputDirectory, path.basename(filename));
+  }
+
+  if (outputDirectoryRelativePathFile === false && workspaceFsPath) {
+    return path.join(workspaceFsPath, outputDirectory, path.basename(filename));
+  }
+
+  return path.join(path.dirname(resourceFsPath), outputDirectory, path.basename(filename));
+}
+
+function buildStyleTags(options) {
+  var style = '';
+  var filename = '';
+  var i;
+
+  if (options.includeDefaultStyles) {
+    filename = path.join(options.baseDir, 'styles', 'markdown.css');
+    style += makeCss(filename);
+  }
+
+  if (options.includeDefaultStyles) {
+    if (options.markdownStyles && Array.isArray(options.markdownStyles) && options.markdownStyles.length > 0) {
+      for (i = 0; i < options.markdownStyles.length; i++) {
+        var markdownHref = options.resolveHrefFn(options.markdownStyles[i]);
+        style += '<link rel="stylesheet" href="' + markdownHref + '" type="text/css">';
+      }
+    }
+  }
+
+  if (options.highlight) {
+    if (options.highlightStyle) {
+      filename = path.join(options.baseDir, 'node_modules', 'highlight.js', 'styles', options.highlightStyle);
+      style += makeCss(filename);
+    } else {
+      filename = path.join(options.baseDir, 'styles', 'tomorrow.css');
+      style += makeCss(filename);
+    }
+  }
+
+  if (options.includeDefaultStyles) {
+    filename = path.join(options.baseDir, 'styles', 'markdown-pdf.css');
+    style += makeCss(filename);
+  }
+
+  if (options.markdownPdfStyles && Array.isArray(options.markdownPdfStyles) && options.markdownPdfStyles.length > 0) {
+    for (i = 0; i < options.markdownPdfStyles.length; i++) {
+      var markdownPdfHref = options.resolveHrefFn(options.markdownPdfStyles[i]);
+      style += '<link rel="stylesheet" href="' + markdownPdfHref + '" type="text/css">';
+    }
+  }
+
+  return style;
+}
+
 module.exports = {
   setBooleanValue,
   isExistsPath,
@@ -133,4 +239,8 @@ module.exports = {
   readFile,
   makeCss,
   convertImgPath,
+  isExcludeFile,
+  resolveHref,
+  resolveOutputDir,
+  buildStyleTags,
 };

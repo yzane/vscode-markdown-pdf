@@ -229,4 +229,220 @@ describe('utils', function () {
       assert.strictEqual(utils.convertImgPath('file:///home/user/image.png', '/home/user/doc.md'), 'file:///home/user/image.png');
     });
   });
+
+  describe('isExcludeFile', function () {
+    it('should return false for an empty patterns array', function () {
+      assert.strictEqual(utils.isExcludeFile('README.md', []), false);
+    });
+
+    it('should return false for undefined patterns', function () {
+      assert.strictEqual(utils.isExcludeFile('README.md', undefined), false);
+    });
+
+    it('should return true when filename matches a pattern', function () {
+      assert.strictEqual(utils.isExcludeFile('DRAFT-report.md', ['^DRAFT']), true);
+    });
+
+    it('should return true when filename matches the second pattern', function () {
+      assert.strictEqual(utils.isExcludeFile('notes.txt', ['^DRAFT', '\\.txt$']), true);
+    });
+
+    it('should return false when filename matches no patterns', function () {
+      assert.strictEqual(utils.isExcludeFile('report.md', ['^DRAFT', '\\.txt$']), false);
+    });
+  });
+
+  describe('resolveHref', function () {
+    var os = require('os');
+
+    it('should return empty string for empty href', function () {
+      assert.strictEqual(utils.resolveHref('', '/home/user/doc.md', false, '/workspace'), '');
+    });
+
+    it('should return undefined for undefined href', function () {
+      assert.strictEqual(utils.resolveHref(undefined, '/home/user/doc.md', false, '/workspace'), undefined);
+    });
+
+    it('should return http URL unchanged', function () {
+      assert.strictEqual(
+        utils.resolveHref('http://example.com/style.css', '/home/user/doc.md', false, '/workspace'),
+        'http://example.com/style.css'
+      );
+    });
+
+    it('should return https URL unchanged', function () {
+      assert.strictEqual(
+        utils.resolveHref('https://example.com/style.css', '/home/user/doc.md', false, '/workspace'),
+        'https://example.com/style.css'
+      );
+    });
+
+    it('should expand ~ to the home directory as a file URI', function () {
+      var expected = 'file://' + os.homedir() + '/styles/custom.css';
+      assert.strictEqual(utils.resolveHref('~/styles/custom.css', '/home/user/doc.md', false, '/workspace'), expected);
+    });
+
+    it('should convert an absolute path to a file URI', function () {
+      assert.strictEqual(utils.resolveHref('/etc/styles/custom.css', '/home/user/doc.md', false, '/workspace'), 'file:///etc/styles/custom.css');
+    });
+
+    it('should resolve a workspace-relative path when stylesRelativePathFile is false', function () {
+      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, '/workspace'), 'file:///workspace/assets/style.css');
+    });
+
+    it('should resolve a file-relative path when stylesRelativePathFile is true', function () {
+      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', true, '/workspace'), 'file:///home/user/assets/style.css');
+    });
+
+    it('should resolve a file-relative path when there is no workspace', function () {
+      assert.strictEqual(utils.resolveHref('assets/style.css', '/home/user/doc.md', false, undefined), 'file:///home/user/assets/style.css');
+    });
+  });
+
+  describe('resolveOutputDir', function () {
+    var fs = require('fs');
+    var os = require('os');
+    var path = require('path');
+    var tmpDir;
+
+    before(function () {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdpdf-test-'));
+    });
+
+    after(function () {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('should return filename when outputDirectory is empty', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', '', false, '/home/user/doc.md', '/workspace'),
+        '/home/user/doc.pdf'
+      );
+    });
+
+    it('should expand ~ to the home directory', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', '~/output', false, '/home/user/doc.md', '/workspace'),
+        path.join(os.homedir(), 'output', 'doc.pdf')
+      );
+    });
+
+    it('should use an absolute path when the directory exists', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', tmpDir, false, '/home/user/doc.md', '/workspace'),
+        path.join(tmpDir, 'doc.pdf')
+      );
+    });
+
+    it('should return null when the absolute directory does not exist', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', '/nonexistent/output', false, '/home/user/doc.md', '/workspace'),
+        null
+      );
+    });
+
+    it('should resolve a workspace-relative path when outputDirectoryRelativePathFile is false', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', 'build', false, '/home/user/doc.md', '/workspace'),
+        path.join('/workspace', 'build', 'doc.pdf')
+      );
+    });
+
+    it('should resolve a file-relative path when outputDirectoryRelativePathFile is true', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', 'build', true, '/home/user/doc.md', '/workspace'),
+        path.join('/home/user', 'build', 'doc.pdf')
+      );
+    });
+
+    it('should resolve a file-relative path when there is no workspace', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', 'build', false, '/home/user/doc.md', undefined),
+        path.join('/home/user', 'build', 'doc.pdf')
+      );
+    });
+  });
+
+  describe('buildStyleTags', function () {
+    var baseDir = require('path').join(__dirname, '..', '..');
+
+    it('should include default styles when includeDefaultStyles is true', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: true,
+        highlight: false,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      assert.ok(result.indexOf('<style>') !== -1, 'Expected <style> tags in result');
+    });
+
+    it('should skip default styles when includeDefaultStyles is false', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: false,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      assert.strictEqual(result, '');
+    });
+
+    it('should include highlight style when highlight is true with highlightStyle', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'github.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      assert.ok(result.indexOf('<style>') !== -1, 'Expected highlight style in result');
+    });
+
+    it('should use tomorrow.css as the default highlight style', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      assert.ok(result.indexOf('<style>') !== -1, 'Expected default highlight style in result');
+    });
+
+    it('should skip highlight style when highlight is false', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: false,
+        highlightStyle: 'github.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+      assert.strictEqual(result, '');
+    });
+
+    it('should add link tags for markdownPdfStyles', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: false,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: ['custom.css'],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return 'file:///resolved/' + href; },
+      });
+      assert.ok(result.indexOf('<link rel="stylesheet"') !== -1, 'Expected <link> tag');
+      assert.ok(result.indexOf('file:///resolved/custom.css') !== -1, 'Expected resolved href');
+    });
+  });
 });
