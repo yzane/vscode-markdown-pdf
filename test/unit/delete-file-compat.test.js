@@ -58,6 +58,21 @@ function createFsWithoutRm() {
   };
 }
 
+function createFsWithoutRecursiveMkdir() {
+  return {
+    existsSync: fs.existsSync.bind(fs),
+    mkdirSync: function (targetPath, options) {
+      if (options && typeof options === 'object' && options.recursive) {
+        var error = new TypeError('mkdirSync recursive option is not supported');
+        error.code = 'ERR_INVALID_ARG_VALUE';
+        throw error;
+      }
+      return fs.mkdirSync(targetPath);
+    },
+    statSync: fs.statSync.bind(fs)
+  };
+}
+
 function createNestedDir(rootDir, dirname) {
   var dir = path.join(rootDir, dirname);
   fs.mkdirSync(path.join(dir, 'nested'), { recursive: true });
@@ -86,6 +101,25 @@ function waitFor(check) {
 }
 
 describe('delete file compatibility', function () {
+  it('falls back to built-in recursive mkdir in extension.js when fs.mkdirSync recursive is unavailable', function () {
+    var targetDir = path.join(tmpRoot, 'extension-mkdir', 'nested', 'deep');
+    var extension = loadScript(path.join(__dirname, '..', '..', 'extension.js'), {
+      requires: {
+        fs: createFsWithoutRecursiveMkdir(),
+        os: require('os'),
+        path: path,
+        vscode: {},
+        './src/utils': {}
+      }
+    });
+
+    extension.mkdir(targetDir);
+    extension.mkdir(targetDir);
+
+    assert.strictEqual(fs.existsSync(targetDir), true);
+    assert.strictEqual(fs.statSync(targetDir).isDirectory(), true);
+  });
+
   it('falls back to built-in recursive delete in extension.js when fs.rmSync is unavailable', function () {
     var targetDir = createNestedDir(tmpRoot, 'extension-delete');
     var extension = loadScript(path.join(__dirname, '..', '..', 'extension.js'), {

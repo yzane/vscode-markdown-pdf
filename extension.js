@@ -472,8 +472,55 @@ function getOutputDir(filename, resource) {
   }
 }
 
+function isDirectoryPath(targetPath) {
+  try {
+    return fs.statSync(targetPath).isDirectory();
+  } catch (error) {
+    return false;
+  }
+}
+
+function isUnsupportedRecursiveMkdirError(error) {
+  return error && (
+    error.code === 'ERR_INVALID_ARG_VALUE' ||
+    error.code === 'ERR_INVALID_OPT_VALUE' ||
+    error.code === 'ERR_INVALID_OPT_VALUE_ENCODING'
+  );
+}
+
+function mkdirFallback(targetPath) {
+  if (isDirectoryPath(targetPath)) {
+    return;
+  }
+
+  var parentPath = path.dirname(targetPath);
+  if (parentPath !== targetPath) {
+    mkdirFallback(parentPath);
+  }
+
+  try {
+    fs.mkdirSync(targetPath);
+  } catch (error) {
+    if (error && error.code === 'EEXIST' && isDirectoryPath(targetPath)) {
+      return;
+    }
+    throw error;
+  }
+}
+
 function mkdir(path) {
-  fs.mkdirSync(path, { recursive: true });
+  try {
+    fs.mkdirSync(path, { recursive: true });
+  } catch (error) {
+    if (error && error.code === 'EEXIST' && isDirectoryPath(path)) {
+      return;
+    }
+    if (isUnsupportedRecursiveMkdirError(error)) {
+      mkdirFallback(path);
+      return;
+    }
+    throw error;
+  }
 }
 
 function readStyles(uri) {
