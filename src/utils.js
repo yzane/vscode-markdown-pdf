@@ -85,7 +85,12 @@ function readFile(filename, encode) {
     }
   }
   if (isExistsPath(filename)) {
-    return fs.readFileSync(filename, encode);
+    try {
+      return fs.readFileSync(filename, encode);
+    } catch (error) {
+      console.warn(error.message);
+      return '';
+    }
   } else {
     return '';
   }

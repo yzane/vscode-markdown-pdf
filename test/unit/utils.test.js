@@ -96,6 +96,24 @@ describe('utils', function () {
     it('should handle mixed content', function () {
       assert.strictEqual(utils.Slug('Hello World! #1'), 'hello-world-1');
     });
+
+    it('should return empty string for punctuation-only input', function () {
+      assert.strictEqual(utils.Slug('!@#$%^&*()'), '');
+    });
+
+    it('should be idempotent for already-slugified input', function () {
+      assert.strictEqual(utils.Slug('hello-world'), 'hello-world');
+    });
+
+    it('should handle mixed CJK and Latin scripts', function () {
+      var result = utils.Slug('日本語 English テスト');
+      assert.strictEqual(result, encodeURI('日本語') + '-english-' + encodeURI('テスト'));
+    });
+
+    it('should handle emoji in text', function () {
+      var result = utils.Slug('Hello 🎉 World');
+      assert.strictEqual(result, 'hello-' + encodeURI('🎉') + '-world');
+    });
   });
 
   describe('transformTemplate', function () {
@@ -134,16 +152,19 @@ describe('utils', function () {
     var path = require('path');
     var tmpFile;
     var tmpFileWithSpace;
+    var tmpFileWithBom;
 
     before(function () {
       tmpFile = path.join(__dirname, 'test-read-file.tmp');
       fs.writeFileSync(tmpFile, 'hello world', 'utf-8');
       tmpFileWithSpace = path.join(__dirname, 'test read file.tmp');
       fs.writeFileSync(tmpFileWithSpace, 'space content', 'utf-8');
+      tmpFileWithBom = path.join(__dirname, 'test-read-file-bom.tmp');
+      fs.writeFileSync(tmpFileWithBom, '\uFEFFhello BOM', 'utf-8');
     });
 
     after(function () {
-      [tmpFile, tmpFileWithSpace].forEach(function (filename) {
+      [tmpFile, tmpFileWithSpace, tmpFileWithBom].forEach(function (filename) {
         if (fs.existsSync(filename)) {
           fs.unlinkSync(filename);
         }
@@ -191,6 +212,16 @@ describe('utils', function () {
           fs.unlinkSync(winTmpFile);
         }
       }
+    });
+
+    it('should return empty string when path is a directory', function () {
+      assert.strictEqual(utils.readFile(__dirname), '');
+    });
+
+    it('should preserve BOM in UTF-8 file', function () {
+      var result = utils.readFile(tmpFileWithBom);
+      assert.strictEqual(result.charCodeAt(0), 0xFEFF, 'Expected BOM at start of file');
+      assert.ok(result.indexOf('hello BOM') !== -1, 'Expected content after BOM');
     });
   });
 
@@ -281,6 +312,30 @@ describe('utils', function () {
     it('should decode %20 encoded spaces in path', function () {
       assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
     });
+
+    it('should return https URL with query string unchanged', function () {
+      assert.strictEqual(utils.convertImgPath('https://example.com/img.png?v=1', '/home/user/doc.md'), 'https://example.com/img.png?v=1');
+    });
+
+    it('should return https URL with fragment unchanged', function () {
+      assert.strictEqual(utils.convertImgPath('https://example.com/img.svg#icon', '/home/user/doc.md'), 'https://example.com/img.svg#icon');
+    });
+
+    it('should convert Unicode relative path to file URI', function () {
+      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), 'file:///home/user/画像/テスト.png');
+    });
+
+    it('should escape all # characters in path', function () {
+      var result = utils.convertImgPath('path/to/C#/image#1.png', '/home/user/doc.md');
+      assert.ok(result.indexOf('#') === -1, 'Expected no # in result: ' + result);
+      assert.ok(result.indexOf('%23') !== -1, 'Expected %23 in result: ' + result);
+    });
+
+    it('should not crash when filename is empty string', function () {
+      assert.doesNotThrow(function () {
+        utils.convertImgPath('image.png', '');
+      });
+    });
   });
 
   describe('isExcludeFile', function () {
@@ -302,6 +357,18 @@ describe('utils', function () {
 
     it('should return false when filename matches no patterns', function () {
       assert.strictEqual(utils.isExcludeFile('report.md', ['^DRAFT', '\\.txt$']), false);
+    });
+
+    it('should match filename with regex special characters when pattern escapes them', function () {
+      assert.strictEqual(utils.isExcludeFile('test[1].md', ['test\\[1\\]']), true);
+    });
+
+    it('should be case-sensitive by default', function () {
+      assert.strictEqual(utils.isExcludeFile('README.md', ['^readme']), false);
+    });
+
+    it('should match empty filename against .* pattern', function () {
+      assert.strictEqual(utils.isExcludeFile('', ['.*']), true);
     });
   });
 
@@ -379,6 +446,34 @@ describe('utils', function () {
       assert.strictEqual(
         utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
         'file:///workspace/my styles/custom.css'
+      );
+    });
+
+    it('should resolve fragment-bearing href as file-relative path', function () {
+      assert.strictEqual(
+        utils.resolveHref('style.css#print', '/home/user/doc.md', true, '/workspace'),
+        'file://' + path.join('/home/user', 'style.css#print')
+      );
+    });
+
+    it('should treat protocol-relative URL as absolute path', function () {
+      assert.strictEqual(
+        utils.resolveHref('//cdn.example.com/style.css', '/home/user/doc.md', false, '/workspace'),
+        'file:////cdn.example.com/style.css'
+      );
+    });
+
+    it('should treat file:// scheme href as relative path', function () {
+      assert.strictEqual(
+        utils.resolveHref('file:///home/user/style.css', '/home/user/doc.md', false, '/workspace'),
+        'file://' + path.join('/workspace', 'file:/home/user/style.css')
+      );
+    });
+
+    it('should resolve href with trailing slash as file-relative path', function () {
+      assert.strictEqual(
+        utils.resolveHref('styles/', '/home/user/doc.md', true, '/workspace'),
+        'file://' + path.join('/home/user', 'styles/')
       );
     });
 
@@ -491,6 +586,21 @@ describe('utils', function () {
       );
     });
 
+    it('should handle trailing slash in absolute directory path', function () {
+      var dirWithSlash = tmpDir + '/';
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', dirWithSlash, false, '/home/user/doc.md', '/workspace'),
+        path.join(tmpDir, 'doc.pdf')
+      );
+    });
+
+    it('should not expand ~ in the middle of path', function () {
+      assert.strictEqual(
+        utils.resolveOutputDir('/home/user/doc.pdf', 'foo/~/bar', false, '/home/user/doc.md', '/workspace'),
+        path.join('/workspace', 'foo/~/bar', 'doc.pdf')
+      );
+    });
+
     (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
       assert.strictEqual(
         utils.resolveOutputDir('C:\\docs\\doc.pdf', 'build', false, 'C:\\docs\\doc.md', 'C:\\workspace'),
@@ -579,6 +689,46 @@ describe('utils', function () {
       });
       assert.ok(result.indexOf('<link rel="stylesheet"') !== -1, 'Expected <link> tag');
       assert.ok(result.indexOf('file:///resolved/custom.css') !== -1, 'Expected resolved href');
+    });
+
+    it('should skip markdownStyles when value is a string instead of array', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: true,
+        highlight: false,
+        highlightStyle: '',
+        markdownStyles: 'style.css',
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return 'file:///resolved/' + href; },
+      });
+      assert.ok(result.indexOf('file:///resolved/style.css') === -1, 'Expected no link tag for string markdownStyles');
+    });
+
+    it('should skip markdownPdfStyles when value is a string instead of array', function () {
+      var result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: false,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: 'custom.css',
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return 'file:///resolved/' + href; },
+      });
+      assert.strictEqual(result, '');
+    });
+
+    it('should propagate exception from resolveHrefFn', function () {
+      assert.throws(function () {
+        utils.buildStyleTags({
+          includeDefaultStyles: false,
+          highlight: false,
+          highlightStyle: '',
+          markdownStyles: [],
+          markdownPdfStyles: ['will-throw.css'],
+          baseDir: baseDir,
+          resolveHrefFn: function () { throw new Error('resolve failed'); },
+        });
+      }, /resolve failed/);
     });
   });
 });
