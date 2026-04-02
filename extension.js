@@ -127,18 +127,7 @@ function isMarkdownPdfOnSaveExclude() {
     var editor = vscode.window.activeTextEditor;
     var filename = path.basename(editor.document.fileName);
     var patterns = vscode.workspace.getConfiguration('markdown-pdf')['convertOnSaveExclude'] || '';
-    var pattern;
-    var i;
-    if (patterns && Array.isArray(patterns) && patterns.length > 0) {
-      for (i = 0; i < patterns.length; i++) {
-        pattern = patterns[i];
-        var re = new RegExp(pattern);
-        if (re.test(filename)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return utils.isExcludeFile(filename, patterns);
   } catch (error) {
     showErrorMessage('isMarkdownPdfOnSaveExclude()', error);
   }
@@ -494,45 +483,33 @@ function deleteFile (path) {
 
 function getOutputDir(filename, resource) {
   try {
-    var outputDir;
     if (resource === undefined) {
       return filename;
     }
     var outputDirectory = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '';
-    if (outputDirectory.length === 0) {
-      return filename;
-    }
-
-    // Use a home directory relative path If it starts with ~.
-    if (outputDirectory.indexOf('~') === 0) {
-      outputDir = outputDirectory.replace(/^~/, os.homedir());
-      mkdir(outputDir);
-      return path.join(outputDir, path.basename(filename));
-    }
-
-    // Use path if it is absolute
-    if (path.isAbsolute(outputDirectory)) {
-      if (!utils.isExistsDir(outputDirectory)) {
-        showErrorMessage(`The output directory specified by the markdown-pdf.outputDirectory option does not exist.\
-          Check the markdown-pdf.outputDirectory option. ` + outputDirectory);
-        return;
-      }
-      return path.join(outputDirectory, path.basename(filename));
-    }
-
-    // Use a workspace relative path if there is a workspace and markdown-pdf.outputDirectoryRootPath = workspace
     var outputDirectoryRelativePathFile = vscode.workspace.getConfiguration('markdown-pdf')['outputDirectoryRelativePathFile'];
     let root = vscode.workspace.getWorkspaceFolder(resource);
-    if (outputDirectoryRelativePathFile === false && root) {
-      outputDir = path.join(root.uri.fsPath, outputDirectory);
-      mkdir(outputDir);
-      return path.join(outputDir, path.basename(filename));
+    var result = utils.resolveOutputDir(
+      filename,
+      outputDirectory,
+      outputDirectoryRelativePathFile,
+      resource.fsPath,
+      root ? root.uri.fsPath : undefined
+    );
+
+    if (result === null) {
+      showErrorMessage(`The output directory specified by the markdown-pdf.outputDirectory option does not exist.\
+        Check the markdown-pdf.outputDirectory option. ` + outputDirectory);
+      return;
     }
 
-    // Otherwise look relative to the markdown file
-    outputDir = path.join(path.dirname(resource.fsPath), outputDirectory);
-    mkdir(outputDir);
-    return path.join(outputDir, path.basename(filename));
+    if (outputDirectory.indexOf('~') === 0) {
+      mkdir(outputDirectory.replace(/^~/, os.homedir()));
+    } else if (outputDirectory.length > 0 && !path.isAbsolute(outputDirectory)) {
+      mkdir(path.dirname(result));
+    }
+
+    return result;
   } catch (error) {
     showErrorMessage('getOutputDir()', error);
   }
@@ -548,61 +525,23 @@ function mkdir(path) {
 
 function readStyles(uri) {
   try {
-    var includeDefaultStyles;
-    var style = '';
-    var styles = '';
-    var filename = '';
-    var i;
-
-    includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
-
-    // 1. read the style of the vscode.
-    if (includeDefaultStyles) {
-      filename = path.join(__dirname, 'styles', 'markdown.css');
-      style += utils.makeCss(filename);
-    }
-
-    // 2. read the style of the markdown.styles setting.
-    if (includeDefaultStyles) {
-      styles = vscode.workspace.getConfiguration('markdown')['styles'];
-      if (styles && Array.isArray(styles) && styles.length > 0) {
-        for (i = 0; i < styles.length; i++) {
-          var href = fixHref(uri, styles[i]);
-          style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
-        }
-      }
-    }
-
-    // 3. read the style of the highlight.js.
+    var includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
     var highlightStyle = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || '';
-    var ishighlight = vscode.workspace.getConfiguration('markdown-pdf')['highlight'];
-    if (ishighlight) {
-      if (highlightStyle) {
-        var css = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || 'github.css';
-        filename = path.join(__dirname, 'node_modules', 'highlight.js', 'styles', css);
-        style += utils.makeCss(filename);
-      } else {
-        filename = path.join(__dirname, 'styles', 'tomorrow.css');
-        style += utils.makeCss(filename);
-      }
-    }
+    var highlight = vscode.workspace.getConfiguration('markdown-pdf')['highlight'];
+    var markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
+    var markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
 
-    // 4. read the style of the markdown-pdf.
-    if (includeDefaultStyles) {
-      filename = path.join(__dirname, 'styles', 'markdown-pdf.css');
-      style += utils.makeCss(filename);
-    }
-
-    // 5. read the style of the markdown-pdf.styles settings.
-    styles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
-    if (styles && Array.isArray(styles) && styles.length > 0) {
-      for (i = 0; i < styles.length; i++) {
-        var href = fixHref(uri, styles[i]);
-        style += '<link rel=\"stylesheet\" href=\"' + href + '\" type=\"text/css\">';
-      }
-    }
-
-    return style;
+    return utils.buildStyleTags({
+      includeDefaultStyles: includeDefaultStyles,
+      highlight: highlight,
+      highlightStyle: highlightStyle,
+      markdownStyles: markdownStyles,
+      markdownPdfStyles: markdownPdfStyles,
+      baseDir: __dirname,
+      resolveHrefFn: function (href) {
+        return fixHref(uri, href);
+      },
+    });
   } catch (error) {
     showErrorMessage('readStyles()', error);
   }
@@ -627,25 +566,9 @@ function fixHref(resource, href) {
       return hrefUri.toString();
     }
 
-    // Use a home directory relative path If it starts with ^.
-    if (href.indexOf('~') === 0) {
-      return vscode.Uri.file(href.replace(/^~/, os.homedir())).toString();
-    }
-
-    // Use href as file URI if it is absolute
-    if (path.isAbsolute(href)) {
-      return vscode.Uri.file(href).toString();
-    }
-
-    // Use a workspace relative path if there is a workspace and markdown-pdf.stylesRelativePathFile is false
     var stylesRelativePathFile = vscode.workspace.getConfiguration('markdown-pdf')['stylesRelativePathFile'];
     let root = vscode.workspace.getWorkspaceFolder(resource);
-    if (stylesRelativePathFile === false && root) {
-      return vscode.Uri.file(path.join(root.uri.fsPath, href)).toString();
-    }
-
-    // Otherwise look relative to the markdown file
-    return vscode.Uri.file(path.join(path.dirname(resource.fsPath), href)).toString();
+    return utils.resolveHref(href, resource.fsPath, stylesRelativePathFile, root ? root.uri.fsPath : undefined);
   } catch (error) {
     showErrorMessage('fixHref()', error);
   }

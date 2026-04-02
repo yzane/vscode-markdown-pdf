@@ -6,9 +6,9 @@
 
 **Architecture:** `extension.js` の4関数（`isMarkdownPdfOnSaveExclude`, `getOutputDir`, `fixHref`, `readStyles`）からVS Code API非依存のロジックを抽出。`src/utils.js` に4つの純粋関数を追加し、`extension.js` は設定値取得後にこれらに委譲する形にリファクタリング。テストは既存の `test/unit/utils.test.js` に追加。ソースコード内のコメントは英語で記述。
 
-**Tech Stack:** Mocha ^11, Node.js 組み込み `assert`
+**Tech Stack:** Mocha ^7.1.1, Node.js 組み込み `assert`
 
-**設計ドキュメント:** `docs/superpowers/specs/2026-03-30-extract-and-test-design.md`
+**設計ドキュメント:** `docs/superpowers/specs/2026-03-30-03-extract-and-test-design.md`
 
 ---
 
@@ -100,7 +100,7 @@ function isMarkdownPdfOnSaveExclude() {
 - [ ] **Step 6: 全ユニットテストを実行**
 
 実行: `npm run test:unit`
-期待: 全テスト passing（既存41件 + 新規5件 = 46件）
+期待: 全テスト passing（既存42件 + 新規5件 = 47件）
 
 - [ ] **Step 7: コミット**
 
@@ -262,7 +262,7 @@ function fixHref(resource, href) {
 - [ ] **Step 6: 全ユニットテストを実行**
 
 実行: `npm run test:unit`
-期待: 全テスト passing（46件 + 新規9件 = 55件）
+期待: 全テスト passing（47件 + 新規9件 = 56件）
 
 - [ ] **Step 7: コミット**
 
