@@ -915,7 +915,7 @@
     "removeNPMAbsolutePaths": "^2.0.0"
   },
   "dependencies": {
-    "cheerio": "^0.20.0",
+    "cheerio": "^1.2.0",
     "emoji-images": "^0.1.1",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
