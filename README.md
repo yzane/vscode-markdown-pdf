@@ -33,7 +33,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Features
 
 Supports the following features
-* [Syntax highlighting](https://highlightjs.org/static/demo/)
+* [Syntax highlighting](https://highlightjs.org/demo)
 * [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
@@ -358,9 +358,9 @@ If the download is not successful or you want to avoid downloading every time yo
   - boolean. Default: true
 
 #### `markdown-pdf.highlightStyle`
-  - Set the style file name. for example: github.css, monokai.css ...
-  - [file name list](https://github.com/isagalaev/highlight.js/tree/master/src/styles)
-  - demo site : https://highlightjs.org/static/demo/
+  - Set the current `highlight.js` style file name. Examples: `github.css`, `monokai.css`, `base16/solarized-dark.css`
+  - [file name list](https://github.com/highlightjs/highlight.js/tree/main/src/styles)
+  - demo site : https://highlightjs.org/demo
 
 ```javascript
 "markdown-pdf.highlightStyle": "github.css",
@@ -628,7 +628,7 @@ MIT
 * [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
-* [isagalaev/highlight.js](https://github.com/isagalaev/highlight.js)
+* [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)
 * [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
 * [janl/mustache.js](https://github.com/janl/mustache.js)
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)

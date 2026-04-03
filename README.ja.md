@@ -31,7 +31,7 @@
 ## 機能
 
 以下の機能をサポートしています。
-* [Syntax highlighting](https://highlightjs.org/static/demo/)
+* [Syntax highlighting](https://highlightjs.org/demo)
 * [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
@@ -353,9 +353,9 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
   - boolean. Default: true
 
 #### `markdown-pdf.highlightStyle`
-  - スタイルシートのファイル名を指定します。例: github.css, monokai.css ...
-  - [ファイル名のリスト](https://github.com/isagalaev/highlight.js/tree/master/src/styles)
-  - [highlight.js demo](https://highlightjs.org/static/demo/)
+  - 現在の `highlight.js` のスタイルファイル名を指定します。例: `github.css`, `monokai.css`, `base16/solarized-dark.css`
+  - [ファイル名のリスト](https://github.com/highlightjs/highlight.js/tree/main/src/styles)
+  - [highlight.js demo](https://highlightjs.org/demo)
 
 ```javascript
 "markdown-pdf.highlightStyle": "github.css",
@@ -622,7 +622,7 @@ MIT
 * [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
-* [isagalaev/highlight.js](https://github.com/isagalaev/highlight.js)
+* [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)
 * [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
 * [janl/mustache.js](https://github.com/janl/mustache.js)
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)

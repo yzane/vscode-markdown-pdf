@@ -711,7 +711,7 @@
             "base16/zenburn.min.css"
           ],
           "default": "",
-          "markdownDescription": "Set the style file name. [highlight.js demo](https://highlightjs.org/static/demo/) [highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/master/src/styles)"
+          "markdownDescription": "Set the current highlight.js style file name. [highlight.js demo](https://highlightjs.org/demo) [highlight.js/src/styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles)"
         },
         "markdown-pdf.breaks": {
           "type": "boolean",
