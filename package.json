@@ -927,6 +927,6 @@
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
     "mustache": "^4.2.0",
-    "puppeteer-core": "^2.1.1"
+    "puppeteer-core": "^24.40.0"
   }
 }
