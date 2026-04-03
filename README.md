@@ -25,10 +25,10 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## Specification Changes
 
-- Default Date Format for PDF Headers and Footers Modified
-  - Starting from version 1.5.0, the default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
-  - This change aims to improve the consistency of date displays, as the previous format could vary depending on the environment.
-  - If you wish to use the previous format, please refer to [markdown-pdf.headerTemplate](#markdown-pdfheadertemplate).
+- Syntax Highlight Style Changes
+  - Starting from version 1.6.0, highlight.js has been updated from version 9 to version 11. As a result, some syntax highlighting style names have been changed or removed.
+  - If your configured style name is no longer current, the extension will display a warning message. Legacy style aliases are mapped to current style names when possible, and the extension falls back to `tomorrow.css` only when no matching current style is available.
+  - Please check the [available styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles) and update your [markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle) setting if needed.
 
 ## Features
 
