@@ -93,13 +93,15 @@ function getExpectedBuildId() {
 
 async function ensureChromiumDownloaded(cacheDir, onProgress) {
   var buildId = getExpectedBuildId();
+  var platform = PB.detectBrowserPlatform();
   var executablePath;
 
   try {
     executablePath = PB.computeExecutablePath({
       browser: PB.Browser.CHROME,
       buildId: buildId,
-      cacheDir: cacheDir
+      cacheDir: cacheDir,
+      platform: platform
     });
     fs.accessSync(executablePath);
     return executablePath;
@@ -112,6 +114,7 @@ async function ensureChromiumDownloaded(cacheDir, onProgress) {
     browser: PB.Browser.CHROME,
     buildId: buildId,
     cacheDir: cacheDir,
+    platform: platform,
     downloadProgressCallback: onProgress
   });
 
