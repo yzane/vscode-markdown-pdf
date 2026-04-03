@@ -8,6 +8,22 @@ var chromiumResolver = require('./src/chromium-resolver');
 var INSTALL_CHECK = false;
 var extensionContext = null;
 
+function getExtensionCacheDir() {
+  if (!extensionContext) {
+    return path.join(os.tmpdir(), 'vscode-markdown-pdf');
+  }
+
+  if (extensionContext.globalStorageUri && extensionContext.globalStorageUri.fsPath) {
+    return extensionContext.globalStorageUri.fsPath;
+  }
+
+  if (extensionContext.globalStoragePath) {
+    return extensionContext.globalStoragePath;
+  }
+
+  return path.join(os.tmpdir(), 'vscode-markdown-pdf');
+}
+
 function activate(context) {
   extensionContext = context;
   init();
@@ -299,7 +315,7 @@ function exportPdf(data, filename, type, uri) {
         // create temporary file
         var tmpfilename = utils.generateTmpHtmlFilename(filename);
         exportHtml(data, tmpfilename);
-        var cacheDir = extensionContext ? extensionContext.globalStorageUri.fsPath : '';
+        var cacheDir = getExtensionCacheDir();
         var userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
         var resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir);
         if (!resolvedExecPath) {
@@ -500,7 +516,7 @@ function checkPuppeteerBinary() {
       var cachedPath = PB.computeExecutablePath({
         browser: PB.Browser.CHROME,
         buildId: chromiumResolver.getExpectedBuildId(),
-        cacheDir: extensionContext.globalStorageUri.fsPath,
+        cacheDir: getExtensionCacheDir(),
         platform: PB.detectBrowserPlatform()
       });
       try {
@@ -528,7 +544,7 @@ async function installChromium() {
     setProxy();
 
     var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
-    var cacheDir = extensionContext ? extensionContext.globalStorageUri.fsPath : '';
+    var cacheDir = getExtensionCacheDir();
     var executablePath = await chromiumResolver.ensureChromiumDownloaded(cacheDir, onProgress);
 
     if (executablePath && checkPuppeteerBinary()) {
