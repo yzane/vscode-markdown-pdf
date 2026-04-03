@@ -279,16 +279,6 @@ function exportHtml(data, filename) {
  * export a html to a pdf file (html-pdf)
  */
 function exportPdf(data, filename, type, uri) {
-
-  if (!INSTALL_CHECK) {
-    return;
-  }
-  if (!checkPuppeteerBinary()) {
-    showErrorMessage('Chromium or Chrome does not exist! \
-      See https://github.com/yzane/vscode-markdown-pdf#install');
-    return;
-  }
-
   var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   var exportFilename = getOutputDir(filename, uri);
@@ -313,6 +303,9 @@ function exportPdf(data, filename, type, uri) {
         var userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
         var resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir);
         if (!resolvedExecPath) {
+          if (utils.isExistsPath(tmpfilename)) {
+            deleteFile(tmpfilename);
+          }
           showErrorMessage('Chromium or Chrome does not exist! \
       See https://github.com/yzane/vscode-markdown-pdf#install');
           return;
