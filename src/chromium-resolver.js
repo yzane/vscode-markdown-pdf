@@ -3,6 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var PB = require('@puppeteer/browsers');
+var revisions = require('puppeteer-core/lib/cjs/puppeteer/revisions.js');
 
 function findChromiumFromUserSetting(executablePath) {
   if (!executablePath) {
@@ -86,8 +87,92 @@ function getWindowsCandidates() {
   return candidates;
 }
 
+function getExpectedBuildId() {
+  return revisions.PUPPETEER_REVISIONS.chrome;
+}
+
+async function ensureChromiumDownloaded(cacheDir, onProgress) {
+  var buildId = getExpectedBuildId();
+  var executablePath;
+
+  try {
+    executablePath = PB.computeExecutablePath({
+      browser: PB.Browser.CHROME,
+      buildId: buildId,
+      cacheDir: cacheDir
+    });
+    fs.accessSync(executablePath);
+    return executablePath;
+  } catch (error) {
+  }
+
+  fs.mkdirSync(cacheDir, { recursive: true });
+
+  var installedBrowser = await PB.install({
+    browser: PB.Browser.CHROME,
+    buildId: buildId,
+    cacheDir: cacheDir,
+    downloadProgressCallback: onProgress
+  });
+
+  await cleanupOldChromium(cacheDir, buildId);
+
+  return installedBrowser.executablePath;
+}
+
+async function cleanupOldChromium(cacheDir, keepBuildId) {
+  try {
+    var installedBrowsers = await PB.getInstalledBrowsers({ cacheDir: cacheDir });
+
+    for (var i = 0; i < installedBrowsers.length; i++) {
+      var installedBrowser = installedBrowsers[i];
+
+      if (installedBrowser.browser !== PB.Browser.CHROME || installedBrowser.buildId === keepBuildId) {
+        continue;
+      }
+
+      try {
+        await PB.uninstall({
+          browser: installedBrowser.browser,
+          buildId: installedBrowser.buildId,
+          cacheDir: cacheDir,
+          platform: installedBrowser.platform
+        });
+        console.log('[Markdown PDF] Removed old Chromium: ' + installedBrowser.buildId);
+      } catch (error) {
+        console.warn('[Markdown PDF] Failed to remove old Chromium: ' + (error && error.message ? error.message : error));
+      }
+    }
+  } catch (error) {
+    console.warn('[Markdown PDF] Failed to cleanup old Chromium: ' + (error && error.message ? error.message : error));
+  }
+}
+
+async function resolveChromiumPath(userExecutablePath, cacheDir, onProgress) {
+  var executablePath = findChromiumFromUserSetting(userExecutablePath);
+  if (executablePath) {
+    return executablePath;
+  }
+
+  executablePath = findChromiumFromSystem();
+  if (executablePath) {
+    return executablePath;
+  }
+
+  try {
+    return await ensureChromiumDownloaded(cacheDir, onProgress);
+  } catch (error) {
+    console.error('[Markdown PDF] Failed to download Chromium: ' + (error && error.message ? error.message : error));
+    return null;
+  }
+}
+
 module.exports = {
+  cleanupOldChromium: cleanupOldChromium,
+  ensureChromiumDownloaded: ensureChromiumDownloaded,
   findChromiumFromUserSetting: findChromiumFromUserSetting,
   findChromiumFromSystem: findChromiumFromSystem,
-  getEdgeAndChromiumCandidates: getEdgeAndChromiumCandidates
+  getEdgeAndChromiumCandidates: getEdgeAndChromiumCandidates,
+  getExpectedBuildId: getExpectedBuildId,
+  resolveChromiumPath: resolveChromiumPath
 };

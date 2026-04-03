@@ -43,4 +43,18 @@ describe('chromium-resolver', function () {
       assert.ok(typeof result === 'string' || result === null);
     });
   });
+
+  describe('getExpectedBuildId', function () {
+    it('should return a non-empty build id string', function () {
+      var buildId = chromiumResolver.getExpectedBuildId();
+      assert.strictEqual(typeof buildId, 'string');
+      assert.match(buildId, /^\d+\.\d+\.\d+\.\d+$/);
+    });
+  });
+
+  describe('cleanupOldChromium', function () {
+    it('should not reject when the cache directory does not exist', async function () {
+      await chromiumResolver.cleanupOldChromium('/nonexistent/cache/dir', 'keep-this-id');
+    });
+  });
 });
