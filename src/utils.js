@@ -158,7 +158,7 @@ function resolveHref(href, resourceFsPath, stylesRelativePathFile, workspaceFsPa
     return 'file://' + href.replace(/^~/, os.homedir());
   }
 
-  if (path.isAbsolute(href)) {
+  if (path.isAbsolute(href) || path.win32.isAbsolute(href)) {
     return 'file://' + href;
   }
 
@@ -192,6 +192,35 @@ function resolveOutputDir(filename, outputDirectory, outputDirectoryRelativePath
   return path.join(path.dirname(resourceFsPath), outputDirectory, path.basename(filename));
 }
 
+var LEGACY_HIGHLIGHT_STYLE_ALIASES = {
+  'github-gist.css': 'github.css',
+  'kimbie.dark.css': 'kimbie-dark.css',
+  'kimbie.light.css': 'kimbie-light.css',
+  'qtcreator_dark.css': 'qtcreator-dark.css',
+  'qtcreator_light.css': 'qtcreator-light.css',
+};
+
+function resolveHighlightStyle(baseDir, highlightStyle) {
+  var resolvedStyle = LEGACY_HIGHLIGHT_STYLE_ALIASES[highlightStyle] || highlightStyle;
+  var stylePath = path.join(baseDir, 'node_modules', 'highlight.js', 'styles', resolvedStyle);
+
+  if (fs.existsSync(stylePath)) {
+    return {
+      filename: stylePath,
+      requestedStyle: highlightStyle,
+      resolvedStyle: resolvedStyle,
+      usedFallback: resolvedStyle !== highlightStyle,
+    };
+  }
+
+  return {
+    filename: path.join(baseDir, 'styles', 'tomorrow.css'),
+    requestedStyle: highlightStyle,
+    resolvedStyle: 'tomorrow.css',
+    usedFallback: true,
+  };
+}
+
 function buildStyleTags(options) {
   var style = '';
   var filename = '';
@@ -213,7 +242,11 @@ function buildStyleTags(options) {
 
   if (options.highlight) {
     if (options.highlightStyle) {
-      filename = path.join(options.baseDir, 'node_modules', 'highlight.js', 'styles', options.highlightStyle);
+      var resolvedHighlight = resolveHighlightStyle(options.baseDir, options.highlightStyle);
+      filename = resolvedHighlight.filename;
+      if (options.onMissingHighlightStyle && resolvedHighlight.usedFallback) {
+        options.onMissingHighlightStyle(resolvedHighlight.requestedStyle, resolvedHighlight.resolvedStyle);
+      }
       style += makeCss(filename);
     } else {
       filename = path.join(options.baseDir, 'styles', 'tomorrow.css');
@@ -294,7 +327,7 @@ function buildHighlightCallback(hljs, escapeHtml) {
 
     if (lang && hljs.getLanguage(lang)) {
       try {
-        str = hljs.highlight(lang, str, true).value;
+        str = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
       } catch (error) {
         str = escapeHtml(str);
       }

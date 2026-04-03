@@ -56,18 +56,18 @@ function safeDelete(filePath) {
 }
 
 const HTML_FEATURES = [
-  'plantuml',
-  'syntax-highlighting',
-  'emoji',
-  'checkbox',
-  'container',
-  'include',
-  'mermaid',
-  'plantuml-custom-marker',
-  'frontmatter-breaks',
-  'frontmatter-no-emoji',
-  'breaks',
-  'image',
+  { name: 'plantuml' },
+  { name: 'syntax-highlighting' },
+  { name: 'emoji' },
+  { name: 'checkbox' },
+  { name: 'container' },
+  { name: 'include' },
+  { name: 'mermaid' },
+  { name: 'plantuml-custom-marker' },
+  { name: 'frontmatter-breaks' },
+  { name: 'frontmatter-no-emoji' },
+  { name: 'breaks' },
+  { name: 'image' },
 ];
 
 suite('Integration HTML Snapshot Tests', () => {
@@ -89,20 +89,21 @@ suite('Integration HTML Snapshot Tests', () => {
     originalListeners.forEach((listener) => process.on('uncaughtException', listener));
   });
 
-  HTML_FEATURES.forEach((feature) => {
-    test(`${feature}: HTML snapshot matches expected`, async function () {
+  HTML_FEATURES.forEach(({ name, expectedName = name }) => {
+    test(`${name}: HTML snapshot matches expected`, async function () {
       this.timeout(60000);
 
-      const mdFile = `${feature}.md`;
-      const generatedHtmlPath = path.resolve(FIXTURES_DIR, `${feature}.html`);
-      const expectedHtmlPath = path.resolve(EXPECTED_DIR, `${feature}.html`);
+      const mdFile = `${name}.md`;
+      const generatedHtmlPath = path.resolve(FIXTURES_DIR, `${name}.html`);
+      const expectedHtmlPath = path.resolve(EXPECTED_DIR, `${expectedName}.html`);
 
       try {
         await executeMarkdownPdfCommand(mdFile, 'extension.markdown-pdf.html');
         await waitForFile(generatedHtmlPath);
 
         const generatedHtml = normalizeHtml(fs.readFileSync(generatedHtmlPath, 'utf-8'));
-        const expectedHtml = fs.readFileSync(expectedHtmlPath, 'utf-8');
+        const expectedHtml = fs.readFileSync(expectedHtmlPath, 'utf-8')
+          .replace(`<title>${expectedName}.md</title>`, `<title>${name}.md</title>`);
         assert.strictEqual(generatedHtml, expectedHtml);
       } finally {
         safeDelete(generatedHtmlPath);
@@ -116,8 +117,8 @@ suite('Integration Binary Generation Tests', () => {
   const combinedBase = path.resolve(FIXTURES_DIR, '_combined');
 
   suiteSetup(function () {
-    const contents = HTML_FEATURES.map((feature) => {
-      const filePath = path.resolve(FIXTURES_DIR, `${feature}.md`);
+    const contents = HTML_FEATURES.map(({ name }) => {
+      const filePath = path.resolve(FIXTURES_DIR, `${name}.md`);
       return fs.readFileSync(filePath, 'utf-8');
     });
     fs.writeFileSync(combinedMd, contents.join('\n\n---\n\n'), 'utf-8');
@@ -125,6 +126,25 @@ suite('Integration Binary Generation Tests', () => {
 
   suiteTeardown(function () {
     safeDelete(combinedMd);
+  });
+
+  test('combined fixture renders an emoji signal', async function () {
+    this.timeout(60000);
+
+    const outputPath = `${combinedBase}.html`;
+
+    try {
+      await executeMarkdownPdfCommand('_combined.md', 'extension.markdown-pdf.html');
+      await waitForFile(outputPath);
+
+      const generatedHtml = normalizeHtml(fs.readFileSync(outputPath, 'utf-8'));
+      assert.ok(
+        generatedHtml.includes('<img class="emoji" alt="smile"'),
+        'combined HTML should include rendered emoji output'
+      );
+    } finally {
+      safeDelete(outputPath);
+    }
   });
 
   const binaryFormats = [

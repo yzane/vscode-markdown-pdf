@@ -176,7 +176,7 @@ function convertMarkdownToHtml(filename, type, text) {
       statusbarmessage.dispose();
       showErrorMessage('markdown-it-emoji:options', error);
     }
-    md.use(require('markdown-it-emoji'), options);
+    md.use(require('markdown-it-emoji').full, options);
     md.renderer.rules.emoji = function (token, idx) {
       var emoji = token[idx].markup;
       var emojipath = path.join(__dirname, 'node_modules', 'emoji-images', 'pngs', emoji + '.png');
@@ -214,7 +214,8 @@ function convertMarkdownToHtml(filename, type, text) {
   if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
     md.use(require("markdown-it-include"), {
       root: path.dirname(filename),
-      includeRe: /:\[.+\]\((.+\..+)\)/i
+      includeRe: /:\[.+\](\(.+\..+\))/i,
+      bracesAreOptional: true
     });
   }
 
@@ -379,8 +380,7 @@ function exportPdf(data, filename, type, uri) {
 }
 
 function deleteFile (path) {
-  var rimraf = require('rimraf')
-  rimraf.sync(path);
+  fs.rmSync(path, { recursive: true, force: true });
 }
 
 function getOutputDir(filename, resource) {
@@ -418,11 +418,7 @@ function getOutputDir(filename, resource) {
 }
 
 function mkdir(path) {
-  if (utils.isExistsDir(path)) {
-    return;
-  }
-  var mkdirp = require('mkdirp');
-  return mkdirp.sync(path);
+  fs.mkdirSync(path, { recursive: true });
 }
 
 function readStyles(uri) {
@@ -440,6 +436,13 @@ function readStyles(uri) {
       markdownStyles: markdownStyles,
       markdownPdfStyles: markdownPdfStyles,
       baseDir: __dirname,
+      onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+        vscode.window.showWarningMessage(
+          'The configured markdown-pdf.highlightStyle "' + requestedStyle +
+          '" is no longer supported. Falling back to "' + resolvedStyle +
+          '". See https://github.com/yzane/vscode-markdown-pdf#markdown-pdfhighlightstyle for available styles.'
+        );
+      },
       resolveHrefFn: function (href) {
         return fixHref(uri, href);
       },

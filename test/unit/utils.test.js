@@ -478,10 +478,17 @@ describe('utils', function () {
       );
     });
 
-    (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
+    it('should handle Windows absolute path', function () {
       assert.strictEqual(
         utils.resolveHref('C:\\styles\\custom.css', 'C:\\docs\\doc.md', false, 'C:\\workspace'),
         'file://C:\\styles\\custom.css'
+      );
+    });
+
+    it('should handle UNC absolute path', function () {
+      assert.strictEqual(
+        utils.resolveHref('\\\\server\\share\\styles\\custom.css', 'C:\\docs\\doc.md', false, 'C:\\workspace'),
+        'file://\\\\server\\share\\styles\\custom.css'
       );
     });
   });
@@ -663,6 +670,96 @@ describe('utils', function () {
         resolveHrefFn: function (href) { return href; },
       });
       assert.ok(result.indexOf('<style>') !== -1, 'Expected default highlight style in result');
+    });
+
+    it('should map legacy highlight style aliases to supported v11 style names', function () {
+      var fallbacks = [];
+      var legacyResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'github-gist.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+          fallbacks.push([requestedStyle, resolvedStyle]);
+        },
+        resolveHrefFn: function (href) { return href; },
+      });
+      var currentResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'github.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+
+      assert.strictEqual(legacyResult, currentResult);
+      assert.deepStrictEqual(fallbacks, [['github-gist.css', 'github.css']]);
+    });
+
+    it('should fallback to the default highlight style when the configured style does not exist', function () {
+      var fallbacks = [];
+      var missingResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: 'darcula.css',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+          fallbacks.push([requestedStyle, resolvedStyle]);
+        },
+        resolveHrefFn: function (href) { return href; },
+      });
+      var defaultResult = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: true,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: [],
+        baseDir: baseDir,
+        resolveHrefFn: function (href) { return href; },
+      });
+
+      assert.strictEqual(missingResult, defaultResult);
+      assert.deepStrictEqual(fallbacks, [['darcula.css', 'tomorrow.css']]);
+    });
+
+    it('should not warn before falling back when the configured highlight style does not exist', function () {
+      var warnings = [];
+      var originalWarn = console.warn;
+      console.warn = function (message) {
+        warnings.push(message);
+      };
+
+      try {
+        var missingResult = utils.buildStyleTags({
+          includeDefaultStyles: false,
+          highlight: true,
+          highlightStyle: 'darcula.css',
+          markdownStyles: [],
+          markdownPdfStyles: [],
+          baseDir: baseDir,
+          resolveHrefFn: function (href) { return href; },
+        });
+        var defaultResult = utils.buildStyleTags({
+          includeDefaultStyles: false,
+          highlight: true,
+          highlightStyle: '',
+          markdownStyles: [],
+          markdownPdfStyles: [],
+          baseDir: baseDir,
+          resolveHrefFn: function (href) { return href; },
+        });
+
+        assert.strictEqual(missingResult, defaultResult);
+        assert.deepStrictEqual(warnings, []);
+      } finally {
+        console.warn = originalWarn;
+      }
     });
 
     it('should skip highlight style when highlight is false', function () {
@@ -957,6 +1054,20 @@ describe('utils', function () {
       assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
       assert.ok(result.indexOf('</div></code></pre>') > 0);
       assert.ok(result.indexOf('<span') > 0);
+    });
+
+    it('should call hljs.highlight with v11 options object', function () {
+      var stubHljs = {
+        getLanguage: function () { return true; },
+        highlight: function (str, options) {
+          assert.strictEqual(str, 'var x = 1;');
+          assert.deepStrictEqual(options, { language: 'javascript', ignoreIllegals: true });
+          return { value: '<span class="hljs-keyword">var</span> x = 1;' };
+        },
+      };
+      var highlight = utils.buildHighlightCallback(stubHljs, escapeHtml);
+      var result = highlight('var x = 1;', 'javascript');
+      assert.strictEqual(result, '<pre class="hljs"><code><div><span class="hljs-keyword">var</span> x = 1;</div></code></pre>');
     });
 
     it('should escape and wrap when lang is unknown', function () {

@@ -2,7 +2,6 @@
 
 var fs  = require('fs');
 var path = require('path');
-var rimraf = require('rimraf')
 var removeNPMAbsolutePaths = require('removeNPMAbsolutePaths');
 
 // Delete the unnecessary files in order to reduce the size of the package
@@ -20,7 +19,7 @@ removeNPMAbsolutePaths(path.join(__dirname, '..', 'node_modules'), { force: true
   .catch(err => console.log(err.message));
 
 function deleteFile (dir) {
-  rimraf(dir, function(err) {
+  fs.rm(dir, { recursive: true, force: true }, function(err) {
     if (err) throw err;
     console.log(dir);
   });

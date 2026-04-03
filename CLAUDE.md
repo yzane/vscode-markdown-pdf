@@ -2,6 +2,7 @@
 
 - Plan and spec files under `docs/superpowers/` must be written in Japanese.
 - File naming for specs and plans: `YYYYMMDD-NN-<topic>-design.md` (specs) and `YYYYMMDD-NN-<topic>.md` (plans). This overrides the superpowers skill default of `YYYY-MM-DD-`.
+- The `NN` part is a sequential number within the same date. Check existing files to determine the next number before creating a new file.
 
 # Coding Rules
 

@@ -25,15 +25,15 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## Specification Changes
 
-- Default Date Format for PDF Headers and Footers Modified
-  - Starting from version 1.5.0, the default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
-  - This change aims to improve the consistency of date displays, as the previous format could vary depending on the environment.
-  - If you wish to use the previous format, please refer to [markdown-pdf.headerTemplate](#markdown-pdfheadertemplate).
+- Syntax Highlight Style Changes
+  - Starting from version 1.6.0, highlight.js has been updated from version 9 to version 11. As a result, some syntax highlighting style names have been changed or removed.
+  - If your configured style name is no longer current, the extension will display a warning message. Legacy style aliases are mapped to current style names when possible, and the extension falls back to `tomorrow.css` only when no matching current style is available.
+  - Please check the [available styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles) and update your [markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle) setting if needed.
 
 ## Features
 
 Supports the following features
-* [Syntax highlighting](https://highlightjs.org/static/demo/)
+* [Syntax highlighting](https://highlightjs.org/demo)
 * [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
@@ -358,9 +358,9 @@ If the download is not successful or you want to avoid downloading every time yo
   - boolean. Default: true
 
 #### `markdown-pdf.highlightStyle`
-  - Set the style file name. for example: github.css, monokai.css ...
-  - [file name list](https://github.com/isagalaev/highlight.js/tree/master/src/styles)
-  - demo site : https://highlightjs.org/static/demo/
+  - Set the current `highlight.js` style file name. Examples: `github.css`, `monokai.css`, `base16/solarized-dark.css`
+  - [file name list](https://github.com/highlightjs/highlight.js/tree/main/src/styles)
+  - demo site : https://highlightjs.org/demo
 
 ```javascript
 "markdown-pdf.highlightStyle": "github.css",
@@ -628,7 +628,7 @@ MIT
 * [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
-* [isagalaev/highlight.js](https://github.com/isagalaev/highlight.js)
+* [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)
 * [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
 * [janl/mustache.js](https://github.com/janl/mustache.js)
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)

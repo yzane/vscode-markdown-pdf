@@ -23,15 +23,15 @@
 
 ## 仕様変更
 
-- PDFのヘッダーとフッターのデフォルトの日付書式変更
-  - バージョン1.5.0から、ヘッダーとフッターのデフォルトの日付書式がISOベースの書式（YYYY-MM-DD）に変更されました。
-  - この変更は、以前の書式が環境によって異なる可能性があったため、日付表示の一貫性を向上させることを目的としています。
-  - 以前の書式を使用したい場合は、[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)を参照してください。
+- シンタックスハイライトのスタイル変更
+  - バージョン1.6.0から、highlight.js がバージョン9から11に更新されました。これにより、一部のシンタックスハイライトのスタイル名が変更または削除されています。
+  - 設定されたスタイル名が現在の名前ではない場合、拡張機能は警告メッセージを表示します。古いスタイル名の別名は、可能な場合は現在のスタイル名に読み替えられ、それでも対応するスタイルが見つからない場合にのみ `tomorrow.css` にフォールバックします。
+  - [利用可能なスタイル](https://github.com/highlightjs/highlight.js/tree/main/src/styles)を確認し、必要に応じて [markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle) の設定を更新してください。
 
 ## 機能
 
 以下の機能をサポートしています。
-* [Syntax highlighting](https://highlightjs.org/static/demo/)
+* [Syntax highlighting](https://highlightjs.org/demo)
 * [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
 * [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
@@ -353,9 +353,9 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
   - boolean. Default: true
 
 #### `markdown-pdf.highlightStyle`
-  - スタイルシートのファイル名を指定します。例: github.css, monokai.css ...
-  - [ファイル名のリスト](https://github.com/isagalaev/highlight.js/tree/master/src/styles)
-  - [highlight.js demo](https://highlightjs.org/static/demo/)
+  - 現在の `highlight.js` のスタイルファイル名を指定します。例: `github.css`, `monokai.css`, `base16/solarized-dark.css`
+  - [ファイル名のリスト](https://github.com/highlightjs/highlight.js/tree/main/src/styles)
+  - [highlight.js demo](https://highlightjs.org/demo)
 
 ```javascript
 "markdown-pdf.highlightStyle": "github.css",
@@ -622,7 +622,7 @@ MIT
 * [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
-* [isagalaev/highlight.js](https://github.com/isagalaev/highlight.js)
+* [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)
 * [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
 * [janl/mustache.js](https://github.com/janl/mustache.js)
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
