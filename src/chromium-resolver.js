@@ -3,7 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var PB = require('@puppeteer/browsers');
-var revisions = require('puppeteer-core/lib/cjs/puppeteer/revisions.js');
+var puppeteer = require('puppeteer-core');
 
 function findChromiumFromUserSetting(executablePath) {
   if (!executablePath) {
@@ -88,7 +88,7 @@ function getWindowsCandidates() {
 }
 
 function getExpectedBuildId() {
-  return revisions.PUPPETEER_REVISIONS.chrome;
+  return puppeteer.PUPPETEER_REVISIONS.chrome;
 }
 
 async function ensureChromiumDownloaded(cacheDir, onProgress) {

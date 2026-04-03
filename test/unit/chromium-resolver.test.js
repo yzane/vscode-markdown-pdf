@@ -5,6 +5,7 @@ var assert = require('assert');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
+var PB = require('@puppeteer/browsers');
 var chromiumResolver = require('../../src/chromium-resolver');
 
 describe('chromium-resolver', function () {
@@ -55,6 +56,48 @@ describe('chromium-resolver', function () {
   describe('cleanupOldChromium', function () {
     it('should not reject when the cache directory does not exist', async function () {
       await chromiumResolver.cleanupOldChromium('/nonexistent/cache/dir', 'keep-this-id');
+    });
+
+    it('should uninstall only old Chromium entries', async function () {
+      var originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      var originalUninstall = Object.getOwnPropertyDescriptor(PB, 'uninstall');
+      var uninstallCalls = [];
+
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () {
+          return [
+            { browser: PB.Browser.CHROME, buildId: 'keep-this-id', platform: 'linux' },
+            { browser: PB.Browser.CHROME, buildId: 'old-chrome-id', platform: 'linux' },
+            { browser: PB.Browser.FIREFOX, buildId: 'old-firefox-id', platform: 'linux' }
+          ];
+        }
+      });
+
+      Object.defineProperty(PB, 'uninstall', {
+        configurable: true,
+        enumerable: true,
+        value: async function (options) {
+          uninstallCalls.push(options);
+        }
+      });
+
+      try {
+        await chromiumResolver.cleanupOldChromium('/tmp/chromium-cache', 'keep-this-id');
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers);
+        Object.defineProperty(PB, 'uninstall', originalUninstall);
+      }
+
+      assert.deepStrictEqual(uninstallCalls, [
+        {
+          browser: PB.Browser.CHROME,
+          buildId: 'old-chrome-id',
+          cacheDir: '/tmp/chromium-cache',
+          platform: 'linux'
+        }
+      ]);
     });
   });
 });
