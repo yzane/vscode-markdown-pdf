@@ -439,7 +439,8 @@ function readStyles(uri) {
       onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
         vscode.window.showWarningMessage(
           'The configured markdown-pdf.highlightStyle "' + requestedStyle +
-          '" is no longer supported. Falling back to "' + resolvedStyle + '".'
+          '" is no longer supported. Falling back to "' + resolvedStyle +
+          '". See https://github.com/yzane/vscode-markdown-pdf#markdown-pdfhighlightstyle for available styles.'
         );
       },
       resolveHrefFn: function (href) {
