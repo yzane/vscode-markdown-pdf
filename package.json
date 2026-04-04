@@ -36,7 +36,7 @@
     "onCommand:extension.markdown-pdf.all",
     "onLanguage:markdown"
   ],
-  "main": "./extension",
+  "main": "./dist/extension",
   "contributes": {
     "commands": [
       {
@@ -904,13 +904,17 @@
     }
   },
   "scripts": {
+    "build": "esbuild extension.js --bundle --outfile=dist/extension.js --format=cjs --platform=node --external:vscode --external:puppeteer-core --external:@puppeteer/browsers",
+    "watch": "npm run build -- --watch",
+    "package": "npm run build && npx @vscode/vsce package",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node --test test/unit/**/*.test.js",
     "test:integration": "vscode-test --config .vscode-test.mjs"
   },
   "devDependencies": {
     "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.28.0"
   },
   "dependencies": {
     "cheerio": "^1.2.0",
