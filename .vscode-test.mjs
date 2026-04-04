@@ -2,15 +2,10 @@ import { defineConfig } from '@vscode/test-cli';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-const WINDOWS_VSCODE_PATH = '/mnt/c/Program Files/Microsoft VS Code/Code.exe';
-const isWSL2 = fs.existsSync(WINDOWS_VSCODE_PATH);
-
 function detectVSCodePath() {
   const candidates = [];
 
-  if (isWSL2) {
-    return null;
-  } else if (process.platform === 'win32') {
+  if (process.platform === 'win32') {
     candidates.push(
       path.join(process.env.LOCALAPPDATA || '', 'Programs/Microsoft VS Code/Code.exe'),
       'C:\\Program Files\\Microsoft VS Code\\Code.exe'
@@ -18,10 +13,14 @@ function detectVSCodePath() {
   } else if (process.platform === 'darwin') {
     candidates.push('/Applications/Visual Studio Code.app/Contents/MacOS/Electron');
   } else {
-    candidates.push('/usr/share/code/code', '/usr/bin/code');
+    candidates.push(
+      '/usr/share/code/code',
+      '/usr/bin/code',
+      '/mnt/c/Program Files/Microsoft VS Code/Code.exe'
+    );
   }
 
-  return candidates.find((candidate) => fs.existsSync(candidate)) || null;
+  return candidates.find((c) => fs.existsSync(c)) || null;
 }
 
 const vscodePath = detectVSCodePath();
