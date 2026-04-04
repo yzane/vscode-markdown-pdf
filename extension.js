@@ -10,7 +10,7 @@ var extensionContext = null;
 
 function getExtensionCacheDir() {
   if (!extensionContext) {
-    return path.join(os.tmpdir(), 'vscode-markdown-pdf');
+    return '';
   }
 
   if (extensionContext.globalStorageUri && extensionContext.globalStorageUri.fsPath) {
@@ -21,7 +21,7 @@ function getExtensionCacheDir() {
     return extensionContext.globalStoragePath;
   }
 
-  return path.join(os.tmpdir(), 'vscode-markdown-pdf');
+  return '';
 }
 
 function activate(context) {
@@ -512,11 +512,15 @@ function checkPuppeteerBinary() {
     }
 
     if (extensionContext) {
+      var cacheDir = getExtensionCacheDir();
+      if (!cacheDir) {
+        return false;
+      }
       var PB = require('@puppeteer/browsers');
       var cachedPath = PB.computeExecutablePath({
         browser: PB.Browser.CHROME,
         buildId: chromiumResolver.getExpectedBuildId(),
-        cacheDir: getExtensionCacheDir(),
+        cacheDir: cacheDir,
         platform: PB.detectBrowserPlatform()
       });
       try {
@@ -545,6 +549,9 @@ async function installChromium() {
 
     var StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
     var cacheDir = getExtensionCacheDir();
+    if (!cacheDir) {
+      throw new Error('Extension storage path is unavailable.');
+    }
     var executablePath = await chromiumResolver.ensureChromiumDownloaded(cacheDir, onProgress);
 
     if (executablePath && checkPuppeteerBinary()) {
