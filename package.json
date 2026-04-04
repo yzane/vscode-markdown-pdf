@@ -910,7 +910,9 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node --test test/unit/**/*.test.js",
     "pretest:integration": "npm run build",
-    "test:integration": "vscode-test --config .vscode-test.mjs"
+    "test:integration": "vscode-test --config .vscode-test.mjs",
+    "presample": "npm run build",
+    "sample": "vscode-test --config .vscode-test.mjs --label sample"
   },
   "devDependencies": {
     "@vscode/test-cli": "^0.0.12",

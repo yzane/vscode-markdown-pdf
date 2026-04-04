@@ -45,4 +45,12 @@ export default defineConfig([
     launchArgs: ['--user-data-dir=' + userDataDir],
     ...installationOption,
   },
+  {
+    label: 'sample',
+    files: 'test/sample/**/*.js',
+    mocha: { ui: 'tdd', timeout: 120000 },
+    skipExtensionDependencies: true,
+    launchArgs: ['--user-data-dir=' + userDataDir],
+    ...installationOption,
+  },
 ]);
