@@ -3,6 +3,7 @@ var vscode = require('vscode');
 var path = require('path');
 var fs = require('fs');
 var os = require('os');
+var EXTENSION_ROOT = path.join(__dirname, '..');
 var utils = require('./src/utils');
 var chromiumResolver = require('./src/chromium-resolver');
 var INSTALL_CHECK = false;
@@ -186,7 +187,7 @@ function convertMarkdownToHtml(filename, type, text) {
   // emoji
   var emoji_f = utils.setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
   if (emoji_f) {
-    var emojies_defs = require(path.join(__dirname, 'data', 'emoji.json'));
+    var emojies_defs = require(path.join(EXTENSION_ROOT, 'data', 'emoji.json'));
     try {
       var options = {
         defs: emojies_defs
@@ -198,7 +199,7 @@ function convertMarkdownToHtml(filename, type, text) {
     md.use(require('markdown-it-emoji').full, options);
     md.renderer.rules.emoji = function (token, idx) {
       var emoji = token[idx].markup;
-      var emojipath = path.join(__dirname, 'node_modules', 'emoji-images', 'pngs', emoji + '.png');
+      var emojipath = path.join(EXTENSION_ROOT, 'node_modules', 'emoji-images', 'pngs', emoji + '.png');
       var emojidata = utils.readFile(emojipath, null).toString('base64');
       return utils.buildEmojiTag(emoji, emojidata);
     };
@@ -260,7 +261,7 @@ function makeHtml(data, uri) {
     var title = path.basename(uri.fsPath);
 
     // read template
-    var filename = path.join(__dirname, 'template', 'template.html');
+    var filename = path.join(EXTENSION_ROOT, 'template', 'template.html');
     var template = utils.readFile(filename);
 
     // read mermaid javascripts
@@ -455,7 +456,7 @@ function readStyles(uri) {
       highlightStyle: highlightStyle,
       markdownStyles: markdownStyles,
       markdownPdfStyles: markdownPdfStyles,
-      baseDir: __dirname,
+      baseDir: EXTENSION_ROOT,
       onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
         vscode.window.showWarningMessage(
           'The configured markdown-pdf.highlightStyle "' + requestedStyle +
