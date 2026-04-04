@@ -22,9 +22,9 @@ describe('.vscodeignore', function () {
     assert.match(vscodeignore, /^src\/\*\*$/m);
   });
 
-  it('should re-include puppeteer-core and its dependencies', function () {
-    assert.match(vscodeignore, /^!node_modules\/puppeteer-core\/\*\*$/m);
-    assert.match(vscodeignore, /^!node_modules\/@puppeteer\/browsers\/\*\*$/m);
+  it('should not re-include puppeteer-core (bundled by esbuild)', function () {
+    assert.doesNotMatch(vscodeignore, /^!node_modules\/puppeteer-core\//m);
+    assert.doesNotMatch(vscodeignore, /^!node_modules\/@puppeteer\//m);
   });
 
   it('should re-include runtime asset packages', function () {
