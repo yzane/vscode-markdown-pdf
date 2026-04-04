@@ -235,12 +235,22 @@ function convertMarkdownToHtml(filename, type, text) {
     md.use(require("markdown-it-include"), {
       root: path.dirname(filename),
       includeRe: /:\[.+\](\(.+\..+\))/i,
-      bracesAreOptional: true
+      bracesAreOptional: true,
+      throwError: false
     });
   }
 
   statusbarmessage.dispose();
-  return md.render(matterParts.content);
+  var html = md.render(matterParts.content);
+
+  // Show warning for missing include files
+  var includeErrorRe = /INCLUDE ERROR: (.+?)(?=<\/h1>|<\/p>|\n)/g;
+  var match;
+  while ((match = includeErrorRe.exec(html)) !== null) {
+    vscode.window.showWarningMessage(match[1]);
+  }
+
+  return html;
 
   } catch (error) {
     statusbarmessage.dispose();

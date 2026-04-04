@@ -216,6 +216,33 @@ suite('Error Handling Tests', () => {
     }
   });
 
+  test('should continue conversion when include target is missing', async function () {
+    this.timeout(60000);
+
+    const generatedHtmlPath = path.resolve(FIXTURES_DIR, 'include-missing.html');
+
+    try {
+      await executeMarkdownPdfCommand('include-missing.md', 'extension.markdown-pdf.html');
+      await waitForFile(generatedHtmlPath);
+
+      const generatedHtml = fs.readFileSync(generatedHtmlPath, 'utf-8');
+      assert.ok(
+        generatedHtml.includes('INCLUDE ERROR'),
+        'HTML should contain INCLUDE ERROR for missing file'
+      );
+      assert.ok(
+        generatedHtml.includes('nonexistent.md'),
+        'HTML should reference the missing filename'
+      );
+      assert.ok(
+        generatedHtml.includes('<p>After include</p>'),
+        'HTML should contain content after the missing include'
+      );
+    } finally {
+      safeDelete(generatedHtmlPath);
+    }
+  });
+
   test('should not crash when run on an untitled document', async function () {
     this.timeout(30000);
 
