@@ -8,3 +8,4 @@ work/**
 *.bat
 .eslintrc.json
 sample/**
+node_modules/emoji-images/json/**
