@@ -1,6 +1,6 @@
 'use strict';
 
-var { describe, it } = require('node:test');
+var { describe, it, before } = require('node:test');
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
@@ -8,10 +8,9 @@ var path = require('path');
 describe('.vscodeignore', function () {
   var vscodeignore;
 
-  it('should load .vscodeignore', function () {
+  before(function () {
     var vscodeignorePath = path.join(__dirname, '..', '..', '.vscodeignore');
     vscodeignore = fs.readFileSync(vscodeignorePath, 'utf-8');
-    assert.ok(vscodeignore.length > 0);
   });
 
   it('should exclude all node_modules by default', function () {

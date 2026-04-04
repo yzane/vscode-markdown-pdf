@@ -22,6 +22,7 @@ test/**
 .eslintrc.json
 *.vsix
 *.bat
+.gitignore
 CLAUDE.md
 
 # Node modules - exclude all, then re-include needed packages
