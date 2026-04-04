@@ -387,11 +387,11 @@ code {
 <div class="page"/>
 <h2 id="specification-changes">Specification Changes</h2>
 <ul>
-<li>Default Date Format for PDF Headers and Footers Modified
+<li>Syntax Highlight Style Changes
 <ul>
-<li>Starting from version 1.5.0, the default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).</li>
-<li>This change aims to improve the consistency of date displays, as the previous format could vary depending on the environment.</li>
-<li>If you wish to use the previous format, please refer to <a href="#markdown-pdfheadertemplate">markdown-pdf.headerTemplate</a>.</li>
+<li>Starting from version 1.6.0, highlight.js has been updated from version 9 to version 11. As a result, some syntax highlighting style names have been changed or removed.</li>
+<li>If your configured style name is no longer current, the extension will display a warning message. Legacy style aliases are mapped to current style names when possible, and the extension falls back to <code>tomorrow.css</code> only when no matching current style is available.</li>
+<li>Please check the <a href="https://github.com/highlightjs/highlight.js/tree/main/src/styles">available styles</a> and update your <a href="#markdown-pdfhighlightstyle">markdown-pdf.highlightStyle</a> setting if needed.</li>
 </ul>
 </li>
 </ul>
@@ -424,7 +424,7 @@ code {
 :::
 </div></code></pre>
 <p>OUTPUT</p>
-<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"warning"</span>&gt;</span>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;warning&quot;</span>&gt;</span>
 <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">em</span>&gt;</span>here be dragons<span class="hljs-tag">&lt;/<span class="hljs-name">em</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
 <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
 </div></code></pre>
@@ -438,7 +438,9 @@ Alice -[#0000FF]-&gt;Bob : ok
 <p>OUTPUT</p>
 <p><img src="images/PlantUML.png" alt="PlantUML"></p>
 <h3 id="markdown-it-include">markdown-it-include</h3>
-<p>Include markdown fragment files: <code>:[alternate-text](relative-path-to-file.md)</code>.</p>
+<p>Include markdown fragment files: `</p>
+<h1 id="include-error-file-homezdevgithubvscode-markdown-pdfrelative-path-to-filemd-not-found">INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.</h1>
+<p>`.</p>
 <pre class="hljs"><code><div>├── [plugins]
 │  └── README.md
 ├── CHANGELOG.md
@@ -447,9 +449,17 @@ Alice -[#0000FF]-&gt;Bob : ok
 <p>INPUT</p>
 <pre class="hljs"><code><div>README Content
 
-:[Plugins](./plugins/README.md)
 
-:[Changelog](CHANGELOG.md)
+
+# INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.
+
+
+
+
+
+# INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.
+
+
 </div></code></pre>
 <p>OUTPUT</p>
 <pre class="hljs"><code><div>Content of README.md
@@ -737,11 +747,11 @@ stateDiagram
 <li>Multiple output formats support</li>
 <li>Default: pdf</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.type"</span>: [
-  <span class="hljs-string">"pdf"</span>,
-  <span class="hljs-string">"html"</span>,
-  <span class="hljs-string">"png"</span>,
-  <span class="hljs-string">"jpeg"</span>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.type&quot;</span>: [
+  <span class="hljs-string">&quot;pdf&quot;</span>,
+  <span class="hljs-string">&quot;html&quot;</span>,
+  <span class="hljs-string">&quot;png&quot;</span>,
+  <span class="hljs-string">&quot;jpeg&quot;</span>
 ],
 </div></code></pre>
 <h4 id="markdown-pdfconvertonsave"><code>markdown-pdf.convertOnSave</code></h4>
@@ -754,12 +764,12 @@ stateDiagram
 <ul>
 <li>Excluded file name of convertOnSave option</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.convertOnSaveExclude"</span>: [
-  <span class="hljs-string">"^work"</span>,
-  <span class="hljs-string">"work.md$"</span>,
-  <span class="hljs-string">"work|test"</span>,
-  <span class="hljs-string">"[0-9][0-9][0-9][0-9]-work"</span>,
-  <span class="hljs-string">"work\\test"</span>  <span class="hljs-comment">// All '\' need to be written as '\\' (Windows)</span>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.convertOnSaveExclude&quot;</span>: [
+  <span class="hljs-string">&quot;^work&quot;</span>,
+  <span class="hljs-string">&quot;work.md$&quot;</span>,
+  <span class="hljs-string">&quot;work|test&quot;</span>,
+  <span class="hljs-string">&quot;[0-9][0-9][0-9][0-9]-work&quot;</span>,
+  <span class="hljs-string">&quot;work\\test&quot;</span>  <span class="hljs-comment">// All &#x27;\&#x27; need to be written as &#x27;\\&#x27; (Windows)</span>
 ],
 </div></code></pre>
 <h4 id="markdown-pdfoutputdirectory"><code>markdown-pdf.outputDirectory</code></h4>
@@ -767,7 +777,7 @@ stateDiagram
 <li>Output Directory</li>
 <li>All <code>\</code> need to be written as <code>\\</code> (Windows)</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.outputDirectory"</span>: <span class="hljs-string">"C:\\work\\output"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span>: <span class="hljs-string">&quot;C:\\work\\output&quot;</span>,
 </div></code></pre>
 <ul>
 <li>Relative path
@@ -782,7 +792,7 @@ stateDiagram
 </ul>
 </li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.outputDirectory"</span>: <span class="hljs-string">"output"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span>: <span class="hljs-string">&quot;output&quot;</span>,
 </div></code></pre>
 <ul>
 <li>Relative path (home directory)
@@ -791,7 +801,7 @@ stateDiagram
 </ul>
 </li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.outputDirectory"</span>: <span class="hljs-string">"~/output"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span>: <span class="hljs-string">&quot;~/output&quot;</span>,
 </div></code></pre>
 <ul>
 <li>If you set a directory with a <code>relative path</code>, it will be created if the directory does not exist</li>
@@ -810,9 +820,9 @@ stateDiagram
 <li>If the file does not exist, it will be skipped</li>
 <li>All <code>\</code> need to be written as <code>\\</code> (Windows)</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.styles"</span>: [
-  <span class="hljs-string">"C:\\Users\\&lt;USERNAME&gt;\\Documents\\markdown-pdf.css"</span>,
-  <span class="hljs-string">"/home/&lt;USERNAME&gt;/settings/markdown-pdf.css"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;C:\\Users\\&lt;USERNAME&gt;\\Documents\\markdown-pdf.css&quot;</span>,
+  <span class="hljs-string">&quot;/home/&lt;USERNAME&gt;/settings/markdown-pdf.css&quot;</span>,
 ],
 </div></code></pre>
 <ul>
@@ -828,8 +838,8 @@ stateDiagram
 </ul>
 </li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.styles"</span>: [
-  <span class="hljs-string">"markdown-pdf.css"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;markdown-pdf.css&quot;</span>,
 ],
 </div></code></pre>
 <ul>
@@ -839,15 +849,15 @@ stateDiagram
 </ul>
 </li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.styles"</span>: [
-  <span class="hljs-string">"~/.config/Code/User/markdown-pdf.css"</span>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;~/.config/Code/User/markdown-pdf.css&quot;</span>
 ],
 </div></code></pre>
 <ul>
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.styles"</span>: [
-  <span class="hljs-string">"https://xxx/markdown-pdf.css"</span>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;https://xxx/markdown-pdf.css&quot;</span>
 ],
 </div></code></pre>
 <h4 id="markdown-pdfstylesrelativepathfile"><code>markdown-pdf.stylesRelativePathFile</code></h4>
@@ -869,11 +879,11 @@ stateDiagram
 </ul>
 <h4 id="markdown-pdfhighlightstyle"><code>markdown-pdf.highlightStyle</code></h4>
 <ul>
-<li>Set the style file name. for example: github.css, monokai.css ...</li>
+<li>Set the current <code>highlight.js</code> style file name. Examples: <code>github.css</code>, <code>monokai.css</code>, <code>base16/solarized-dark.css</code></li>
 <li><a href="https://github.com/highlightjs/highlight.js/tree/main/src/styles">file name list</a></li>
 <li>demo site : https://highlightjs.org/demo</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.highlightStyle"</span>: <span class="hljs-string">"github.css"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.highlightStyle&quot;</span>: <span class="hljs-string">&quot;github.css&quot;</span>,
 </div></code></pre>
 <h3 id="markdown-options">Markdown options</h3>
 <h4 id="markdown-pdfbreaks"><code>markdown-pdf.breaks</code></h4>
@@ -894,7 +904,7 @@ stateDiagram
 <li>All <code>\</code> need to be written as <code>\\</code> (Windows)</li>
 <li>To apply the settings, you need to restart Visual Studio Code</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.executablePath"</span>: <span class="hljs-string">"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"</span>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.executablePath&quot;</span>: <span class="hljs-string">&quot;C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe&quot;</span>
 </div></code></pre>
 <h3 id="common-options">Common Options</h3>
 <h4 id="markdown-pdfscale"><code>markdown-pdf.scale</code></h4>
@@ -902,7 +912,7 @@ stateDiagram
 <li>Scale of the page rendering</li>
 <li>number. default: 1</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.scale"</span>: <span class="hljs-number">1</span>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.scale&quot;</span>: <span class="hljs-number">1</span>
 </div></code></pre>
 <h3 id="pdf-options">PDF options</h3>
 <ul>
@@ -914,10 +924,10 @@ stateDiagram
 <li>boolean. Default: true</li>
 <li>Activating this option will display both the header and footer</li>
 <li>If you wish to display only one of them, remove the value for the other</li>
-<li>To hide the header<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">""</span>,
+<li>To hide the header<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.headerTemplate&quot;</span>: <span class="hljs-string">&quot;&quot;</span>,
 </div></code></pre>
 </li>
-<li>To hide the footer<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.footerTemplate"</span>: <span class="hljs-string">""</span>,
+<li>To hide the footer<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.footerTemplate&quot;</span>: <span class="hljs-string">&quot;&quot;</span>,
 </div></code></pre>
 </li>
 </ul>
@@ -933,10 +943,10 @@ stateDiagram
 <li><code>%%ISO-DATETIME%%</code> : current date and time in ISO-based format (<code>YYYY-MM-DD hh:mm:ss</code>)</li>
 <li><code>%%ISO-DATE%%</code> : current date in ISO-based format (<code>YYYY-MM-DD</code>)</li>
 <li><code>%%ISO-TIME%%</code> : current time in ISO-based format (<code>hh:mm:ss</code>)</li>
-<li>Default (version 1.5.0 and later): Displays the Markdown file name and the date using <code>%%ISO-DATE%%</code><pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin-left: 1cm;\"&gt; &lt;span class='title'&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"&gt;%%ISO-DATE%%&lt;/div&gt;"</span>,
+<li>Default (version 1.5.0 and later): Displays the Markdown file name and the date using <code>%%ISO-DATE%%</code><pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.headerTemplate&quot;</span>: <span class="hljs-string">&quot;&lt;div style=\&quot;font-size: 9px; margin-left: 1cm;\&quot;&gt; &lt;span class=&#x27;title&#x27;&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\&quot;font-size: 9px; margin-left: auto; margin-right: 1cm; \&quot;&gt;%%ISO-DATE%%&lt;/div&gt;&quot;</span>,
 </div></code></pre>
 </li>
-<li>Default (version 1.4.4 and earlier): Displays the Markdown file name and the date using <code>&lt;span class='date'&gt;&lt;/span&gt;</code><pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.headerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin-left: 1cm;\"&gt; &lt;span class='title'&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"&gt; &lt;span class='date'&gt;&lt;/span&gt;&lt;/div&gt;"</span>,
+<li>Default (version 1.4.4 and earlier): Displays the Markdown file name and the date using <code>&lt;span class='date'&gt;&lt;/span&gt;</code><pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.headerTemplate&quot;</span>: <span class="hljs-string">&quot;&lt;div style=\&quot;font-size: 9px; margin-left: 1cm;\&quot;&gt; &lt;span class=&#x27;title&#x27;&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\&quot;font-size: 9px; margin-left: auto; margin-right: 1cm; \&quot;&gt; &lt;span class=&#x27;date&#x27;&gt;&lt;/span&gt;&lt;/div&gt;&quot;</span>,
 </div></code></pre>
 </li>
 </ul>
@@ -944,7 +954,7 @@ stateDiagram
 <ul>
 <li>Specifies the HTML template for outputting the footer</li>
 <li>For more details, refer to <a href="#markdown-pdfheadertemplate">markdown-pdf.headerTemplate</a></li>
-<li>Default: Displays the {current page number} / {total pages in the document}<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.footerTemplate"</span>: <span class="hljs-string">"&lt;div style=\"font-size: 9px; margin: 0 auto;\"&gt; &lt;span class='pageNumber'&gt;&lt;/span&gt; / &lt;span class='totalPages'&gt;&lt;/span&gt;&lt;/div&gt;"</span>,
+<li>Default: Displays the {current page number} / {total pages in the document}<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.footerTemplate&quot;</span>: <span class="hljs-string">&quot;&lt;div style=\&quot;font-size: 9px; margin: 0 auto;\&quot;&gt; &lt;span class=&#x27;pageNumber&#x27;&gt;&lt;/span&gt; / &lt;span class=&#x27;totalPages&#x27;&gt;&lt;/span&gt;&lt;/div&gt;&quot;</span>,
 </div></code></pre>
 </li>
 </ul>
@@ -964,7 +974,7 @@ stateDiagram
 <li>Paper ranges to print, e.g., '1-5, 8, 11-13'</li>
 <li>Default: all pages</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.pageRanges"</span>: <span class="hljs-string">"1,4-"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.pageRanges&quot;</span>: <span class="hljs-string">&quot;1,4-&quot;</span>,
 </div></code></pre>
 <h4 id="markdown-pdfformat"><code>markdown-pdf.format</code></h4>
 <ul>
@@ -972,7 +982,7 @@ stateDiagram
 <li>Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6</li>
 <li>Default: A4</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.format"</span>: <span class="hljs-string">"A4"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.format&quot;</span>: <span class="hljs-string">&quot;A4&quot;</span>,
 </div></code></pre>
 <h4 id="markdown-pdfwidth"><code>markdown-pdf.width</code></h4>
 <h4 id="markdown-pdfheight"><code>markdown-pdf.height</code></h4>
@@ -980,8 +990,8 @@ stateDiagram
 <li>Paper width / height, accepts values labeled with units(mm, cm, in, px)</li>
 <li>If it is set, it overrides the markdown-pdf.format option</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.width"</span>: <span class="hljs-string">"10cm"</span>,
-<span class="hljs-string">"markdown-pdf.height"</span>: <span class="hljs-string">"20cm"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.width&quot;</span>: <span class="hljs-string">&quot;10cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.height&quot;</span>: <span class="hljs-string">&quot;20cm&quot;</span>,
 </div></code></pre>
 <h4 id="markdown-pdfmargintop"><code>markdown-pdf.margin.top</code></h4>
 <h4 id="markdown-pdfmarginbottom"><code>markdown-pdf.margin.bottom</code></h4>
@@ -990,10 +1000,10 @@ stateDiagram
 <ul>
 <li>Paper margins.units(mm, cm, in, px)</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.margin.top"</span>: <span class="hljs-string">"1.5cm"</span>,
-<span class="hljs-string">"markdown-pdf.margin.bottom"</span>: <span class="hljs-string">"1cm"</span>,
-<span class="hljs-string">"markdown-pdf.margin.right"</span>: <span class="hljs-string">"1cm"</span>,
-<span class="hljs-string">"markdown-pdf.margin.left"</span>: <span class="hljs-string">"1cm"</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.margin.top&quot;</span>: <span class="hljs-string">&quot;1.5cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.margin.bottom&quot;</span>: <span class="hljs-string">&quot;1cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.margin.right&quot;</span>: <span class="hljs-string">&quot;1cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.margin.left&quot;</span>: <span class="hljs-string">&quot;1cm&quot;</span>,
 </div></code></pre>
 <h3 id="png-jpeg-options">PNG, JPEG options</h3>
 <ul>
@@ -1003,7 +1013,7 @@ stateDiagram
 <ul>
 <li>jpeg only. The quality of the image, between 0-100. Not applicable to png images</li>
 </ul>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.quality"</span>: <span class="hljs-number">100</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.quality&quot;</span>: <span class="hljs-number">100</span>,
 </div></code></pre>
 <h4 id="markdown-pdfclipx"><code>markdown-pdf.clip.x</code></h4>
 <h4 id="markdown-pdfclipy"><code>markdown-pdf.clip.y</code></h4>
@@ -1014,16 +1024,16 @@ stateDiagram
 <li>number</li>
 </ul>
 <pre class="hljs"><code><div><span class="hljs-comment">//  x-coordinate of top-left corner of clip area</span>
-<span class="hljs-string">"markdown-pdf.clip.x"</span>: <span class="hljs-number">0</span>,
+<span class="hljs-string">&quot;markdown-pdf.clip.x&quot;</span>: <span class="hljs-number">0</span>,
 
 <span class="hljs-comment">// y-coordinate of top-left corner of clip area</span>
-<span class="hljs-string">"markdown-pdf.clip.y"</span>: <span class="hljs-number">0</span>,
+<span class="hljs-string">&quot;markdown-pdf.clip.y&quot;</span>: <span class="hljs-number">0</span>,
 
 <span class="hljs-comment">// width of clipping area</span>
-<span class="hljs-string">"markdown-pdf.clip.width"</span>: <span class="hljs-number">1000</span>,
+<span class="hljs-string">&quot;markdown-pdf.clip.width&quot;</span>: <span class="hljs-number">1000</span>,
 
 <span class="hljs-comment">// height of clipping area</span>
-<span class="hljs-string">"markdown-pdf.clip.height"</span>: <span class="hljs-number">1000</span>,
+<span class="hljs-string">&quot;markdown-pdf.clip.height&quot;</span>: <span class="hljs-number">1000</span>,
 </div></code></pre>
 <h4 id="markdown-pdfomitbackground"><code>markdown-pdf.omitBackground</code></h4>
 <ul>
@@ -1073,17 +1083,17 @@ stateDiagram
 </div></code></pre>
 <h3 id="auto-guess-encoding-of-files">Auto guess encoding of files</h3>
 <p>Using <code>files.autoGuessEncoding</code> option of the Visual Studio Code is useful because it automatically guesses the character code. See <a href="https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files">files.autoGuessEncoding</a></p>
-<pre class="hljs"><code><div><span class="hljs-string">"files.autoGuessEncoding"</span>: <span class="hljs-literal">true</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;files.autoGuessEncoding&quot;</span>: <span class="hljs-literal">true</span>,
 </div></code></pre>
 <h3 id="output-directory">Output directory</h3>
 <p>If you always want to output to the relative path directory from the Markdown file.</p>
 <p>For example, to output to the &quot;output&quot; directory in the same directory as the Markdown file, set it as follows.</p>
-<pre class="hljs"><code><div><span class="hljs-string">"markdown-pdf.outputDirectory"</span> : <span class="hljs-string">"output"</span>,
-<span class="hljs-string">"markdown-pdf.outputDirectoryRelativePathFile"</span>: <span class="hljs-literal">true</span>,
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span> : <span class="hljs-string">&quot;output&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.outputDirectoryRelativePathFile&quot;</span>: <span class="hljs-literal">true</span>,
 </div></code></pre>
 <h3 id="page-break">Page Break</h3>
 <p>Please use the following to insert a page break.</p>
-<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"page"</span>/&gt;</span>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;page&quot;</span>/&gt;</span>
 </div></code></pre>
 <div class="page"/>
 <h2 id="known-issues">Known Issues</h2>
@@ -1092,21 +1102,10 @@ stateDiagram
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
-<h3 id="150-20230905">1.5.0 (2023/09/05)</h3>
+<h3 id="160-20250415">1.6.0 (2025/04/15)</h3>
 <ul>
-<li>Improve: The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
-<ul>
-<li>Support different date formats in templates <a href="https://github.com/yzane/vscode-markdown-pdf/pull/197">#197</a></li>
-</ul>
-</li>
-<li>Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded <a href="https://github.com/yzane/vscode-markdown-pdf/pull/266">#266</a></li>
-<li>Fix: Fix description of outputDirectoryRelativePathFile <a href="https://github.com/yzane/vscode-markdown-pdf/pull/238">#238</a></li>
-<li>README
-<ul>
-<li>Add: Specification Changes</li>
-<li>Fix: Broken link</li>
-</ul>
-</li>
+<li>Fix: Allow underscores in section header identifiers <a href="https://github.com/yzane/vscode-markdown-pdf/pull/404">#404</a></li>
+<li>Update: align slug generation with <a href="https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27">latest VSCode behavior</a></li>
 </ul>
 <h2 id="license">License</h2>
 <p>MIT</p>
