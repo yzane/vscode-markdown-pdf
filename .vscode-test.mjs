@@ -2,7 +2,13 @@ import { defineConfig } from '@vscode/test-cli';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+const isWSL2 = !!process.env.WSL_DISTRO_NAME;
+
 function detectVSCodePath() {
+  if (isWSL2) {
+    return null;
+  }
+
   const candidates = [];
 
   if (process.platform === 'win32') {
@@ -13,11 +19,7 @@ function detectVSCodePath() {
   } else if (process.platform === 'darwin') {
     candidates.push('/Applications/Visual Studio Code.app/Contents/MacOS/Electron');
   } else {
-    candidates.push(
-      '/usr/share/code/code',
-      '/usr/bin/code',
-      '/mnt/c/Program Files/Microsoft VS Code/Code.exe'
-    );
+    candidates.push('/usr/share/code/code', '/usr/bin/code');
   }
 
   return candidates.find((c) => fs.existsSync(c)) || null;
