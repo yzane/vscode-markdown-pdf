@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="markdown-pdf">Markdown PDF</h1>
+<p>This extension converts Markdown files to pdf, html, png or jpeg files.</p>
+<p><a href="README.ja.md">Japanese README</a></p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
+<ul>
+<li><a href="#specification-changes">Specification Changes</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="#install">Install</a></li>
+<li><a href="#usage">Usage</a></li>
+<li><a href="#extension-settings">Extension Settings</a></li>
+<li><a href="#options">Options</a></li>
+<li><a href="#faq">FAQ</a></li>
+<li><a href="#known-issues">Known Issues</a></li>
+<li><a href="#release-notes">Release Notes</a></li>
+<li><a href="#license">License</a></li>
+<li><a href="#special-thanks">Special thanks</a></li>
+</ul>
+<!-- /TOC -->
+<div class="page"/>
+<h2 id="specification-changes">Specification Changes</h2>
+<ul>
+<li>Syntax Highlight Style Changes
+<ul>
+<li>Starting from version 1.6.0, highlight.js has been updated from version 9 to version 11. As a result, some syntax highlighting style names have been changed or removed.</li>
+<li>If your configured style name is no longer current, the extension will display a warning message. Legacy style aliases are mapped to current style names when possible, and the extension falls back to <code>tomorrow.css</code> only when no matching current style is available.</li>
+<li>Please check the <a href="https://github.com/highlightjs/highlight.js/tree/main/src/styles">available styles</a> and update your <a href="#markdown-pdfhighlightstyle">markdown-pdf.highlightStyle</a> setting if needed.</li>
+</ul>
+</li>
+</ul>
+<h2 id="features">Features</h2>
+<p>Supports the following features</p>
+<ul>
+<li><a href="https://highlightjs.org/demo">Syntax highlighting</a></li>
+<li><a href="https://www.webfx.com/tools/emoji-cheat-sheet/">emoji</a></li>
+<li><a href="https://github.com/mcecot/markdown-it-checkbox">markdown-it-checkbox</a></li>
+<li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a></li>
+<li><a href="https://github.com/camelaissani/markdown-it-include">markdown-it-include</a></li>
+<li><a href="https://plantuml.com/">PlantUML</a>
+<ul>
+<li><a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a></li>
+</ul>
+</li>
+<li><a href="https://mermaid-js.github.io/mermaid/">mermaid</a></li>
+</ul>
+<p>Sample files</p>
+<ul>
+<li><a href="sample/README.pdf">pdf</a></li>
+<li><a href="sample/README.html">html</a></li>
+<li><a href="sample/README.png">png</a></li>
+<li><a href="sample/README.jpeg">jpeg</a></li>
+</ul>
+<h3 id="markdown-it-container">markdown-it-container</h3>
+<p>INPUT</p>
+<pre class="hljs"><code><div>::: warning
+*here be dragons*
+:::
+</div></code></pre>
+<p>OUTPUT</p>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;warning&quot;</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">em</span>&gt;</span>here be dragons<span class="hljs-tag">&lt;/<span class="hljs-name">em</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+</div></code></pre>
+<h3 id="markdown-it-plantuml">markdown-it-plantuml</h3>
+<p>INPUT</p>
+<pre class="hljs"><code><div>@startuml
+Bob -[#red]&gt; Alice : hello
+Alice -[#0000FF]-&gt;Bob : ok
+@enduml
+</div></code></pre>
+<p>OUTPUT</p>
+<p><img src="images/PlantUML.png" alt="PlantUML"></p>
+<h3 id="markdown-it-include">markdown-it-include</h3>
+<p>Include markdown fragment files: `</p>
+<h1 id="include-error-file-homezdevgithubvscode-markdown-pdfrelative-path-to-filemd-not-found">INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.</h1>
+<p>`.</p>
+<pre class="hljs"><code><div>├── [plugins]
+│  └── README.md
+├── CHANGELOG.md
+└── README.md
+</div></code></pre>
+<p>INPUT</p>
+<pre class="hljs"><code><div>README Content
+
+
+
+# INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.
+
+
+
+
+
+# INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.
+
+
+</div></code></pre>
+<p>OUTPUT</p>
+<pre class="hljs"><code><div>Content of README.md
+
+Content of plugins/README.md
+
+Content of CHANGELOG.md
+</div></code></pre>
+<h3 id="mermaid">mermaid</h3>
+<p>INPUT</p>
+<pre>
+```mermaid
+stateDiagram
+    [*] --> First
+    state First {
+        [*] --> second
+        second --> [*]
+    }
+```
+</pre>
+<p>OUTPUT</p>
+<p><img src="images/mermaid.png" alt="mermaid"></p>
+<h2 id="install">Install</h2>
+<p>Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visual Studio Code.</p>
+<p>However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).</p>
+<p>During downloading, the message <code>Installing Chromium</code> is displayed in the status bar.</p>
+<p>If you are behind a proxy, set the <code>http.proxy</code> option to settings.json and restart Visual Studio Code.</p>
+<p>If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed <a href="https://www.google.co.jp/chrome/">Chrome</a> or 'Chromium' with <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a> option.</p>
+<div class="page"/>
+<h2 id="usage">Usage</h2>
+<h3 id="command-palette">Command Palette</h3>
+<ol>
+<li>Open the Markdown file</li>
+<li>Press <code>F1</code> or <code>Ctrl+Shift+P</code></li>
+<li>Type <code>export</code> and select below
+<ul>
+<li><code>markdown-pdf: Export (settings.json)</code></li>
+<li><code>markdown-pdf: Export (pdf)</code></li>
+<li><code>markdown-pdf: Export (html)</code></li>
+<li><code>markdown-pdf: Export (png)</code></li>
+<li><code>markdown-pdf: Export (jpeg)</code></li>
+<li><code>markdown-pdf: Export (all: pdf, html, png, jpeg)</code></li>
+</ul>
+</li>
+</ol>
+<p><img src="images/usage1.gif" alt="usage1"></p>
+<h3 id="menu">Menu</h3>
+<ol>
+<li>Open the Markdown file</li>
+<li>Right click and select below
+<ul>
+<li><code>markdown-pdf: Export (settings.json)</code></li>
+<li><code>markdown-pdf: Export (pdf)</code></li>
+<li><code>markdown-pdf: Export (html)</code></li>
+<li><code>markdown-pdf: Export (png)</code></li>
+<li><code>markdown-pdf: Export (jpeg)</code></li>
+<li><code>markdown-pdf: Export (all: pdf, html, png, jpeg)</code></li>
+</ul>
+</li>
+</ol>
+<p><img src="images/usage2.gif" alt="usage2"></p>
+<h3 id="auto-convert">Auto convert</h3>
+<ol>
+<li>Add <code>&quot;markdown-pdf.convertOnSave&quot;: true</code> option to <strong>settings.json</strong></li>
+<li>Restart Visual Studio Code</li>
+<li>Open the Markdown file</li>
+<li>Auto convert on save</li>
+</ol>
+<h2 id="extension-settings">Extension Settings</h2>
+<p><a href="https://code.visualstudio.com/docs/customization/userandworkspace">Visual Studio Code User and Workspace Settings</a></p>
+<ol>
+<li>Select <strong>File &gt; Preferences &gt; UserSettings or Workspace Settings</strong></li>
+<li>Find markdown-pdf settings in the <strong>Default Settings</strong></li>
+<li>Copy <code>markdown-pdf.*</code> settings</li>
+<li>Paste to the <strong>settings.json</strong>, and change the value</li>
+</ol>
+<p><img src="images/settings.gif" alt="demo"></p>
+<h2 id="options">Options</h2>
+<h3 id="list">List</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Category</th>
+<th style="text-align:left">Option name</th>
+<th style="text-align:left"><a href="https://code.visualstudio.com/api/references/contribution-points#Configuration-property-schema">Configuration scope</a></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><a href="#save-options">Save options</a></td>
+<td style="text-align:left"><a href="#markdown-pdftype">markdown-pdf.type</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfconvertonsave">markdown-pdf.convertOnSave</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfconvertonsaveexclude">markdown-pdf.convertOnSaveExclude</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfoutputdirectory">markdown-pdf.outputDirectory</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfoutputdirectoryrelativepathfile">markdown-pdf.outputDirectoryRelativePathFile</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#styles-options">Styles options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfstyles">markdown-pdf.styles</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfstylesrelativepathfile">markdown-pdf.stylesRelativePathFile</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfincludedefaultstyles">markdown-pdf.includeDefaultStyles</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#syntax-highlight-options">Syntax highlight options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfhighlight">markdown-pdf.highlight</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfhighlightstyle">markdown-pdf.highlightStyle</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#markdown-options">Markdown options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfbreaks">markdown-pdf.breaks</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#emoji-options">Emoji options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfemoji">markdown-pdf.emoji</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#configuration-options">Configuration options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#common-options">Common Options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfscale">markdown-pdf.scale</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#pdf-options">PDF options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfdisplayheaderfooter">markdown-pdf.displayHeaderFooter</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfheadertemplate">markdown-pdf.headerTemplate</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdffootertemplate">markdown-pdf.footerTemplate</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfprintbackground">markdown-pdf.printBackground</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdforientation">markdown-pdf.orientation</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfpageranges">markdown-pdf.pageRanges</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfformat">markdown-pdf.format</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfwidth">markdown-pdf.width</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfheight">markdown-pdf.height</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfmargintop">markdown-pdf.margin.top</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfmarginbottom">markdown-pdf.margin.bottom</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfmarginright">markdown-pdf.margin.right</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfmarginleft">markdown-pdf.margin.left</a></td>
+<td style="text-align:left">resource</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#png-jpeg-options">PNG JPEG options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfquality">markdown-pdf.quality</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfclipx">markdown-pdf.clip.x</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfclipy">markdown-pdf.clip.y</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfclipwidth">markdown-pdf.clip.width</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfclipheight">markdown-pdf.clip.height</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfomitbackground">markdown-pdf.omitBackground</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#plantuml-options">PlantUML options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfplantumlopenmarker">markdown-pdf.plantumlOpenMarker</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfplantumlclosemarker">markdown-pdf.plantumlCloseMarker</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfplantumlserver">markdown-pdf.plantumlServer</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#markdown-it-include-options">markdown-it-include options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfmarkdown-it-includeenable">markdown-pdf.markdown-it-include.enable</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#mermaid-options">mermaid options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfmermaidserver">markdown-pdf.mermaidServer</a></td>
+<td style="text-align:left"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="save-options">Save options</h3>
+<h4 id="markdown-pdftype"><code>markdown-pdf.type</code></h4>
+<ul>
+<li>Output format: pdf, html, png, jpeg</li>
+<li>Multiple output formats support</li>
+<li>Default: pdf</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.type&quot;</span>: [
+  <span class="hljs-string">&quot;pdf&quot;</span>,
+  <span class="hljs-string">&quot;html&quot;</span>,
+  <span class="hljs-string">&quot;png&quot;</span>,
+  <span class="hljs-string">&quot;jpeg&quot;</span>
+],
+</div></code></pre>
+<h4 id="markdown-pdfconvertonsave"><code>markdown-pdf.convertOnSave</code></h4>
+<ul>
+<li>Enable Auto convert on save</li>
+<li>boolean. Default: false</li>
+<li>To apply the settings, you need to restart Visual Studio Code</li>
+</ul>
+<h4 id="markdown-pdfconvertonsaveexclude"><code>markdown-pdf.convertOnSaveExclude</code></h4>
+<ul>
+<li>Excluded file name of convertOnSave option</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.convertOnSaveExclude&quot;</span>: [
+  <span class="hljs-string">&quot;^work&quot;</span>,
+  <span class="hljs-string">&quot;work.md$&quot;</span>,
+  <span class="hljs-string">&quot;work|test&quot;</span>,
+  <span class="hljs-string">&quot;[0-9][0-9][0-9][0-9]-work&quot;</span>,
+  <span class="hljs-string">&quot;work\\test&quot;</span>  <span class="hljs-comment">// All &#x27;\&#x27; need to be written as &#x27;\\&#x27; (Windows)</span>
+],
+</div></code></pre>
+<h4 id="markdown-pdfoutputdirectory"><code>markdown-pdf.outputDirectory</code></h4>
+<ul>
+<li>Output Directory</li>
+<li>All <code>\</code> need to be written as <code>\\</code> (Windows)</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span>: <span class="hljs-string">&quot;C:\\work\\output&quot;</span>,
+</div></code></pre>
+<ul>
+<li>Relative path
+<ul>
+<li>If you open the <code>Markdown file</code>, it will be interpreted as a relative path from the file</li>
+<li>If you open a <code>folder</code>, it will be interpreted as a relative path from the root folder</li>
+<li>If you open the <code>workspace</code>, it will be interpreted as a relative path from the each root folder
+<ul>
+<li>See <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span>: <span class="hljs-string">&quot;output&quot;</span>,
+</div></code></pre>
+<ul>
+<li>Relative path (home directory)
+<ul>
+<li>If path starts with  <code>~</code>, it will be interpreted as a relative path from the home directory</li>
+</ul>
+</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span>: <span class="hljs-string">&quot;~/output&quot;</span>,
+</div></code></pre>
+<ul>
+<li>If you set a directory with a <code>relative path</code>, it will be created if the directory does not exist</li>
+<li>If you set a directory with an <code>absolute path</code>, an error occurs if the directory does not exist</li>
+</ul>
+<h4 id="markdown-pdfoutputdirectoryrelativepathfile"><code>markdown-pdf.outputDirectoryRelativePathFile</code></h4>
+<ul>
+<li>If <code>markdown-pdf.outputDirectoryRelativePathFile</code> option is set to <code>true</code>, the relative path set with <a href="#markdown-pdfoutputDirectory">markdown-pdf.outputDirectory</a> is interpreted as relative from the file</li>
+<li>It can be used to avoid relative paths from folders and workspaces</li>
+<li>boolean. Default: false</li>
+</ul>
+<h3 id="styles-options">Styles options</h3>
+<h4 id="markdown-pdfstyles"><code>markdown-pdf.styles</code></h4>
+<ul>
+<li>A list of local paths to the stylesheets to use from the markdown-pdf</li>
+<li>If the file does not exist, it will be skipped</li>
+<li>All <code>\</code> need to be written as <code>\\</code> (Windows)</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;C:\\Users\\&lt;USERNAME&gt;\\Documents\\markdown-pdf.css&quot;</span>,
+  <span class="hljs-string">&quot;/home/&lt;USERNAME&gt;/settings/markdown-pdf.css&quot;</span>,
+],
+</div></code></pre>
+<ul>
+<li>Relative path
+<ul>
+<li>If you open the <code>Markdown file</code>, it will be interpreted as a relative path from the file</li>
+<li>If you open a <code>folder</code>, it will be interpreted as a relative path from the root folder</li>
+<li>If you open the <code>workspace</code>, it will be interpreted as a relative path from the each root folder
+<ul>
+<li>See <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;markdown-pdf.css&quot;</span>,
+],
+</div></code></pre>
+<ul>
+<li>Relative path (home directory)
+<ul>
+<li>If path starts with <code>~</code>, it will be interpreted as a relative path from the home directory</li>
+</ul>
+</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;~/.config/Code/User/markdown-pdf.css&quot;</span>
+],
+</div></code></pre>
+<ul>
+<li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.styles&quot;</span>: [
+  <span class="hljs-string">&quot;https://xxx/markdown-pdf.css&quot;</span>
+],
+</div></code></pre>
+<h4 id="markdown-pdfstylesrelativepathfile"><code>markdown-pdf.stylesRelativePathFile</code></h4>
+<ul>
+<li>If <code>markdown-pdf.stylesRelativePathFile</code> option is set to <code>true</code>, the relative path set with <a href="#markdown-pdfstyles">markdown-pdf.styles</a> is interpreted as relative from the file</li>
+<li>It can be used to avoid relative paths from folders and workspaces</li>
+<li>boolean. Default: false</li>
+</ul>
+<h4 id="markdown-pdfincludedefaultstyles"><code>markdown-pdf.includeDefaultStyles</code></h4>
+<ul>
+<li>Enable the inclusion of default Markdown styles (VSCode, markdown-pdf)</li>
+<li>boolean. Default: true</li>
+</ul>
+<h3 id="syntax-highlight-options">Syntax highlight options</h3>
+<h4 id="markdown-pdfhighlight"><code>markdown-pdf.highlight</code></h4>
+<ul>
+<li>Enable Syntax highlighting</li>
+<li>boolean. Default: true</li>
+</ul>
+<h4 id="markdown-pdfhighlightstyle"><code>markdown-pdf.highlightStyle</code></h4>
+<ul>
+<li>Set the current <code>highlight.js</code> style file name. Examples: <code>github.css</code>, <code>monokai.css</code>, <code>base16/solarized-dark.css</code></li>
+<li><a href="https://github.com/highlightjs/highlight.js/tree/main/src/styles">file name list</a></li>
+<li>demo site : https://highlightjs.org/demo</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.highlightStyle&quot;</span>: <span class="hljs-string">&quot;github.css&quot;</span>,
+</div></code></pre>
+<h3 id="markdown-options">Markdown options</h3>
+<h4 id="markdown-pdfbreaks"><code>markdown-pdf.breaks</code></h4>
+<ul>
+<li>Enable line breaks</li>
+<li>boolean. Default: false</li>
+</ul>
+<h3 id="emoji-options">Emoji options</h3>
+<h4 id="markdown-pdfemoji"><code>markdown-pdf.emoji</code></h4>
+<ul>
+<li>Enable emoji. <a href="https://www.webpagefx.com/tools/emoji-cheat-sheet/">EMOJI CHEAT SHEET</a></li>
+<li>boolean. Default: true</li>
+</ul>
+<h3 id="configuration-options">Configuration options</h3>
+<h4 id="markdown-pdfexecutablepath"><code>markdown-pdf.executablePath</code></h4>
+<ul>
+<li>Path to a Chromium or Chrome executable to run instead of the bundled Chromium</li>
+<li>All <code>\</code> need to be written as <code>\\</code> (Windows)</li>
+<li>To apply the settings, you need to restart Visual Studio Code</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.executablePath&quot;</span>: <span class="hljs-string">&quot;C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe&quot;</span>
+</div></code></pre>
+<h3 id="common-options">Common Options</h3>
+<h4 id="markdown-pdfscale"><code>markdown-pdf.scale</code></h4>
+<ul>
+<li>Scale of the page rendering</li>
+<li>number. default: 1</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.scale&quot;</span>: <span class="hljs-number">1</span>
+</div></code></pre>
+<h3 id="pdf-options">PDF options</h3>
+<ul>
+<li>pdf only. <a href="https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md">puppeteer page.pdf options</a></li>
+</ul>
+<h4 id="markdown-pdfdisplayheaderfooter"><code>markdown-pdf.displayHeaderFooter</code></h4>
+<ul>
+<li>Enables header and footer display</li>
+<li>boolean. Default: true</li>
+<li>Activating this option will display both the header and footer</li>
+<li>If you wish to display only one of them, remove the value for the other</li>
+<li>To hide the header<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.headerTemplate&quot;</span>: <span class="hljs-string">&quot;&quot;</span>,
+</div></code></pre>
+</li>
+<li>To hide the footer<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.footerTemplate&quot;</span>: <span class="hljs-string">&quot;&quot;</span>,
+</div></code></pre>
+</li>
+</ul>
+<h4 id="markdown-pdfheadertemplate"><code>markdown-pdf.headerTemplate</code></h4>
+<ul>
+<li>Specifies the HTML template for outputting the header</li>
+<li>To use this option, you must set <code>markdown-pdf.displayHeaderFooter</code> to <code>true</code></li>
+<li><code>&lt;span class='date'&gt;&lt;/span&gt;</code> : formatted print date. The format depends on the environment</li>
+<li><code>&lt;span class='title'&gt;&lt;/span&gt;</code> : markdown file name</li>
+<li><code>&lt;span class='url'&gt;&lt;/span&gt;</code> : markdown full path name</li>
+<li><code>&lt;span class='pageNumber'&gt;&lt;/span&gt;</code> : current page number</li>
+<li><code>&lt;span class='totalPages'&gt;&lt;/span&gt;</code> : total pages in the document</li>
+<li><code>%%ISO-DATETIME%%</code> : current date and time in ISO-based format (<code>YYYY-MM-DD hh:mm:ss</code>)</li>
+<li><code>%%ISO-DATE%%</code> : current date in ISO-based format (<code>YYYY-MM-DD</code>)</li>
+<li><code>%%ISO-TIME%%</code> : current time in ISO-based format (<code>hh:mm:ss</code>)</li>
+<li>Default (version 1.5.0 and later): Displays the Markdown file name and the date using <code>%%ISO-DATE%%</code><pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.headerTemplate&quot;</span>: <span class="hljs-string">&quot;&lt;div style=\&quot;font-size: 9px; margin-left: 1cm;\&quot;&gt; &lt;span class=&#x27;title&#x27;&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\&quot;font-size: 9px; margin-left: auto; margin-right: 1cm; \&quot;&gt;%%ISO-DATE%%&lt;/div&gt;&quot;</span>,
+</div></code></pre>
+</li>
+<li>Default (version 1.4.4 and earlier): Displays the Markdown file name and the date using <code>&lt;span class='date'&gt;&lt;/span&gt;</code><pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.headerTemplate&quot;</span>: <span class="hljs-string">&quot;&lt;div style=\&quot;font-size: 9px; margin-left: 1cm;\&quot;&gt; &lt;span class=&#x27;title&#x27;&gt;&lt;/span&gt;&lt;/div&gt; &lt;div style=\&quot;font-size: 9px; margin-left: auto; margin-right: 1cm; \&quot;&gt; &lt;span class=&#x27;date&#x27;&gt;&lt;/span&gt;&lt;/div&gt;&quot;</span>,
+</div></code></pre>
+</li>
+</ul>
+<h4 id="markdown-pdffootertemplate"><code>markdown-pdf.footerTemplate</code></h4>
+<ul>
+<li>Specifies the HTML template for outputting the footer</li>
+<li>For more details, refer to <a href="#markdown-pdfheadertemplate">markdown-pdf.headerTemplate</a></li>
+<li>Default: Displays the {current page number} / {total pages in the document}<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.footerTemplate&quot;</span>: <span class="hljs-string">&quot;&lt;div style=\&quot;font-size: 9px; margin: 0 auto;\&quot;&gt; &lt;span class=&#x27;pageNumber&#x27;&gt;&lt;/span&gt; / &lt;span class=&#x27;totalPages&#x27;&gt;&lt;/span&gt;&lt;/div&gt;&quot;</span>,
+</div></code></pre>
+</li>
+</ul>
+<h4 id="markdown-pdfprintbackground"><code>markdown-pdf.printBackground</code></h4>
+<ul>
+<li>Print background graphics</li>
+<li>boolean. Default: true</li>
+</ul>
+<h4 id="markdown-pdforientation"><code>markdown-pdf.orientation</code></h4>
+<ul>
+<li>Paper orientation</li>
+<li>portrait or landscape</li>
+<li>Default: portrait</li>
+</ul>
+<h4 id="markdown-pdfpageranges"><code>markdown-pdf.pageRanges</code></h4>
+<ul>
+<li>Paper ranges to print, e.g., '1-5, 8, 11-13'</li>
+<li>Default: all pages</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.pageRanges&quot;</span>: <span class="hljs-string">&quot;1,4-&quot;</span>,
+</div></code></pre>
+<h4 id="markdown-pdfformat"><code>markdown-pdf.format</code></h4>
+<ul>
+<li>Paper format</li>
+<li>Letter, Legal, Tabloid, Ledger, A0, A1, A2, A3, A4, A5, A6</li>
+<li>Default: A4</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.format&quot;</span>: <span class="hljs-string">&quot;A4&quot;</span>,
+</div></code></pre>
+<h4 id="markdown-pdfwidth"><code>markdown-pdf.width</code></h4>
+<h4 id="markdown-pdfheight"><code>markdown-pdf.height</code></h4>
+<ul>
+<li>Paper width / height, accepts values labeled with units(mm, cm, in, px)</li>
+<li>If it is set, it overrides the markdown-pdf.format option</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.width&quot;</span>: <span class="hljs-string">&quot;10cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.height&quot;</span>: <span class="hljs-string">&quot;20cm&quot;</span>,
+</div></code></pre>
+<h4 id="markdown-pdfmargintop"><code>markdown-pdf.margin.top</code></h4>
+<h4 id="markdown-pdfmarginbottom"><code>markdown-pdf.margin.bottom</code></h4>
+<h4 id="markdown-pdfmarginright"><code>markdown-pdf.margin.right</code></h4>
+<h4 id="markdown-pdfmarginleft"><code>markdown-pdf.margin.left</code></h4>
+<ul>
+<li>Paper margins.units(mm, cm, in, px)</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.margin.top&quot;</span>: <span class="hljs-string">&quot;1.5cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.margin.bottom&quot;</span>: <span class="hljs-string">&quot;1cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.margin.right&quot;</span>: <span class="hljs-string">&quot;1cm&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.margin.left&quot;</span>: <span class="hljs-string">&quot;1cm&quot;</span>,
+</div></code></pre>
+<h3 id="png-jpeg-options">PNG, JPEG options</h3>
+<ul>
+<li>png and jpeg only. <a href="https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions">puppeteer page.screenshot options</a></li>
+</ul>
+<h4 id="markdown-pdfquality"><code>markdown-pdf.quality</code></h4>
+<ul>
+<li>jpeg only. The quality of the image, between 0-100. Not applicable to png images</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.quality&quot;</span>: <span class="hljs-number">100</span>,
+</div></code></pre>
+<h4 id="markdown-pdfclipx"><code>markdown-pdf.clip.x</code></h4>
+<h4 id="markdown-pdfclipy"><code>markdown-pdf.clip.y</code></h4>
+<h4 id="markdown-pdfclipwidth"><code>markdown-pdf.clip.width</code></h4>
+<h4 id="markdown-pdfclipheight"><code>markdown-pdf.clip.height</code></h4>
+<ul>
+<li>An object which specifies clipping region of the page</li>
+<li>number</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-comment">//  x-coordinate of top-left corner of clip area</span>
+<span class="hljs-string">&quot;markdown-pdf.clip.x&quot;</span>: <span class="hljs-number">0</span>,
+
+<span class="hljs-comment">// y-coordinate of top-left corner of clip area</span>
+<span class="hljs-string">&quot;markdown-pdf.clip.y&quot;</span>: <span class="hljs-number">0</span>,
+
+<span class="hljs-comment">// width of clipping area</span>
+<span class="hljs-string">&quot;markdown-pdf.clip.width&quot;</span>: <span class="hljs-number">1000</span>,
+
+<span class="hljs-comment">// height of clipping area</span>
+<span class="hljs-string">&quot;markdown-pdf.clip.height&quot;</span>: <span class="hljs-number">1000</span>,
+</div></code></pre>
+<h4 id="markdown-pdfomitbackground"><code>markdown-pdf.omitBackground</code></h4>
+<ul>
+<li>Hides default white background and allows capturing screenshots with transparency</li>
+<li>boolean. Default: false</li>
+</ul>
+<h3 id="plantuml-options">PlantUML options</h3>
+<h4 id="markdown-pdfplantumlopenmarker"><code>markdown-pdf.plantumlOpenMarker</code></h4>
+<ul>
+<li>Oppening delimiter used for the plantuml parser.</li>
+<li>Default: @startuml</li>
+</ul>
+<h4 id="markdown-pdfplantumlclosemarker"><code>markdown-pdf.plantumlCloseMarker</code></h4>
+<ul>
+<li>Closing delimiter used for the plantuml parser.</li>
+<li>Default: @enduml</li>
+</ul>
+<h4 id="markdown-pdfplantumlserver"><code>markdown-pdf.plantumlServer</code></h4>
+<ul>
+<li>Plantuml server. e.g. http://localhost:8080</li>
+<li>Default: http://www.plantuml.com/plantuml</li>
+<li>For example, to run Plantuml Server locally <a href="https://github.com/yzane/vscode-markdown-pdf/issues/139">#139</a> :<pre class="hljs"><code><div>docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+</div></code></pre>
+<a href="https://hub.docker.com/r/plantuml/plantuml-server/">plantuml/plantuml-server - Docker Hub</a></li>
+</ul>
+<h3 id="markdown-it-include-options">markdown-it-include options</h3>
+<h4 id="markdown-pdfmarkdown-it-includeenable"><code>markdown-pdf.markdown-it-include.enable</code></h4>
+<ul>
+<li>Enable markdown-it-include.</li>
+<li>boolean. Default: true</li>
+</ul>
+<h3 id="mermaid-options">mermaid options</h3>
+<h4 id="markdown-pdfmermaidserver"><code>markdown-pdf.mermaidServer</code></h4>
+<ul>
+<li>mermaid server</li>
+<li>Default: https://unpkg.com/mermaid/dist/mermaid.min.js</li>
+</ul>
+<div class="page"/>
+<h2 id="faq">FAQ</h2>
+<h3 id="how-can-i-change-emoji-size">How can I change emoji size ?</h3>
+<ol>
+<li>Add the following to your stylesheet which was specified in the markdown-pdf.styles</li>
+</ol>
+<pre class="hljs"><code><div><span class="hljs-selector-class">.emoji</span> {
+  <span class="hljs-attribute">height</span>: <span class="hljs-number">2em</span>;
+}
+</div></code></pre>
+<h3 id="auto-guess-encoding-of-files">Auto guess encoding of files</h3>
+<p>Using <code>files.autoGuessEncoding</code> option of the Visual Studio Code is useful because it automatically guesses the character code. See <a href="https://code.visualstudio.com/updates/v1_11#_auto-guess-encoding-of-files">files.autoGuessEncoding</a></p>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;files.autoGuessEncoding&quot;</span>: <span class="hljs-literal">true</span>,
+</div></code></pre>
+<h3 id="output-directory">Output directory</h3>
+<p>If you always want to output to the relative path directory from the Markdown file.</p>
+<p>For example, to output to the &quot;output&quot; directory in the same directory as the Markdown file, set it as follows.</p>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.outputDirectory&quot;</span> : <span class="hljs-string">&quot;output&quot;</span>,
+<span class="hljs-string">&quot;markdown-pdf.outputDirectoryRelativePathFile&quot;</span>: <span class="hljs-literal">true</span>,
+</div></code></pre>
+<h3 id="page-break">Page Break</h3>
+<p>Please use the following to insert a page break.</p>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;page&quot;</span>/&gt;</span>
+</div></code></pre>
+<div class="page"/>
+<h2 id="known-issues">Known Issues</h2>
+<h3 id="markdown-pdfstyles-option"><code>markdown-pdf.styles</code> option</h3>
+<ul>
+<li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
+</ul>
+<h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
+<h3 id="160-20250415">1.6.0 (2025/04/15)</h3>
+<ul>
+<li>Fix: Allow underscores in section header identifiers <a href="https://github.com/yzane/vscode-markdown-pdf/pull/404">#404</a></li>
+<li>Update: align slug generation with <a href="https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27">latest VSCode behavior</a></li>
+</ul>
+<h2 id="license">License</h2>
+<p>MIT</p>
+<h2 id="special-thanks">Special thanks</h2>
+<ul>
+<li><a href="https://github.com/GoogleChrome/puppeteer">GoogleChrome/puppeteer</a></li>
+<li><a href="https://github.com/markdown-it/markdown-it">markdown-it/markdown-it</a></li>
+<li><a href="https://github.com/mcecot/markdown-it-checkbox">mcecot/markdown-it-checkbox</a></li>
+<li><a href="https://github.com/leff/markdown-it-named-headers">leff/markdown-it-named-headers</a></li>
+<li><a href="https://github.com/markdown-it/markdown-it-emoji">markdown-it/markdown-it-emoji</a></li>
+<li><a href="https://github.com/HenrikJoreteg/emoji-images">HenrikJoreteg/emoji-images</a></li>
+<li><a href="https://github.com/highlightjs/highlight.js">highlightjs/highlight.js</a></li>
+<li><a href="https://github.com/cheeriojs/cheerio">cheeriojs/cheerio</a></li>
+<li><a href="https://github.com/janl/mustache.js">janl/mustache.js</a></li>
+<li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it/markdown-it-container</a></li>
+<li><a href="https://github.com/gmunguia/markdown-it-plantuml">gmunguia/markdown-it-plantuml</a></li>
+<li><a href="https://github.com/camelaissani/markdown-it-include">camelaissani/markdown-it-include</a></li>
+<li><a href="https://github.com/mermaid-js/mermaid">mermaid-js/mermaid</a></li>
+<li><a href="https://github.com/jonschlinkert/gray-matter">jonschlinkert/gray-matter</a></li>
+</ul>
+<p>and</p>
+<ul>
+<li><a href="https://github.com/cakebake/markdown-themeable-pdf">cakebake/markdown-themeable-pdf</a></li>
+</ul>
+
+</body>
+</html>

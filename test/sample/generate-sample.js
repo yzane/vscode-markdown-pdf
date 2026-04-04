@@ -7,7 +7,15 @@ const vscode = require('vscode');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '..', '..');
 const SAMPLE_DIR = path.resolve(WORKSPACE_ROOT, 'sample');
+const EXPECTED_DIR = path.resolve(__dirname, '..', 'integration', 'expected');
 const README_MD = path.resolve(WORKSPACE_ROOT, 'README.md');
+
+function normalizeHtml(html) {
+  return html
+    .replace(/file:\/\/\/[^\s"'<>]*/g, 'file:///NORMALIZED_PATH')
+    .replace(/\d{4}-\d{2}-\d{2}/g, 'YYYY-MM-DD')
+    .replace(/\d{2}:\d{2}:\d{2}/g, 'HH:MM:SS');
+}
 
 function waitForFile(filePath, maxWait = 30000) {
   return new Promise((resolve, reject) => {
@@ -53,5 +61,10 @@ suite('Generate Sample Files', () => {
       const stat = fs.statSync(dest);
       assert.ok(stat.size > 0, `sample/README.${fmt} should not be empty`);
     }
+
+    // Verify HTML snapshot matches expected
+    const generatedHtml = normalizeHtml(fs.readFileSync(path.resolve(SAMPLE_DIR, 'README.html'), 'utf-8'));
+    const expectedHtml = fs.readFileSync(path.resolve(EXPECTED_DIR, 'README.html'), 'utf-8');
+    assert.strictEqual(generatedHtml, expectedHtml, 'README.html should match expected snapshot');
   });
 });
