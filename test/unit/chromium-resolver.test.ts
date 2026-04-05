@@ -3,14 +3,10 @@ import assert from 'assert';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { createRequire } from 'module';
-import * as chromiumResolver from '../../src/chromium-resolver';
-
-// Use createRequire to obtain the mutable CJS module object so that
-// Object.defineProperty mocks work correctly in tests
-const _require = createRequire(import.meta.url);
+// Use require() to get a mutable CJS object for monkey-patching in tests
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const PB = _require('@puppeteer/browsers') as typeof import('@puppeteer/browsers');
+const PB: typeof import('@puppeteer/browsers') = require('@puppeteer/browsers');
+import * as chromiumResolver from '../../src/chromium-resolver';
 
 describe('chromium-resolver', function () {
   let tmpDir: string;
@@ -90,8 +86,8 @@ describe('chromium-resolver', function () {
       try {
         await chromiumResolver.cleanupOldChromium('/tmp/chromium-cache', 'keep-this-id');
       } finally {
-        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers);
-        Object.defineProperty(PB, 'uninstall', originalUninstall);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        Object.defineProperty(PB, 'uninstall', originalUninstall!);
       }
 
       assert.deepStrictEqual(uninstallCalls, [

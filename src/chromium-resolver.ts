@@ -1,12 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { createRequire } from 'module';
-import { PUPPETEER_REVISIONS } from 'puppeteer-core';
+import * as PB from '@puppeteer/browsers';
 
-// Use createRequire so that tests can monkey-patch PB functions via Object.defineProperty
-const _require = createRequire(import.meta.url);
+// PUPPETEER_REVISIONS is a named export on the CJS module but not on the default export type.
+// Use require() to access it reliably at runtime.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const PB = _require('@puppeteer/browsers') as typeof import('@puppeteer/browsers');
+const puppeteerModule: { PUPPETEER_REVISIONS: { chrome: string } } = require('puppeteer-core');
 
 export function findChromiumFromUserSetting(executablePath: string): string | null {
   if (!executablePath) {
@@ -91,7 +90,7 @@ function getWindowsCandidates(): string[] {
 }
 
 export function getExpectedBuildId(): string {
-  return PUPPETEER_REVISIONS.chrome;
+  return puppeteerModule.PUPPETEER_REVISIONS.chrome;
 }
 
 export async function ensureChromiumDownloaded(
