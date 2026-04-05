@@ -1,24 +1,22 @@
-'use strict';
-
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const vscode = require('vscode');
+import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
+import * as vscode from 'vscode';
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '..', '..');
 const SAMPLE_DIR = path.resolve(WORKSPACE_ROOT, 'sample');
 const EXPECTED_DIR = path.resolve(__dirname, '..', 'integration', 'expected');
 const README_MD = path.resolve(WORKSPACE_ROOT, 'README.md');
 
-function normalizeHtml(html) {
+function normalizeHtml(html: string): string {
   return html
     .replace(/file:\/\/\/[^\s"'<>]*/g, 'file:///NORMALIZED_PATH')
     .replace(/\d{4}-\d{2}-\d{2}/g, 'YYYY-MM-DD')
     .replace(/\d{2}:\d{2}:\d{2}/g, 'HH:MM:SS');
 }
 
-function waitForFile(filePath, maxWait = 30000) {
-  return new Promise((resolve, reject) => {
+function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     if (fs.existsSync(filePath)) {
       resolve();
       return;

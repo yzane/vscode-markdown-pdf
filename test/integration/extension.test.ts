@@ -1,30 +1,28 @@
-'use strict';
-
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const vscode = require('vscode');
+import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
+import * as vscode from 'vscode';
 
 const FIXTURES_DIR = path.resolve(__dirname, 'fixtures');
 const EXPECTED_DIR = path.resolve(__dirname, 'expected');
 
-function normalizeHtml(html) {
+function normalizeHtml(html: string): string {
   return html
     .replace(/file:\/\/\/[^\s"'<>]*/g, 'file:///NORMALIZED_PATH')
     .replace(/\d{4}-\d{2}-\d{2}/g, 'YYYY-MM-DD')
     .replace(/\d{2}:\d{2}:\d{2}/g, 'HH:MM:SS');
 }
 
-async function executeMarkdownPdfCommand(mdFileName, command) {
+async function executeMarkdownPdfCommand(mdFileName: string, command: string): Promise<void> {
   const mdPath = path.resolve(FIXTURES_DIR, mdFileName);
   const doc = await vscode.workspace.openTextDocument(mdPath);
   await vscode.window.showTextDocument(doc);
   await vscode.commands.executeCommand(command);
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise<void>((resolve) => setTimeout(resolve, 2000));
 }
 
-function waitForFile(filePath, maxWait = 30000) {
-  return new Promise((resolve, reject) => {
+function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     if (fs.existsSync(filePath)) {
       resolve();
       return;
@@ -45,7 +43,7 @@ function waitForFile(filePath, maxWait = 30000) {
   });
 }
 
-function safeDelete(filePath) {
+function safeDelete(filePath: string): void {
   try {
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
@@ -55,7 +53,12 @@ function safeDelete(filePath) {
   }
 }
 
-const HTML_FEATURES = [
+interface HtmlFeature {
+  name: string;
+  expectedName?: string;
+}
+
+const HTML_FEATURES: HtmlFeature[] = [
   { name: 'plantuml' },
   { name: 'syntax-highlighting' },
   { name: 'emoji' },
@@ -71,12 +74,12 @@ const HTML_FEATURES = [
 ];
 
 suite('Integration HTML Snapshot Tests', () => {
-  const originalListeners = [];
+  const originalListeners: ((...args: unknown[]) => void)[] = [];
 
   suiteSetup(function () {
-    originalListeners.push(...process.listeners('uncaughtException'));
+    originalListeners.push(...(process.listeners('uncaughtException') as ((...args: unknown[]) => void)[]));
     process.removeAllListeners('uncaughtException');
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', (error: Error) => {
       if (error.message && error.message.includes('spawn java ENOENT')) {
         return;
       }
@@ -86,7 +89,7 @@ suite('Integration HTML Snapshot Tests', () => {
 
   suiteTeardown(function () {
     process.removeAllListeners('uncaughtException');
-    originalListeners.forEach((listener) => process.on('uncaughtException', listener));
+    originalListeners.forEach((listener) => process.on('uncaughtException', listener as NodeJS.UncaughtExceptionListener));
   });
 
   HTML_FEATURES.forEach(({ name, expectedName = name }) => {
@@ -209,7 +212,7 @@ suite('Error Handling Tests', () => {
         await vscode.commands.executeCommand('extension.markdown-pdf.html');
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise<void>((resolve) => setTimeout(resolve, 2000));
       assert.ok(!fs.existsSync(txtPath.replace('.txt', '.html')), 'HTML file should not be generated for .txt input');
     } finally {
       safeDelete(txtPath);
@@ -253,6 +256,6 @@ suite('Error Handling Tests', () => {
       await vscode.commands.executeCommand('extension.markdown-pdf.html');
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise<void>((resolve) => setTimeout(resolve, 2000));
   });
 });
