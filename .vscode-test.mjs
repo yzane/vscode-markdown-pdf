@@ -39,16 +39,16 @@ fs.writeFileSync(path.join(settingsDir, 'settings.json'), JSON.stringify({
 export default defineConfig([
   {
     label: 'integration',
-    files: 'test/integration/**/*.test.js',
-    mocha: { ui: 'tdd', timeout: 60000 },
+    files: 'test/integration/**/*.test.ts',
+    mocha: { ui: 'tdd', timeout: 60000, require: ['tsx'] },
     skipExtensionDependencies: true,
     launchArgs: ['--user-data-dir=' + userDataDir],
     ...installationOption,
   },
   {
     label: 'sample',
-    files: 'test/sample/**/*.js',
-    mocha: { ui: 'tdd', timeout: 120000 },
+    files: 'test/sample/**/*.ts',
+    mocha: { ui: 'tdd', timeout: 120000, require: ['tsx'] },
     skipExtensionDependencies: true,
     launchArgs: ['--user-data-dir=' + userDataDir],
     ...installationOption,

@@ -904,11 +904,12 @@
     }
   },
   "scripts": {
-    "build": "esbuild extension.js --bundle --outfile=dist/extension.js --format=cjs --platform=node --external:vscode",
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --format=cjs --platform=node --external:vscode",
+    "check": "tsc --noEmit",
     "watch": "npm run build -- --watch",
     "package": "npm run build && vsce package",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "node --test test/unit/**/*.test.js",
+    "test:unit": "tsx --test test/unit/**/*.test.ts",
     "pretest:integration": "npm run build",
     "test:integration": "vscode-test --config .vscode-test.mjs",
     "presample": "npm run build",

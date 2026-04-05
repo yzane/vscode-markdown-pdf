@@ -1,7 +1,6 @@
 # Source files (bundled into dist/)
-extension.js
 src/**
-jsconfig.json
+tsconfig.json
 
 # Development and CI
 .vscode/**

@@ -16,8 +16,11 @@ describe('.vscodeignore', function () {
   });
 
   it('should exclude source files that are bundled', function () {
-    assert.match(vscodeignore, /^extension\.js$/m);
     assert.match(vscodeignore, /^src\/\*\*$/m);
+  });
+
+  it('should exclude tsconfig.json', function () {
+    assert.match(vscodeignore, /^tsconfig\.json$/m);
   });
 
   it('should not re-include puppeteer-core (bundled by esbuild)', function () {
