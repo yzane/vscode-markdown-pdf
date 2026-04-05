@@ -1,7 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import * as PB from '@puppeteer/browsers';
-import puppeteer from 'puppeteer-core';
+import { createRequire } from 'module';
+import { PUPPETEER_REVISIONS } from 'puppeteer-core';
+
+// Use createRequire so that tests can monkey-patch PB functions via Object.defineProperty
+const _require = createRequire(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PB = _require('@puppeteer/browsers') as typeof import('@puppeteer/browsers');
 
 export function findChromiumFromUserSetting(executablePath: string): string | null {
   if (!executablePath) {
@@ -86,7 +91,7 @@ function getWindowsCandidates(): string[] {
 }
 
 export function getExpectedBuildId(): string {
-  return (puppeteer as unknown as { PUPPETEER_REVISIONS: { chrome: string } }).PUPPETEER_REVISIONS.chrome;
+  return PUPPETEER_REVISIONS.chrome;
 }
 
 export async function ensureChromiumDownloaded(
