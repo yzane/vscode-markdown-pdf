@@ -1,12 +1,10 @@
-'use strict';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { load as cheerioLoad } from 'cheerio';
+import type { HLJSApi } from 'highlight.js';
 
-var fs = require('fs');
-var os = require('os');
-var path = require('path');
-var url = require('url');
-var cheerio = require('cheerio');
-
-function setBooleanValue(a, b) {
+export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
   if (a === false) {
     return false;
   } else {
@@ -14,20 +12,20 @@ function setBooleanValue(a, b) {
   }
 }
 
-function isExistsPath(path) {
-  if (path.length === 0) {
+export function isExistsPath(filePath: string): boolean {
+  if (filePath.length === 0) {
     return false;
   }
   try {
-    fs.accessSync(path);
+    fs.accessSync(filePath);
     return true;
-  } catch (error) {
-    console.warn(error.message);
+  } catch (error: unknown) {
+    console.warn((error as Error).message);
     return false;
   }
 }
 
-function isExistsDir(dirname) {
+export function isExistsDir(dirname: string): boolean {
   if (dirname.length === 0) {
     return false;
   }
@@ -38,25 +36,25 @@ function isExistsDir(dirname) {
       console.warn('Directory does not exist!');
       return false;
     }
-  } catch (error) {
-    console.warn(error.message);
+  } catch (error: unknown) {
+    console.warn((error as Error).message);
     return false;
   }
 }
 
-function Slug(string) {
-  var stg = encodeURI(
+export function Slug(string: string): string {
+  const stg = encodeURI(
     string.trim()
       .toLowerCase()
       .replace(/\s+/g, '-')
-      .replace(/[\]\[\!\/\'\"\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\{\|\}\~\`。，、；：？！…—·ˉ¨‘’“”々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '')
+      .replace(/[\]\[\!\/\'\"\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\{\|\}\~\`。，、；：？！…—·ˉ¨''""々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '')
       .replace(/^\-+/, '')
       .replace(/\-+$/, '')
   );
   return stg;
 }
 
-function transformTemplate(templateText) {
+export function transformTemplate(templateText: string): string {
   if (templateText.indexOf('%%ISO-DATETIME%%') !== -1) {
     templateText = templateText.replace('%%ISO-DATETIME%%', new Date().toISOString().substr(0, 19).replace('T', ' '));
   }
@@ -70,7 +68,7 @@ function transformTemplate(templateText) {
   return templateText;
 }
 
-function readFile(filename, encode) {
+export function readFile(filename: string, encode?: BufferEncoding | null): string | Buffer {
   if (filename.length === 0) {
     return '';
   }
@@ -88,8 +86,8 @@ function readFile(filename, encode) {
   if (isExistsPath(filename)) {
     try {
       return fs.readFileSync(filename, encode);
-    } catch (error) {
-      console.warn(error.message);
+    } catch (error: unknown) {
+      console.warn((error as Error).message);
       return '';
     }
   } else {
@@ -97,8 +95,8 @@ function readFile(filename, encode) {
   }
 }
 
-function makeCss(filename) {
-  var css = readFile(filename);
+export function makeCss(filename: string): string {
+  const css = readFile(filename);
   if (css) {
     return '\n<style>\n' + css + '\n</style>\n';
   } else {
@@ -106,12 +104,17 @@ function makeCss(filename) {
   }
 }
 
-function convertImgPath(src, filename) {
-  var href = decodeURIComponent(src);
+export function convertImgPath(src: string, filename: string): string {
+  let href = decodeURIComponent(src);
   href = href.replace(/("|')/g, '')
     .replace(/\\/g, '/')
     .replace(/#/g, '%23');
-  var protocol = url.parse(href).protocol;
+  let protocol: string | null = null;
+  try {
+    protocol = new URL(href).protocol;
+  } catch {
+    // href is not a valid URL (relative path, etc.)
+  }
   if (protocol === 'file:' && href.indexOf('file:///') !== 0) {
     return href.replace(/^file:\/\//, 'file:///');
   } else if (protocol === 'file:') {
@@ -131,12 +134,12 @@ function convertImgPath(src, filename) {
   }
 }
 
-function isExcludeFile(filename, patterns) {
+export function isExcludeFile(filename: string, patterns: string[] | undefined | string): boolean {
   if (!patterns || !Array.isArray(patterns) || patterns.length === 0) {
     return false;
   }
-  for (var i = 0; i < patterns.length; i++) {
-    var re = new RegExp(patterns[i]);
+  for (let i = 0; i < patterns.length; i++) {
+    const re = new RegExp(patterns[i]);
     if (re.test(filename)) {
       return true;
     }
@@ -144,13 +147,18 @@ function isExcludeFile(filename, patterns) {
   return false;
 }
 
-function resolveHref(href, resourceFsPath, stylesRelativePathFile, workspaceFsPath) {
+export function resolveHref(href: string | undefined | null, resourceFsPath: string, stylesRelativePathFile: boolean | undefined, workspaceFsPath: string | undefined): string | undefined | null {
   if (!href) {
     return href;
   }
 
-  var parsed = url.parse(href);
-  if (parsed.protocol === 'http:' || parsed.protocol === 'https:' || parsed.protocol === 'data:') {
+  let protocol: string | null = null;
+  try {
+    protocol = new URL(href).protocol;
+  } catch {
+    // Not a valid absolute URL
+  }
+  if (protocol === 'http:' || protocol === 'https:' || protocol === 'data:') {
     return href;
   }
 
@@ -169,7 +177,7 @@ function resolveHref(href, resourceFsPath, stylesRelativePathFile, workspaceFsPa
   return 'file://' + path.join(path.dirname(resourceFsPath), href);
 }
 
-function resolveOutputDir(filename, outputDirectory, outputDirectoryRelativePathFile, resourceFsPath, workspaceFsPath) {
+export function resolveOutputDir(filename: string, outputDirectory: string | undefined | null, outputDirectoryRelativePathFile: boolean | undefined, resourceFsPath: string, workspaceFsPath: string | undefined): string | null {
   if (!outputDirectory || outputDirectory.length === 0) {
     return filename;
   }
@@ -192,7 +200,7 @@ function resolveOutputDir(filename, outputDirectory, outputDirectoryRelativePath
   return path.join(path.dirname(resourceFsPath), outputDirectory, path.basename(filename));
 }
 
-var LEGACY_HIGHLIGHT_STYLE_ALIASES = {
+const LEGACY_HIGHLIGHT_STYLE_ALIASES: Record<string, string> = {
   'github-gist.css': 'github.css',
   'kimbie.dark.css': 'kimbie-dark.css',
   'kimbie.light.css': 'kimbie-light.css',
@@ -200,9 +208,9 @@ var LEGACY_HIGHLIGHT_STYLE_ALIASES = {
   'qtcreator_light.css': 'qtcreator-light.css',
 };
 
-function resolveHighlightStyle(baseDir, highlightStyle) {
-  var resolvedStyle = LEGACY_HIGHLIGHT_STYLE_ALIASES[highlightStyle] || highlightStyle;
-  var stylePath = path.join(baseDir, 'node_modules', 'highlight.js', 'styles', resolvedStyle);
+function resolveHighlightStyle(baseDir: string, highlightStyle: string): { filename: string; requestedStyle: string; resolvedStyle: string; usedFallback: boolean } {
+  const resolvedStyle = LEGACY_HIGHLIGHT_STYLE_ALIASES[highlightStyle] || highlightStyle;
+  const stylePath = path.join(baseDir, 'node_modules', 'highlight.js', 'styles', resolvedStyle);
 
   if (fs.existsSync(stylePath)) {
     return {
@@ -221,10 +229,20 @@ function resolveHighlightStyle(baseDir, highlightStyle) {
   };
 }
 
-function buildStyleTags(options) {
-  var style = '';
-  var filename = '';
-  var i;
+interface BuildStyleTagsOptions {
+  includeDefaultStyles: boolean;
+  highlight: boolean;
+  highlightStyle: string;
+  markdownStyles: string[] | string;
+  markdownPdfStyles: string[] | string;
+  baseDir: string;
+  onMissingHighlightStyle?: (requestedStyle: string, resolvedStyle: string) => void;
+  resolveHrefFn: (href: string) => string;
+}
+
+export function buildStyleTags(options: BuildStyleTagsOptions): string {
+  let style = '';
+  let filename = '';
 
   if (options.includeDefaultStyles) {
     filename = path.join(options.baseDir, 'styles', 'markdown.css');
@@ -233,8 +251,8 @@ function buildStyleTags(options) {
 
   if (options.includeDefaultStyles) {
     if (options.markdownStyles && Array.isArray(options.markdownStyles) && options.markdownStyles.length > 0) {
-      for (i = 0; i < options.markdownStyles.length; i++) {
-        var markdownHref = options.resolveHrefFn(options.markdownStyles[i]);
+      for (let i = 0; i < options.markdownStyles.length; i++) {
+        const markdownHref = options.resolveHrefFn(options.markdownStyles[i]);
         style += '<link rel="stylesheet" href="' + markdownHref + '" type="text/css">';
       }
     }
@@ -242,7 +260,7 @@ function buildStyleTags(options) {
 
   if (options.highlight) {
     if (options.highlightStyle) {
-      var resolvedHighlight = resolveHighlightStyle(options.baseDir, options.highlightStyle);
+      const resolvedHighlight = resolveHighlightStyle(options.baseDir, options.highlightStyle);
       filename = resolvedHighlight.filename;
       if (options.onMissingHighlightStyle && resolvedHighlight.usedFallback) {
         options.onMissingHighlightStyle(resolvedHighlight.requestedStyle, resolvedHighlight.resolvedStyle);
@@ -260,8 +278,8 @@ function buildStyleTags(options) {
   }
 
   if (options.markdownPdfStyles && Array.isArray(options.markdownPdfStyles) && options.markdownPdfStyles.length > 0) {
-    for (i = 0; i < options.markdownPdfStyles.length; i++) {
-      var markdownPdfHref = options.resolveHrefFn(options.markdownPdfStyles[i]);
+    for (let i = 0; i < options.markdownPdfStyles.length; i++) {
+      const markdownPdfHref = options.resolveHrefFn(options.markdownPdfStyles[i]);
       style += '<link rel="stylesheet" href="' + markdownPdfHref + '" type="text/css">';
     }
   }
@@ -269,8 +287,23 @@ function buildStyleTags(options) {
   return style;
 }
 
-function buildPdfOptions(config) {
-  var formatOption = '';
+interface PdfConfig {
+  path: string;
+  width: string;
+  height: string;
+  format: string;
+  orientation: string;
+  scale: number;
+  displayHeaderFooter: boolean;
+  headerTemplate: string;
+  footerTemplate: string;
+  printBackground: boolean;
+  pageRanges: string;
+  margin: { top: string; right: string; bottom: string; left: string };
+}
+
+export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
+  let formatOption: string = '';
   if (!config.width && !config.height) {
     formatOption = config.format || 'A4';
   }
@@ -292,9 +325,17 @@ function buildPdfOptions(config) {
   };
 }
 
-function buildImageOptions(config) {
-  var qualityOption = config.type === 'png' ? undefined : config.quality;
-  var clip = config.clip;
+interface ImageConfig {
+  path: string;
+  type: string;
+  quality: number;
+  clip: { x: number | null; y: number | null; width: number | null; height: number | null };
+  omitBackground: boolean;
+}
+
+export function buildImageOptions(config: ImageConfig): Record<string, unknown> {
+  const qualityOption = config.type === 'png' ? undefined : config.quality;
+  const clip = config.clip;
 
   if (clip && clip.x !== null && clip.y !== null && clip.width !== null && clip.height !== null) {
     return {
@@ -319,8 +360,8 @@ function buildImageOptions(config) {
   };
 }
 
-function buildHighlightCallback(hljs, escapeHtml) {
-  return function (str, lang) {
+export function buildHighlightCallback(hljs: HLJSApi, escapeHtml: (str: string) => string): (str: string, lang: string) => string {
+  return function (str: string, lang: string): string {
     if (lang && lang.match(/\bmermaid\b/i)) {
       return '<div class="mermaid">' + str + '</div>';
     }
@@ -339,7 +380,13 @@ function buildHighlightCallback(hljs, escapeHtml) {
   };
 }
 
-function buildMarkdownItOptions(config) {
+interface MarkdownItConfig {
+  breaks: boolean | undefined;
+  hljs: HLJSApi;
+  escapeHtml: (str: string) => string;
+}
+
+export function buildMarkdownItOptions(config: MarkdownItConfig): Record<string, unknown> {
   return {
     html: true,
     breaks: config.breaks,
@@ -347,7 +394,15 @@ function buildMarkdownItOptions(config) {
   };
 }
 
-function buildPlantumlOptions(config) {
+interface PlantumlConfig {
+  frontmatterOpenMarker: string | undefined;
+  frontmatterCloseMarker: string | undefined;
+  settingsOpenMarker: string;
+  settingsCloseMarker: string;
+  server: string;
+}
+
+export function buildPlantumlOptions(config: PlantumlConfig): { openMarker: string; closeMarker: string; server: string } {
   return {
     openMarker: config.frontmatterOpenMarker || config.settingsOpenMarker || '@startuml',
     closeMarker: config.frontmatterCloseMarker || config.settingsCloseMarker || '@enduml',
@@ -355,7 +410,14 @@ function buildPlantumlOptions(config) {
   };
 }
 
-function buildHtmlViewData(config) {
+interface HtmlViewDataConfig {
+  title: string;
+  style: string;
+  content: string;
+  mermaidServer: string;
+}
+
+export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; style: string; content: string; mermaid: string } {
   return {
     title: config.title,
     style: config.style,
@@ -364,15 +426,15 @@ function buildHtmlViewData(config) {
   };
 }
 
-function resolveExportTypes(optionType, configuredType) {
-  var typesFormat = ['html', 'pdf', 'png', 'jpeg'];
+export function resolveExportTypes(optionType: string | undefined, configuredType: string[] | string | undefined): string[] | null {
+  const typesFormat = ['html', 'pdf', 'png', 'jpeg'];
 
-  if (typesFormat.indexOf(optionType) >= 0) {
-    return [optionType];
+  if (typesFormat.indexOf(optionType as string) >= 0) {
+    return [optionType as string];
   }
 
   if (optionType === 'settings') {
-    var resolved = configuredType || 'pdf';
+    const resolved = configuredType || 'pdf';
     if (Array.isArray(resolved)) {
       return resolved;
     }
@@ -386,39 +448,39 @@ function resolveExportTypes(optionType, configuredType) {
   return null;
 }
 
-function transformImageHref(href, type, filename) {
+export function transformImageHref(href: string, type: string, filename: string): string {
   if (type === 'html') {
     return decodeURIComponent(href).replace(/("|')/g, '');
   }
   return convertImgPath(href, filename);
 }
 
-function transformHtmlBlockImages(html, filename) {
+export function transformHtmlBlockImages(html: string, filename: string): string {
   if (!html) {
     return '';
   }
-  var $ = cheerio.load(html);
+  const $ = cheerioLoad(html);
   $('img').each(function () {
-    var src = $(this).attr('src');
-    var href = convertImgPath(src, filename);
+    const src = $(this).attr('src');
+    const href = convertImgPath(src as string, filename);
     $(this).attr('src', href);
   });
   return $.html();
 }
 
-function buildEmojiTag(emoji, emojiData) {
+export function buildEmojiTag(emoji: string, emojiData: string | undefined | null): string {
   if (emojiData) {
     return '<img class="emoji" alt="' + emoji + '" src="data:image/png;base64,' + emojiData + '" />';
   }
   return ':' + emoji + ':';
 }
 
-function buildContainerRenderer() {
+export function buildContainerRenderer(): { validate: (name: string) => number; render: (tokens: Array<{ info: string }>, idx: number) => string } {
   return {
-    validate: function (name) {
+    validate: function (name: string): number {
       return name.trim().length;
     },
-    render: function (tokens, idx) {
+    render: function (tokens: Array<{ info: string }>, idx: number): string {
       if (tokens[idx].info.trim() !== '') {
         return '<div class="' + tokens[idx].info.trim() + '">\n';
       }
@@ -427,34 +489,7 @@ function buildContainerRenderer() {
   };
 }
 
-function generateTmpHtmlFilename(filename) {
-  var f = path.parse(filename);
+export function generateTmpHtmlFilename(filename: string): string {
+  const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
 }
-
-module.exports = {
-  setBooleanValue,
-  isExistsPath,
-  isExistsDir,
-  Slug,
-  transformTemplate,
-  readFile,
-  makeCss,
-  convertImgPath,
-  isExcludeFile,
-  resolveHref,
-  resolveOutputDir,
-  buildStyleTags,
-  buildPdfOptions,
-  buildImageOptions,
-  buildHighlightCallback,
-  buildMarkdownItOptions,
-  buildPlantumlOptions,
-  buildHtmlViewData,
-  resolveExportTypes,
-  transformImageHref,
-  transformHtmlBlockImages,
-  buildEmojiTag,
-  buildContainerRenderer,
-  generateTmpHtmlFilename,
-};

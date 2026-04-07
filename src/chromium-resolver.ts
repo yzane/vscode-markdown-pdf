@@ -1,11 +1,13 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import * as PB from '@puppeteer/browsers';
 
-var fs = require('fs');
-var path = require('path');
-var PB = require('@puppeteer/browsers');
-var puppeteer = require('puppeteer-core');
+// PUPPETEER_REVISIONS is a named export on the CJS module but not on the default export type.
+// Use require() to access it reliably at runtime.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const puppeteerModule: { PUPPETEER_REVISIONS: { chrome: string } } = require('puppeteer-core');
 
-function findChromiumFromUserSetting(executablePath) {
+export function findChromiumFromUserSetting(executablePath: string): string | null {
   if (!executablePath) {
     return null;
   }
@@ -19,7 +21,7 @@ function findChromiumFromUserSetting(executablePath) {
   }
 }
 
-function findChromiumFromSystem() {
+export function findChromiumFromSystem(): string | null {
   try {
     return PB.computeSystemExecutablePath({
       browser: PB.Browser.CHROME,
@@ -29,8 +31,8 @@ function findChromiumFromSystem() {
   } catch (error) {
   }
 
-  var candidates = getEdgeAndChromiumCandidates();
-  for (var i = 0; i < candidates.length; i++) {
+  const candidates = getEdgeAndChromiumCandidates();
+  for (let i = 0; i < candidates.length; i++) {
     try {
       fs.accessSync(candidates[i]);
       return candidates[i];
@@ -41,7 +43,7 @@ function findChromiumFromSystem() {
   return null;
 }
 
-function getEdgeAndChromiumCandidates() {
+export function getEdgeAndChromiumCandidates(): string[] {
   if (process.platform === 'win32') {
     return getWindowsCandidates();
   }
@@ -65,15 +67,15 @@ function getEdgeAndChromiumCandidates() {
   return [];
 }
 
-function getWindowsCandidates() {
-  var prefixes = [
+function getWindowsCandidates(): string[] {
+  const prefixes = [
     process.env.LOCALAPPDATA,
     process.env.PROGRAMFILES,
     process.env['PROGRAMFILES(X86)'],
     'C:\\Program Files',
     'C:\\Program Files (x86)'
   ];
-  var candidates = [];
+  const candidates: string[] = [];
 
   prefixes.forEach(function (prefix) {
     if (!prefix) {
@@ -87,14 +89,17 @@ function getWindowsCandidates() {
   return candidates;
 }
 
-function getExpectedBuildId() {
-  return puppeteer.PUPPETEER_REVISIONS.chrome;
+export function getExpectedBuildId(): string {
+  return puppeteerModule.PUPPETEER_REVISIONS.chrome;
 }
 
-async function ensureChromiumDownloaded(cacheDir, onProgress) {
-  var buildId = getExpectedBuildId();
-  var platform = PB.detectBrowserPlatform();
-  var executablePath;
+export async function ensureChromiumDownloaded(
+  cacheDir: string,
+  onProgress?: (downloadedBytes: number, totalBytes: number) => void
+): Promise<string> {
+  const buildId = getExpectedBuildId();
+  const platform = PB.detectBrowserPlatform();
+  let executablePath: string;
 
   try {
     executablePath = PB.computeExecutablePath({
@@ -110,7 +115,7 @@ async function ensureChromiumDownloaded(cacheDir, onProgress) {
 
   fs.mkdirSync(cacheDir, { recursive: true });
 
-  var installedBrowser = await PB.install({
+  const installedBrowser = await PB.install({
     browser: PB.Browser.CHROME,
     buildId: buildId,
     cacheDir: cacheDir,
@@ -123,12 +128,12 @@ async function ensureChromiumDownloaded(cacheDir, onProgress) {
   return installedBrowser.executablePath;
 }
 
-async function cleanupOldChromium(cacheDir, keepBuildId) {
+export async function cleanupOldChromium(cacheDir: string, keepBuildId: string): Promise<void> {
   try {
-    var installedBrowsers = await PB.getInstalledBrowsers({ cacheDir: cacheDir });
+    const installedBrowsers = await PB.getInstalledBrowsers({ cacheDir: cacheDir });
 
-    for (var i = 0; i < installedBrowsers.length; i++) {
-      var installedBrowser = installedBrowsers[i];
+    for (let i = 0; i < installedBrowsers.length; i++) {
+      const installedBrowser = installedBrowsers[i];
 
       if (installedBrowser.browser !== PB.Browser.CHROME || installedBrowser.buildId === keepBuildId) {
         continue;
@@ -143,16 +148,20 @@ async function cleanupOldChromium(cacheDir, keepBuildId) {
         });
         console.log('[Markdown PDF] Removed old Chromium: ' + installedBrowser.buildId);
       } catch (error) {
-        console.warn('[Markdown PDF] Failed to remove old Chromium: ' + (error && error.message ? error.message : error));
+        console.warn('[Markdown PDF] Failed to remove old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
       }
     }
   } catch (error) {
-    console.warn('[Markdown PDF] Failed to cleanup old Chromium: ' + (error && error.message ? error.message : error));
+    console.warn('[Markdown PDF] Failed to cleanup old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
   }
 }
 
-async function resolveChromiumPath(userExecutablePath, cacheDir, onProgress) {
-  var executablePath = findChromiumFromUserSetting(userExecutablePath);
+export async function resolveChromiumPath(
+  userExecutablePath: string,
+  cacheDir: string,
+  onProgress?: (downloadedBytes: number, totalBytes: number) => void
+): Promise<string | null> {
+  let executablePath: string | null = findChromiumFromUserSetting(userExecutablePath);
   if (executablePath) {
     return executablePath;
   }
@@ -165,17 +174,7 @@ async function resolveChromiumPath(userExecutablePath, cacheDir, onProgress) {
   try {
     return await ensureChromiumDownloaded(cacheDir, onProgress);
   } catch (error) {
-    console.error('[Markdown PDF] Failed to download Chromium: ' + (error && error.message ? error.message : error));
+    console.error('[Markdown PDF] Failed to download Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
     return null;
   }
 }
-
-module.exports = {
-  cleanupOldChromium: cleanupOldChromium,
-  ensureChromiumDownloaded: ensureChromiumDownloaded,
-  findChromiumFromUserSetting: findChromiumFromUserSetting,
-  findChromiumFromSystem: findChromiumFromSystem,
-  getEdgeAndChromiumCandidates: getEdgeAndChromiumCandidates,
-  getExpectedBuildId: getExpectedBuildId,
-  resolveChromiumPath: resolveChromiumPath
-};

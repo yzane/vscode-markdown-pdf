@@ -904,20 +904,28 @@
     }
   },
   "scripts": {
-    "build": "esbuild extension.js --bundle --outfile=dist/extension.js --format=cjs --platform=node --external:vscode",
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --format=cjs --platform=node --external:vscode",
+    "check": "tsc --noEmit",
     "watch": "npm run build -- --watch",
     "package": "npm run build && vsce package",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "node --test test/unit/**/*.test.js",
+    "test:unit": "tsx --test test/unit/**/*.test.ts",
     "pretest:integration": "npm run build",
     "test:integration": "vscode-test --config .vscode-test.mjs",
     "presample": "npm run build",
     "sample": "vscode-test --config .vscode-test.mjs --label sample"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/mocha": "^10.0.10",
+    "@types/mustache": "^4.2.6",
+    "@types/node": "^25.5.2",
+    "@types/vscode": "^1.110.0",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
-    "esbuild": "^0.28.0"
+    "esbuild": "^0.28.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   },
   "dependencies": {
     "cheerio": "^1.2.0",

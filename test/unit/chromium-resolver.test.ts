@@ -1,17 +1,17 @@
-'use strict';
-
-var { describe, it, before, after } = require('node:test');
-var assert = require('assert');
-var fs = require('fs');
-var os = require('os');
-var path = require('path');
-var PB = require('@puppeteer/browsers');
-var chromiumResolver = require('../../src/chromium-resolver');
+import { describe, it, before, after } from 'node:test';
+import assert from 'assert';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+// Use require() to get a mutable CJS object for monkey-patching in tests
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PB: typeof import('@puppeteer/browsers') = require('@puppeteer/browsers');
+import * as chromiumResolver from '../../src/chromium-resolver';
 
 describe('chromium-resolver', function () {
-  var tmpDir;
-  var existingExecutablePath;
-  var missingExecutablePath;
+  let tmpDir: string;
+  let existingExecutablePath: string;
+  let missingExecutablePath: string;
 
   before(function () {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-chromium-resolver-'));
@@ -40,14 +40,14 @@ describe('chromium-resolver', function () {
 
   describe('findChromiumFromSystem', function () {
     it('should return a string or null', function () {
-      var result = chromiumResolver.findChromiumFromSystem();
+      const result = chromiumResolver.findChromiumFromSystem();
       assert.ok(typeof result === 'string' || result === null);
     });
   });
 
   describe('getExpectedBuildId', function () {
     it('should return a non-empty build id string', function () {
-      var buildId = chromiumResolver.getExpectedBuildId();
+      const buildId = chromiumResolver.getExpectedBuildId();
       assert.strictEqual(typeof buildId, 'string');
       assert.match(buildId, /^\d+\.\d+\.\d+\.\d+$/);
     });
@@ -59,9 +59,9 @@ describe('chromium-resolver', function () {
     });
 
     it('should uninstall only old Chromium entries', async function () {
-      var originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
-      var originalUninstall = Object.getOwnPropertyDescriptor(PB, 'uninstall');
-      var uninstallCalls = [];
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalUninstall = Object.getOwnPropertyDescriptor(PB, 'uninstall');
+      const uninstallCalls: unknown[] = [];
 
       Object.defineProperty(PB, 'getInstalledBrowsers', {
         configurable: true,
@@ -78,7 +78,7 @@ describe('chromium-resolver', function () {
       Object.defineProperty(PB, 'uninstall', {
         configurable: true,
         enumerable: true,
-        value: async function (options) {
+        value: async function (options: unknown) {
           uninstallCalls.push(options);
         }
       });
@@ -86,8 +86,8 @@ describe('chromium-resolver', function () {
       try {
         await chromiumResolver.cleanupOldChromium('/tmp/chromium-cache', 'keep-this-id');
       } finally {
-        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers);
-        Object.defineProperty(PB, 'uninstall', originalUninstall);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        Object.defineProperty(PB, 'uninstall', originalUninstall!);
       }
 
       assert.deepStrictEqual(uninstallCalls, [

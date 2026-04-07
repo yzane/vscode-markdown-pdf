@@ -1,8 +1,6 @@
-'use strict';
-
-var { describe, it, before, after } = require('node:test');
-var assert = require('assert');
-var utils = require('../../src/utils');
+import { describe, it, before, after } from 'node:test';
+import assert from 'assert';
+import * as utils from '../../src/utils';
 
 describe('utils', function () {
   describe('setBooleanValue', function () {
@@ -48,7 +46,7 @@ describe('utils', function () {
     });
 
     it('should return true for a directory that exists', function () {
-      var path = require('path');
+      const path = require('path');
       assert.strictEqual(utils.isExistsDir(path.dirname(__filename)), true);
     });
 
@@ -107,29 +105,29 @@ describe('utils', function () {
     });
 
     it('should handle mixed CJK and Latin scripts', function () {
-      var result = utils.Slug('日本語 English テスト');
+      const result = utils.Slug('日本語 English テスト');
       assert.strictEqual(result, encodeURI('日本語') + '-english-' + encodeURI('テスト'));
     });
 
     it('should handle emoji in text', function () {
-      var result = utils.Slug('Hello 🎉 World');
+      const result = utils.Slug('Hello 🎉 World');
       assert.strictEqual(result, 'hello-' + encodeURI('🎉') + '-world');
     });
   });
 
   describe('transformTemplate', function () {
     it('should replace %%ISO-DATE%% with YYYY-MM-DD format', function () {
-      var result = utils.transformTemplate('Date: %%ISO-DATE%%');
+      const result = utils.transformTemplate('Date: %%ISO-DATE%%');
       assert.match(result, /^Date: \d{4}-\d{2}-\d{2}$/);
     });
 
     it('should replace %%ISO-DATETIME%% with YYYY-MM-DD hh:mm:ss format', function () {
-      var result = utils.transformTemplate('DateTime: %%ISO-DATETIME%%');
+      const result = utils.transformTemplate('DateTime: %%ISO-DATETIME%%');
       assert.match(result, /^DateTime: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
     });
 
     it('should replace %%ISO-TIME%% with hh:mm:ss format', function () {
-      var result = utils.transformTemplate('Time: %%ISO-TIME%%');
+      const result = utils.transformTemplate('Time: %%ISO-TIME%%');
       assert.match(result, /^Time: \d{2}:\d{2}:\d{2}$/);
     });
 
@@ -138,7 +136,7 @@ describe('utils', function () {
     });
 
     it('should handle multiple different placeholders', function () {
-      var result = utils.transformTemplate('%%ISO-DATE%% at %%ISO-TIME%%');
+      const result = utils.transformTemplate('%%ISO-DATE%% at %%ISO-TIME%%');
       assert.match(result, /^\d{4}-\d{2}-\d{2} at \d{2}:\d{2}:\d{2}$/);
     });
 
@@ -148,12 +146,12 @@ describe('utils', function () {
   });
 
   describe('readFile', function () {
-    var fs = require('fs');
-    var os = require('os');
-    var path = require('path');
-    var tmpFile;
-    var tmpFileWithSpace;
-    var tmpFileWithBom;
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    let tmpFile: string;
+    let tmpFileWithSpace: string;
+    let tmpFileWithBom: string;
 
     before(function () {
       tmpFile = path.join(__dirname, 'test-read-file.tmp');
@@ -185,7 +183,7 @@ describe('utils', function () {
     });
 
     it('should return a Buffer when encode is null', function () {
-      var result = utils.readFile(tmpFile, null);
+      const result = utils.readFile(tmpFile, null);
       assert.ok(Buffer.isBuffer(result));
       assert.strictEqual(result.toString(), 'hello world');
     });
@@ -203,10 +201,10 @@ describe('utils', function () {
     });
 
     (process.platform === 'win32' ? it : it.skip)('should handle file:///C:/ prefix on Windows', function () {
-      var winTmpFile = path.join(os.tmpdir(), 'mdpdf-test-win.tmp');
+      const winTmpFile = path.join(os.tmpdir(), 'mdpdf-test-win.tmp');
       fs.writeFileSync(winTmpFile, 'win content', 'utf-8');
       try {
-        var result = utils.readFile('file:///' + winTmpFile.replace(/\\/g, '/'));
+        const result = utils.readFile('file:///' + winTmpFile.replace(/\\/g, '/'));
         assert.strictEqual(result, 'win content');
       } finally {
         if (fs.existsSync(winTmpFile)) {
@@ -220,16 +218,16 @@ describe('utils', function () {
     });
 
     it('should preserve BOM in UTF-8 file', function () {
-      var result = utils.readFile(tmpFileWithBom);
+      const result = utils.readFile(tmpFileWithBom) as string;
       assert.strictEqual(result.charCodeAt(0), 0xFEFF, 'Expected BOM at start of file');
       assert.ok(result.indexOf('hello BOM') !== -1, 'Expected content after BOM');
     });
   });
 
   describe('makeCss', function () {
-    var fs = require('fs');
-    var path = require('path');
-    var tmpCssFile;
+    const fs = require('fs');
+    const path = require('path');
+    let tmpCssFile: string;
 
     before(function () {
       tmpCssFile = path.join(__dirname, 'test-make-css.tmp.css');
@@ -243,7 +241,7 @@ describe('utils', function () {
     });
 
     it('should wrap CSS content in style tags', function () {
-      var result = utils.makeCss(tmpCssFile);
+      const result = utils.makeCss(tmpCssFile);
       assert.strictEqual(result, '\n<style>\nbody { color: red; }\n</style>\n');
     });
 
@@ -270,17 +268,17 @@ describe('utils', function () {
     });
 
     it('should escape # in the path as %23', function () {
-      var result = utils.convertImgPath('image#1.png', '/home/user/doc.md');
+      const result = utils.convertImgPath('image#1.png', '/home/user/doc.md');
       assert.ok(result.indexOf('%23') !== -1, 'Expected %23 in result: ' + result);
     });
 
     it('should remove quotes from the path', function () {
-      var result = utils.convertImgPath('"image.png"', '/home/user/doc.md');
+      const result = utils.convertImgPath('"image.png"', '/home/user/doc.md');
       assert.ok(result.indexOf('"') === -1, 'Expected no quotes in result: ' + result);
     });
 
     it('should normalize file:// to file:///', function () {
-      var result = utils.convertImgPath('file://image.png', '/home/user/doc.md');
+      const result = utils.convertImgPath('file://image.png', '/home/user/doc.md');
       assert.ok(result.indexOf('file:///') === 0, 'Expected file:/// prefix in result: ' + result);
     });
 
@@ -301,8 +299,8 @@ describe('utils', function () {
     });
 
     it('should handle empty string src', function () {
-      var path = require('path');
-      var expected = 'file://' + path.resolve('/home/user', '');
+      const path = require('path');
+      const expected = 'file://' + path.resolve('/home/user', '');
       assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), expected);
     });
 
@@ -327,7 +325,7 @@ describe('utils', function () {
     });
 
     it('should escape all # characters in path', function () {
-      var result = utils.convertImgPath('path/to/C#/image#1.png', '/home/user/doc.md');
+      const result = utils.convertImgPath('path/to/C#/image#1.png', '/home/user/doc.md');
       assert.ok(result.indexOf('#') === -1, 'Expected no # in result: ' + result);
       assert.ok(result.indexOf('%23') !== -1, 'Expected %23 in result: ' + result);
     });
@@ -374,8 +372,8 @@ describe('utils', function () {
   });
 
   describe('resolveHref', function () {
-    var path = require('path');
-    var os = require('os');
+    const path = require('path');
+    const os = require('os');
 
     it('should return empty string for empty href', function () {
       assert.strictEqual(utils.resolveHref('', '/home/user/doc.md', false, '/workspace'), '');
@@ -411,7 +409,7 @@ describe('utils', function () {
     });
 
     it('should expand ~ to the home directory as a file URI', function () {
-      var expected = 'file://' + os.homedir() + '/styles/custom.css';
+      const expected = 'file://' + os.homedir() + '/styles/custom.css';
       assert.strictEqual(utils.resolveHref('~/styles/custom.css', '/home/user/doc.md', false, '/workspace'), expected);
     });
 
@@ -432,7 +430,7 @@ describe('utils', function () {
     });
 
     it('should resolve ../ in workspace-relative path', function () {
-      var expected = 'file://' + path.join('/workspace', '../styles/custom.css');
+      const expected = 'file://' + path.join('/workspace', '../styles/custom.css');
       assert.strictEqual(utils.resolveHref('../styles/custom.css', '/home/user/doc.md', false, '/workspace'), expected);
     });
 
@@ -494,11 +492,11 @@ describe('utils', function () {
   });
 
   describe('resolveOutputDir', function () {
-    var fs = require('fs');
-    var os = require('os');
-    var path = require('path');
-    var tmpDir;
-    var spaceDir;
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+    let tmpDir: string;
+    let spaceDir: string;
 
     before(function () {
       tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdpdf-test-'));
@@ -595,7 +593,7 @@ describe('utils', function () {
     });
 
     it('should handle trailing slash in absolute directory path', function () {
-      var dirWithSlash = tmpDir + '/';
+      const dirWithSlash = tmpDir + '/';
       assert.strictEqual(
         utils.resolveOutputDir('/home/user/doc.pdf', dirWithSlash, false, '/home/user/doc.md', '/workspace'),
         path.join(tmpDir, 'doc.pdf')
@@ -618,82 +616,82 @@ describe('utils', function () {
   });
 
   describe('buildStyleTags', function () {
-    var baseDir = require('path').join(__dirname, '..', '..');
+    const baseDir = require('path').join(__dirname, '..', '..');
 
     it('should include default styles when includeDefaultStyles is true', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: true,
         highlight: false,
         highlightStyle: '',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
       assert.ok(result.indexOf('<style>') !== -1, 'Expected <style> tags in result');
     });
 
     it('should skip default styles when includeDefaultStyles is false', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: false,
         highlightStyle: '',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
       assert.strictEqual(result, '');
     });
 
     it('should include highlight style when highlight is true with highlightStyle', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
         highlightStyle: 'github.css',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
       assert.ok(result.indexOf('<style>') !== -1, 'Expected highlight style in result');
     });
 
     it('should use tomorrow.css as the default highlight style', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
         highlightStyle: '',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
       assert.ok(result.indexOf('<style>') !== -1, 'Expected default highlight style in result');
     });
 
     it('should map legacy highlight style aliases to supported v11 style names', function () {
-      var fallbacks = [];
-      var legacyResult = utils.buildStyleTags({
+      const fallbacks: string[][] = [];
+      const legacyResult = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
         highlightStyle: 'github-gist.css',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+        onMissingHighlightStyle: function (requestedStyle: string, resolvedStyle: string) {
           fallbacks.push([requestedStyle, resolvedStyle]);
         },
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
-      var currentResult = utils.buildStyleTags({
+      const currentResult = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
         highlightStyle: 'github.css',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
 
       assert.strictEqual(legacyResult, currentResult);
@@ -701,27 +699,27 @@ describe('utils', function () {
     });
 
     it('should fallback to the default highlight style when the configured style does not exist', function () {
-      var fallbacks = [];
-      var missingResult = utils.buildStyleTags({
+      const fallbacks: string[][] = [];
+      const missingResult = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
         highlightStyle: 'darcula.css',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        onMissingHighlightStyle: function (requestedStyle, resolvedStyle) {
+        onMissingHighlightStyle: function (requestedStyle: string, resolvedStyle: string) {
           fallbacks.push([requestedStyle, resolvedStyle]);
         },
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
-      var defaultResult = utils.buildStyleTags({
+      const defaultResult = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: true,
         highlightStyle: '',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
 
       assert.strictEqual(missingResult, defaultResult);
@@ -729,30 +727,30 @@ describe('utils', function () {
     });
 
     it('should not warn before falling back when the configured highlight style does not exist', function () {
-      var warnings = [];
-      var originalWarn = console.warn;
-      console.warn = function (message) {
+      const warnings: string[] = [];
+      const originalWarn = console.warn;
+      console.warn = function (message: string) {
         warnings.push(message);
       };
 
       try {
-        var missingResult = utils.buildStyleTags({
+        const missingResult = utils.buildStyleTags({
           includeDefaultStyles: false,
           highlight: true,
           highlightStyle: 'darcula.css',
           markdownStyles: [],
           markdownPdfStyles: [],
           baseDir: baseDir,
-          resolveHrefFn: function (href) { return href; },
+          resolveHrefFn: function (href: string) { return href; },
         });
-        var defaultResult = utils.buildStyleTags({
+        const defaultResult = utils.buildStyleTags({
           includeDefaultStyles: false,
           highlight: true,
           highlightStyle: '',
           markdownStyles: [],
           markdownPdfStyles: [],
           baseDir: baseDir,
-          resolveHrefFn: function (href) { return href; },
+          resolveHrefFn: function (href: string) { return href; },
         });
 
         assert.strictEqual(missingResult, defaultResult);
@@ -763,54 +761,54 @@ describe('utils', function () {
     });
 
     it('should skip highlight style when highlight is false', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: false,
         highlightStyle: 'github.css',
         markdownStyles: [],
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return href; },
+        resolveHrefFn: function (href: string) { return href; },
       });
       assert.strictEqual(result, '');
     });
 
     it('should add link tags for markdownPdfStyles', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: false,
         highlightStyle: '',
         markdownStyles: [],
         markdownPdfStyles: ['custom.css'],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return 'file:///resolved/' + href; },
+        resolveHrefFn: function (href: string) { return 'file:///resolved/' + href; },
       });
       assert.ok(result.indexOf('<link rel="stylesheet"') !== -1, 'Expected <link> tag');
       assert.ok(result.indexOf('file:///resolved/custom.css') !== -1, 'Expected resolved href');
     });
 
     it('should skip markdownStyles when value is a string instead of array', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: true,
         highlight: false,
         highlightStyle: '',
-        markdownStyles: 'style.css',
+        markdownStyles: 'style.css' as any,
         markdownPdfStyles: [],
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return 'file:///resolved/' + href; },
+        resolveHrefFn: function (href: string) { return 'file:///resolved/' + href; },
       });
       assert.ok(result.indexOf('file:///resolved/style.css') === -1, 'Expected no link tag for string markdownStyles');
     });
 
     it('should skip markdownPdfStyles when value is a string instead of array', function () {
-      var result = utils.buildStyleTags({
+      const result = utils.buildStyleTags({
         includeDefaultStyles: false,
         highlight: false,
         highlightStyle: '',
         markdownStyles: [],
-        markdownPdfStyles: 'custom.css',
+        markdownPdfStyles: 'custom.css' as any,
         baseDir: baseDir,
-        resolveHrefFn: function (href) { return 'file:///resolved/' + href; },
+        resolveHrefFn: function (href: string) { return 'file:///resolved/' + href; },
       });
       assert.strictEqual(result, '');
     });
@@ -832,7 +830,7 @@ describe('utils', function () {
 
   describe('buildPdfOptions', function () {
     it('should use format when width and height are both empty', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '',
@@ -852,7 +850,7 @@ describe('utils', function () {
     });
 
     it('should clear format when width is specified', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '10cm',
         height: '',
@@ -871,7 +869,7 @@ describe('utils', function () {
     });
 
     it('should clear format when height is specified', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '15cm',
@@ -890,7 +888,7 @@ describe('utils', function () {
     });
 
     it('should set landscape true when orientation is landscape', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '',
@@ -908,7 +906,7 @@ describe('utils', function () {
     });
 
     it('should set landscape false when orientation is not landscape', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '',
@@ -926,7 +924,7 @@ describe('utils', function () {
     });
 
     it('should apply transformTemplate to headerTemplate and footerTemplate', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '',
@@ -940,14 +938,14 @@ describe('utils', function () {
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
-      assert.ok(result.headerTemplate.match(/^\d{4}-\d{2}-\d{2}$/), 'headerTemplate should be a date: ' + result.headerTemplate);
-      assert.ok(result.footerTemplate.match(/^\d{2}:\d{2}:\d{2}$/), 'footerTemplate should be a time: ' + result.footerTemplate);
+      assert.ok((result.headerTemplate as string).match(/^\d{4}-\d{2}-\d{2}$/), 'headerTemplate should be a date: ' + result.headerTemplate);
+      assert.ok((result.footerTemplate as string).match(/^\d{2}:\d{2}:\d{2}$/), 'footerTemplate should be a time: ' + result.footerTemplate);
     });
   });
 
   describe('buildImageOptions', function () {
     it('should set quality to undefined for PNG', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.png',
         type: 'png',
         quality: 100,
@@ -960,7 +958,7 @@ describe('utils', function () {
     });
 
     it('should use quality value for JPEG', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.jpeg',
         type: 'jpeg',
         quality: 85,
@@ -972,7 +970,7 @@ describe('utils', function () {
     });
 
     it('should use clip and set fullPage false when all clip values are non-null', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.jpeg',
         type: 'jpeg',
         quality: 100,
@@ -984,7 +982,7 @@ describe('utils', function () {
     });
 
     it('should ignore clip and set fullPage true when any clip value is null', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.png',
         type: 'png',
         quality: 100,
@@ -997,7 +995,7 @@ describe('utils', function () {
     });
 
     it('should set omitBackground false when specified', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.png',
         type: 'png',
         quality: 100,
@@ -1008,7 +1006,7 @@ describe('utils', function () {
     });
 
     it('should set fullPage true when all clip values are null', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.jpeg',
         type: 'jpeg',
         quality: 80,
@@ -1021,7 +1019,7 @@ describe('utils', function () {
     });
 
     it('should accept quality 0 for JPEG as valid boundary', function () {
-      var result = utils.buildImageOptions({
+      const result = utils.buildImageOptions({
         path: '/out/test.jpeg',
         type: 'jpeg',
         quality: 0,
@@ -1033,64 +1031,64 @@ describe('utils', function () {
   });
 
   describe('buildHighlightCallback', function () {
-    var hljs = require('highlight.js');
-    var escapeHtml = require('markdown-it')().utils.escapeHtml;
+    const hljs = require('highlight.js');
+    const escapeHtml = require('markdown-it')().utils.escapeHtml;
 
     it('should return mermaid div when lang matches mermaid', function () {
-      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
-      var result = highlight('graph TD;', 'mermaid');
+      const highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      const result = highlight('graph TD;', 'mermaid');
       assert.strictEqual(result, '<div class="mermaid">graph TD;</div>');
     });
 
     it('should return mermaid div for case-insensitive match', function () {
-      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
-      var result = highlight('graph TD;', 'Mermaid');
+      const highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      const result = highlight('graph TD;', 'Mermaid');
       assert.strictEqual(result, '<div class="mermaid">graph TD;</div>');
     });
 
     it('should highlight known language with hljs', function () {
-      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
-      var result = highlight('var x = 1;', 'javascript');
+      const highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      const result = highlight('var x = 1;', 'javascript');
       assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
       assert.ok(result.indexOf('</div></code></pre>') > 0);
       assert.ok(result.indexOf('<span') > 0);
     });
 
     it('should call hljs.highlight with v11 options object', function () {
-      var stubHljs = {
+      const stubHljs = {
         getLanguage: function () { return true; },
-        highlight: function (str, options) {
+        highlight: function (str: string, options: any) {
           assert.strictEqual(str, 'var x = 1;');
           assert.deepStrictEqual(options, { language: 'javascript', ignoreIllegals: true });
           return { value: '<span class="hljs-keyword">var</span> x = 1;' };
         },
       };
-      var highlight = utils.buildHighlightCallback(stubHljs, escapeHtml);
-      var result = highlight('var x = 1;', 'javascript');
+      const highlight = utils.buildHighlightCallback(stubHljs as any, escapeHtml);
+      const result = highlight('var x = 1;', 'javascript');
       assert.strictEqual(result, '<pre class="hljs"><code><div><span class="hljs-keyword">var</span> x = 1;</div></code></pre>');
     });
 
     it('should escape and wrap when lang is unknown', function () {
-      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
-      var result = highlight('<script>alert("xss")</script>', 'unknownlang999');
+      const highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      const result = highlight('<script>alert("xss")</script>', 'unknownlang999');
       assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
       assert.ok(result.indexOf('<script>') === -1, 'should escape HTML');
       assert.ok(result.indexOf('&lt;script&gt;') > 0);
     });
 
     it('should escape and wrap when lang is empty string', function () {
-      var highlight = utils.buildHighlightCallback(hljs, escapeHtml);
-      var result = highlight('plain text', '');
+      const highlight = utils.buildHighlightCallback(hljs, escapeHtml);
+      const result = highlight('plain text', '');
       assert.strictEqual(result, '<pre class="hljs"><code><div>plain text</div></code></pre>');
     });
 
     it('should fallback to escapeHtml when hljs.highlight throws', function () {
-      var badHljs = {
+      const badHljs = {
         getLanguage: function () { return true; },
         highlight: function () { throw new Error('hljs error'); },
       };
-      var highlight = utils.buildHighlightCallback(badHljs, escapeHtml);
-      var result = highlight('<b>code</b>', 'javascript');
+      const highlight = utils.buildHighlightCallback(badHljs as any, escapeHtml);
+      const result = highlight('<b>code</b>', 'javascript');
       assert.ok(result.indexOf('<pre class="hljs"><code><div>') === 0);
       assert.ok(result.indexOf('&lt;b&gt;') > 0);
     });
@@ -1098,37 +1096,37 @@ describe('utils', function () {
 
   describe('buildMarkdownItOptions', function () {
     it('should always set html to true', function () {
-      var result = utils.buildMarkdownItOptions({
+      const result = utils.buildMarkdownItOptions({
         breaks: false,
-        hljs: {},
-        escapeHtml: function (s) { return s; },
+        hljs: {} as any,
+        escapeHtml: function (s: string) { return s; },
       });
       assert.strictEqual(result.html, true);
     });
 
     it('should pass through breaks value', function () {
-      var result = utils.buildMarkdownItOptions({
+      const result = utils.buildMarkdownItOptions({
         breaks: true,
-        hljs: {},
-        escapeHtml: function (s) { return s; },
+        hljs: {} as any,
+        escapeHtml: function (s: string) { return s; },
       });
       assert.strictEqual(result.breaks, true);
     });
 
     it('should set highlight as a function', function () {
-      var result = utils.buildMarkdownItOptions({
+      const result = utils.buildMarkdownItOptions({
         breaks: false,
-        hljs: { getLanguage: function () { return false; } },
-        escapeHtml: function (s) { return s; },
+        hljs: { getLanguage: function () { return false; } } as any,
+        escapeHtml: function (s: string) { return s; },
       });
       assert.strictEqual(typeof result.highlight, 'function');
     });
 
     it('should handle undefined breaks', function () {
-      var result = utils.buildMarkdownItOptions({
+      const result = utils.buildMarkdownItOptions({
         breaks: undefined,
-        hljs: {},
-        escapeHtml: function (s) { return s; },
+        hljs: {} as any,
+        escapeHtml: function (s: string) { return s; },
       });
       assert.strictEqual(result.breaks, undefined);
     });
@@ -1136,7 +1134,7 @@ describe('utils', function () {
 
   describe('buildPlantumlOptions', function () {
     it('should use frontmatter values when provided', function () {
-      var result = utils.buildPlantumlOptions({
+      const result = utils.buildPlantumlOptions({
         frontmatterOpenMarker: '@startgantt',
         frontmatterCloseMarker: '@endgantt',
         settingsOpenMarker: '@startuml',
@@ -1149,7 +1147,7 @@ describe('utils', function () {
     });
 
     it('should fallback to settings when frontmatter is undefined', function () {
-      var result = utils.buildPlantumlOptions({
+      const result = utils.buildPlantumlOptions({
         frontmatterOpenMarker: undefined,
         frontmatterCloseMarker: undefined,
         settingsOpenMarker: '@startuml',
@@ -1161,7 +1159,7 @@ describe('utils', function () {
     });
 
     it('should fallback to defaults when both frontmatter and settings are empty', function () {
-      var result = utils.buildPlantumlOptions({
+      const result = utils.buildPlantumlOptions({
         frontmatterOpenMarker: undefined,
         frontmatterCloseMarker: undefined,
         settingsOpenMarker: '',
@@ -1174,7 +1172,7 @@ describe('utils', function () {
     });
 
     it('should pass server value through', function () {
-      var result = utils.buildPlantumlOptions({
+      const result = utils.buildPlantumlOptions({
         frontmatterOpenMarker: undefined,
         frontmatterCloseMarker: undefined,
         settingsOpenMarker: '@startuml',
@@ -1185,7 +1183,7 @@ describe('utils', function () {
     });
 
     it('should allow mixed frontmatter and settings overrides', function () {
-      var result = utils.buildPlantumlOptions({
+      const result = utils.buildPlantumlOptions({
         frontmatterOpenMarker: '@startmindmap',
         frontmatterCloseMarker: undefined,
         settingsOpenMarker: '@startuml',
@@ -1199,7 +1197,7 @@ describe('utils', function () {
 
   describe('buildHtmlViewData', function () {
     it('should build script tag from mermaidServer', function () {
-      var result = utils.buildHtmlViewData({
+      const result = utils.buildHtmlViewData({
         content: '<h1>Hello</h1>',
         title: 'test.md',
         style: '<style>body{}</style>',
@@ -1209,7 +1207,7 @@ describe('utils', function () {
     });
 
     it('should pass through title, style, and content', function () {
-      var result = utils.buildHtmlViewData({
+      const result = utils.buildHtmlViewData({
         content: '<p>body</p>',
         title: 'README.md',
         style: '<style>h1{color:red}</style>',
@@ -1221,7 +1219,7 @@ describe('utils', function () {
     });
 
     it('should handle empty mermaidServer', function () {
-      var result = utils.buildHtmlViewData({
+      const result = utils.buildHtmlViewData({
         content: '',
         title: '',
         style: '',
@@ -1231,7 +1229,7 @@ describe('utils', function () {
     });
 
     it('should pass through empty content fields unchanged', function () {
-      var result = utils.buildHtmlViewData({
+      const result = utils.buildHtmlViewData({
         content: '',
         title: 'empty.md',
         style: '',
@@ -1244,8 +1242,8 @@ describe('utils', function () {
 
   describe('buildPdfOptions edge cases', function () {
     it('should pass through margin object', function () {
-      var margin = { top: '10mm', right: '15mm', bottom: '10mm', left: '15mm' };
-      var result = utils.buildPdfOptions({
+      const margin = { top: '10mm', right: '15mm', bottom: '10mm', left: '15mm' };
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '',
@@ -1263,7 +1261,7 @@ describe('utils', function () {
     });
 
     it('should handle empty headerTemplate and footerTemplate', function () {
-      var result = utils.buildPdfOptions({
+      const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
         height: '',
@@ -1284,23 +1282,23 @@ describe('utils', function () {
 
   describe('resolveExportTypes', function () {
     it('should return single-element array for direct format "pdf"', function () {
-      assert.deepStrictEqual(utils.resolveExportTypes('pdf'), ['pdf']);
+      assert.deepStrictEqual(utils.resolveExportTypes('pdf', undefined), ['pdf']);
     });
 
     it('should return single-element array for direct format "html"', function () {
-      assert.deepStrictEqual(utils.resolveExportTypes('html'), ['html']);
+      assert.deepStrictEqual(utils.resolveExportTypes('html', undefined), ['html']);
     });
 
     it('should return single-element array for direct format "png"', function () {
-      assert.deepStrictEqual(utils.resolveExportTypes('png'), ['png']);
+      assert.deepStrictEqual(utils.resolveExportTypes('png', undefined), ['png']);
     });
 
     it('should return single-element array for direct format "jpeg"', function () {
-      assert.deepStrictEqual(utils.resolveExportTypes('jpeg'), ['jpeg']);
+      assert.deepStrictEqual(utils.resolveExportTypes('jpeg', undefined), ['jpeg']);
     });
 
     it('should return all formats for "all"', function () {
-      assert.deepStrictEqual(utils.resolveExportTypes('all'), ['html', 'pdf', 'png', 'jpeg']);
+      assert.deepStrictEqual(utils.resolveExportTypes('all', undefined), ['html', 'pdf', 'png', 'jpeg']);
     });
 
     it('should wrap string configuredType in array for "settings"', function () {
@@ -1320,15 +1318,15 @@ describe('utils', function () {
     });
 
     it('should return null for invalid type "docx"', function () {
-      assert.strictEqual(utils.resolveExportTypes('docx'), null);
+      assert.strictEqual(utils.resolveExportTypes('docx', undefined), null);
     });
 
     it('should return null for empty string', function () {
-      assert.strictEqual(utils.resolveExportTypes(''), null);
+      assert.strictEqual(utils.resolveExportTypes('', undefined), null);
     });
 
     it('should return null for undefined', function () {
-      assert.strictEqual(utils.resolveExportTypes(undefined), null);
+      assert.strictEqual(utils.resolveExportTypes(undefined, undefined), null);
     });
   });
 
@@ -1368,21 +1366,21 @@ describe('utils', function () {
 
   describe('transformHtmlBlockImages', function () {
     it('should transform a single img tag src', function () {
-      var result = utils.transformHtmlBlockImages('<img src="photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlockImages('<img src="photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('photo.png') >= 0);
     });
 
     it('should transform multiple img tags', function () {
-      var result = utils.transformHtmlBlockImages('<img src="a.png"><img src="b.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlockImages('<img src="a.png"><img src="b.png">', '/doc/test.md');
       assert.ok(result.indexOf('a.png') >= 0);
       assert.ok(result.indexOf('b.png') >= 0);
-      var matches = result.match(/file:\/\//g);
-      assert.strictEqual(matches.length, 2);
+      const matches = result.match(/file:\/\//g);
+      assert.strictEqual(matches!.length, 2);
     });
 
     it('should return html unchanged when no img tags', function () {
-      var result = utils.transformHtmlBlockImages('<p>Hello world</p>', '/doc/test.md');
+      const result = utils.transformHtmlBlockImages('<p>Hello world</p>', '/doc/test.md');
       assert.ok(result.indexOf('Hello world') >= 0);
     });
 
@@ -1391,13 +1389,13 @@ describe('utils', function () {
     });
 
     it('should handle relative path images', function () {
-      var result = utils.transformHtmlBlockImages('<img src="images/photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlockImages('<img src="images/photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('photo.png') >= 0);
     });
 
     it('should handle absolute path images', function () {
-      var result = utils.transformHtmlBlockImages('<img src="/abs/photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlockImages('<img src="/abs/photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('/abs/photo.png') >= 0);
     });
@@ -1430,7 +1428,7 @@ describe('utils', function () {
   });
 
   describe('buildContainerRenderer', function () {
-    var renderer;
+    let renderer: any;
 
     before(function () {
       renderer = utils.buildContainerRenderer();
@@ -1456,34 +1454,34 @@ describe('utils', function () {
 
     describe('render', function () {
       it('should return opening div with class when info is non-empty', function () {
-        var tokens = [{ info: 'warning' }];
+        const tokens = [{ info: 'warning' }];
         assert.strictEqual(renderer.render(tokens, 0), '<div class="warning">\n');
       });
 
       it('should return closing div when info is empty', function () {
-        var tokens = [{ info: '' }];
+        const tokens = [{ info: '' }];
         assert.strictEqual(renderer.render(tokens, 0), '</div>\n');
       });
 
       it('should trim whitespace from class name', function () {
-        var tokens = [{ info: '  note  ' }];
+        const tokens = [{ info: '  note  ' }];
         assert.strictEqual(renderer.render(tokens, 0), '<div class="note">\n');
       });
 
       it('should return closing div when info is whitespace-only', function () {
-        var tokens = [{ info: '   ' }];
+        const tokens = [{ info: '   ' }];
         assert.strictEqual(renderer.render(tokens, 0), '</div>\n');
       });
 
       it('should handle class name with multiple words', function () {
-        var tokens = [{ info: 'alert danger' }];
+        const tokens = [{ info: 'alert danger' }];
         assert.strictEqual(renderer.render(tokens, 0), '<div class="alert danger">\n');
       });
     });
   });
 
   describe('generateTmpHtmlFilename', function () {
-    var path = require('path');
+    const path = require('path');
 
     it('should replace extension with _tmp.html', function () {
       assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/file.md'), path.join('/path/to', 'file_tmp.html'));

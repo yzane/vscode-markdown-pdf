@@ -1,15 +1,13 @@
-'use strict';
-
-var { describe, it, before } = require('node:test');
-var assert = require('assert');
-var fs = require('fs');
-var path = require('path');
+import { describe, it, before } from 'node:test';
+import assert from 'assert';
+import fs from 'fs';
+import path from 'path';
 
 describe('.vscodeignore', function () {
-  var vscodeignore;
+  let vscodeignore: string;
 
   before(function () {
-    var vscodeignorePath = path.join(__dirname, '..', '..', '.vscodeignore');
+    const vscodeignorePath = path.join(__dirname, '..', '..', '.vscodeignore');
     vscodeignore = fs.readFileSync(vscodeignorePath, 'utf-8');
   });
 
@@ -18,8 +16,11 @@ describe('.vscodeignore', function () {
   });
 
   it('should exclude source files that are bundled', function () {
-    assert.match(vscodeignore, /^extension\.js$/m);
     assert.match(vscodeignore, /^src\/\*\*$/m);
+  });
+
+  it('should exclude tsconfig.json', function () {
+    assert.match(vscodeignore, /^tsconfig\.json$/m);
   });
 
   it('should not re-include puppeteer-core (bundled by esbuild)', function () {
