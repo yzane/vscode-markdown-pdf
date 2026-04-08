@@ -438,9 +438,7 @@ Alice -[#0000FF]-&gt;Bob : ok
 <p>OUTPUT</p>
 <p><img src="images/PlantUML.png" alt="PlantUML"></p>
 <h3 id="markdown-it-include">markdown-it-include</h3>
-<p>Include markdown fragment files: `</p>
-<h1 id="include-error-file-homezdevgithubvscode-markdown-pdfrelative-path-to-filemd-not-found">INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.</h1>
-<p>`.</p>
+<p>Include markdown fragment files: <code>:[alternate-text](relative-path-to-file.md)</code>.</p>
 <pre class="hljs"><code><div>├── [plugins]
 │  └── README.md
 ├── CHANGELOG.md
@@ -449,17 +447,9 @@ Alice -[#0000FF]-&gt;Bob : ok
 <p>INPUT</p>
 <pre class="hljs"><code><div>README Content
 
+:[Plugins](./plugins/README.md)
 
-
-# INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.
-
-
-
-
-
-# INCLUDE ERROR: File '/home/z/dev/github/vscode-markdown-pdf/relative-path-to-file.md' not found.
-
-
+:[Changelog](CHANGELOG.md)
 </div></code></pre>
 <p>OUTPUT</p>
 <pre class="hljs"><code><div>Content of README.md

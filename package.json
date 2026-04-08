@@ -936,7 +936,6 @@
     "markdown-it-checkbox": "^1.1.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
-    "markdown-it-include": "^2.0.0",
     "markdown-it-named-headers": "0.0.4",
     "markdown-it-plantuml": "^1.4.1",
     "mustache": "^4.2.0",
