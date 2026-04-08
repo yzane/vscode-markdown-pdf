@@ -226,9 +226,7 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       });
       md.use(markdownItPlantuml, plantumlOptions);
 
-      // markdown-it-include
-      // https://github.com/camelaissani/markdown-it-include
-      // the syntax is :[alt-text](relative-path-to-file.md)
+      // Include markdown fragment files with :[alt-text](relative-path-to-file.md) syntax
       // https://talk.commonmark.org/t/transclusion-or-including-sub-documents-for-reuse/270/13
       if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
         md.use(markdownItInclude, {
