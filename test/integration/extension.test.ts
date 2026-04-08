@@ -71,6 +71,7 @@ const HTML_FEATURES: HtmlFeature[] = [
   { name: 'frontmatter-no-emoji' },
   { name: 'breaks' },
   { name: 'image' },
+  { name: 'include-codeblock' },
 ];
 
 suite('Integration HTML Snapshot Tests', () => {

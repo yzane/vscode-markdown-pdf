@@ -12,7 +12,7 @@ import { full as markdownItEmojiFull } from 'markdown-it-emoji';
 import markdownItNamedHeaders from 'markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
-import markdownItInclude from 'markdown-it-include';
+import { markdownItInclude } from './markdown-it-include';
 import mustache from 'mustache';
 import puppeteer from 'puppeteer-core';
 import * as PB from '@puppeteer/browsers';
@@ -233,8 +233,6 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
         md.use(markdownItInclude, {
           root: path.dirname(filename),
-          includeRe: /:\[.+\](\(.+\..+\))/i,
-          bracesAreOptional: true,
           throwError: false
         });
       }
