@@ -387,6 +387,12 @@ code {
 <div class="page"/>
 <h2 id="specification-changes">Specification Changes</h2>
 <ul>
+<li>Markdown-it Plugin Changes
+<ul>
+<li>Starting from version 1.6.0, checkbox rendering and heading ID generation use built-in markdown-it plugins maintained in this repository.</li>
+<li>Heading IDs now follow GitHub-compatible VS Code slug generation, preserving CJK characters and underscores while removing unsupported punctuation.</li>
+</ul>
+</li>
 <li>Syntax Highlight Style Changes
 <ul>
 <li>Starting from version 1.6.0, highlight.js has been updated from version 9 to version 11. As a result, some syntax highlighting style names have been changed or removed.</li>
@@ -400,7 +406,8 @@ code {
 <ul>
 <li><a href="https://highlightjs.org/demo">Syntax highlighting</a></li>
 <li><a href="https://www.webfx.com/tools/emoji-cheat-sheet/">emoji</a></li>
-<li><a href="https://github.com/mcecot/markdown-it-checkbox">markdown-it-checkbox</a></li>
+<li>Built-in checkbox syntax support (custom markdown-it plugin)</li>
+<li>Built-in heading IDs with GitHub-compatible slug generation</li>
 <li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a></li>
 <li><a href="https://github.com/camelaissani/markdown-it-include">markdown-it-include</a></li>
 <li><a href="https://plantuml.com/">PlantUML</a>
@@ -1063,7 +1070,7 @@ stateDiagram
 </ul>
 <div class="page"/>
 <h2 id="faq">FAQ</h2>
-<h3 id="how-can-i-change-emoji-size">How can I change emoji size ?</h3>
+<h3 id="how-can-i-change-emoji-size-">How can I change emoji size ?</h3>
 <ol>
 <li>Add the following to your stylesheet which was specified in the markdown-pdf.styles</li>
 </ol>
@@ -1094,8 +1101,9 @@ stateDiagram
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
 <h3 id="160-20250415">1.6.0 (2025/04/15)</h3>
 <ul>
+<li>Refactor: replace external checkbox and named-header markdown-it packages with built-in implementations</li>
 <li>Fix: Allow underscores in section header identifiers <a href="https://github.com/yzane/vscode-markdown-pdf/pull/404">#404</a></li>
-<li>Update: align slug generation with <a href="https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27">latest VSCode behavior</a></li>
+<li>Update: use GitHub-compatible <a href="https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27">VS Code slug generation</a> for heading identifiers</li>
 </ul>
 <h2 id="license">License</h2>
 <p>MIT</p>
@@ -1103,8 +1111,6 @@ stateDiagram
 <ul>
 <li><a href="https://github.com/GoogleChrome/puppeteer">GoogleChrome/puppeteer</a></li>
 <li><a href="https://github.com/markdown-it/markdown-it">markdown-it/markdown-it</a></li>
-<li><a href="https://github.com/mcecot/markdown-it-checkbox">mcecot/markdown-it-checkbox</a></li>
-<li><a href="https://github.com/leff/markdown-it-named-headers">leff/markdown-it-named-headers</a></li>
 <li><a href="https://github.com/markdown-it/markdown-it-emoji">markdown-it/markdown-it-emoji</a></li>
 <li><a href="https://github.com/HenrikJoreteg/emoji-images">HenrikJoreteg/emoji-images</a></li>
 <li><a href="https://github.com/highlightjs/highlight.js">highlightjs/highlight.js</a></li>
@@ -1112,7 +1118,6 @@ stateDiagram
 <li><a href="https://github.com/janl/mustache.js">janl/mustache.js</a></li>
 <li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it/markdown-it-container</a></li>
 <li><a href="https://github.com/gmunguia/markdown-it-plantuml">gmunguia/markdown-it-plantuml</a></li>
-<li><a href="https://github.com/camelaissani/markdown-it-include">camelaissani/markdown-it-include</a></li>
 <li><a href="https://github.com/mermaid-js/mermaid">mermaid-js/mermaid</a></li>
 <li><a href="https://github.com/jonschlinkert/gray-matter">jonschlinkert/gray-matter</a></li>
 </ul>
