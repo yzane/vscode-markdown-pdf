@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import { load as cheerioLoad } from 'cheerio';
 import type { HLJSApi } from 'highlight.js';
+import { githubSlugify } from './markdown-it-named-headers';
 
 export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
   if (a === false) {
@@ -43,15 +44,7 @@ export function isExistsDir(dirname: string): boolean {
 }
 
 export function Slug(string: string): string {
-  const stg = encodeURI(
-    string.trim()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[\]\[\!\/\'\"\#\$\%\&\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\{\|\}\~\`。，、；：？！…—·ˉ¨''""々～‖∶＂＇｀｜〃〔〕〈〉《》「」『』．〖〗【】（）［］｛｝]/g, '')
-      .replace(/^\-+/, '')
-      .replace(/\-+$/, '')
-  );
-  return stg;
+  return githubSlugify(string);
 }
 
 export function transformTemplate(templateText: string): string {

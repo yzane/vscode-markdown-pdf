@@ -7,9 +7,9 @@ import * as chromiumResolver from './chromium-resolver';
 import grayMatter from 'gray-matter';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
-import markdownItCheckbox from 'markdown-it-checkbox';
+import { markdownItCheckbox } from './markdown-it-checkbox';
 import { full as markdownItEmojiFull } from 'markdown-it-emoji';
-import markdownItNamedHeaders from 'markdown-it-named-headers';
+import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
 import { markdownItInclude } from './markdown-it-include';
@@ -204,8 +204,7 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
         };
       }
 
-      // toc
-      // https://github.com/leff/markdown-it-named-headers
+      // toc via the local named-headers plugin
       const tocOptions = {
         slugify: utils.Slug
       };

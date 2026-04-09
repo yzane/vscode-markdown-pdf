@@ -25,6 +25,9 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## Specification Changes
 
+- Markdown-it Plugin Changes
+  - Starting from version 1.6.0, checkbox rendering and heading ID generation use built-in markdown-it plugins maintained in this repository.
+  - Heading IDs now follow GitHub-compatible VS Code slug generation, preserving CJK characters and underscores while removing unsupported punctuation.
 - Syntax Highlight Style Changes
   - Starting from version 1.6.0, highlight.js has been updated from version 9 to version 11. As a result, some syntax highlighting style names have been changed or removed.
   - If your configured style name is no longer current, the extension will display a warning message. Legacy style aliases are mapped to current style names when possible, and the extension falls back to `tomorrow.css` only when no matching current style is available.
@@ -35,7 +38,8 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 Supports the following features
 * [Syntax highlighting](https://highlightjs.org/demo)
 * [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
-* [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
+* Built-in checkbox syntax support (custom markdown-it plugin)
+* Built-in heading IDs with GitHub-compatible slug generation
 * [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
 * [PlantUML](https://plantuml.com/)
@@ -613,8 +617,9 @@ Please use the following to insert a page break.
 ## [Release Notes](CHANGELOG.md)
 
 ### 1.6.0 (2025/04/15)
+* Refactor: replace external checkbox and named-header markdown-it packages with built-in implementations
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
-* Update: align slug generation with [latest VSCode behavior](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27)
+* Update: use GitHub-compatible [VS Code slug generation](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27) for heading identifiers
 
 ## License
 
@@ -624,8 +629,6 @@ MIT
 ## Special thanks
 * [GoogleChrome/puppeteer](https://github.com/GoogleChrome/puppeteer)
 * [markdown-it/markdown-it](https://github.com/markdown-it/markdown-it)
-* [mcecot/markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
-* [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
 * [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)

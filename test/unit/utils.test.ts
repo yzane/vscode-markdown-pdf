@@ -65,15 +65,15 @@ describe('utils', function () {
     });
 
     it('should handle Japanese text', function () {
-      assert.strictEqual(utils.Slug('日本語の見出し'), encodeURI('日本語の見出し'));
+      assert.strictEqual(utils.Slug('日本語の見出し'), '日本語の見出し');
     });
 
     it('should remove punctuation', function () {
       assert.strictEqual(utils.Slug('What\'s this?!'), 'whats-this');
     });
 
-    it('should remove leading and trailing hyphens', function () {
-      assert.strictEqual(utils.Slug(' -hello- '), 'hello');
+    it('should preserve leading and trailing hyphens', function () {
+      assert.strictEqual(utils.Slug(' -hello- '), '-hello-');
     });
 
     it('should preserve underscores', function () {
@@ -88,8 +88,8 @@ describe('utils', function () {
       assert.strictEqual(utils.Slug('   '), '');
     });
 
-    it('should collapse multiple spaces into a single hyphen', function () {
-      assert.strictEqual(utils.Slug('hello   world'), 'hello-world');
+    it('should replace each space with a hyphen', function () {
+      assert.strictEqual(utils.Slug('hello   world'), 'hello---world');
     });
 
     it('should handle mixed content', function () {
@@ -105,13 +105,11 @@ describe('utils', function () {
     });
 
     it('should handle mixed CJK and Latin scripts', function () {
-      const result = utils.Slug('日本語 English テスト');
-      assert.strictEqual(result, encodeURI('日本語') + '-english-' + encodeURI('テスト'));
+      assert.strictEqual(utils.Slug('日本語 English テスト'), '日本語-english-テスト');
     });
 
     it('should handle emoji in text', function () {
-      const result = utils.Slug('Hello 🎉 World');
-      assert.strictEqual(result, 'hello-' + encodeURI('🎉') + '-world');
+      assert.strictEqual(utils.Slug('Hello 🎉 World'), 'hello--world');
     });
   });
 
