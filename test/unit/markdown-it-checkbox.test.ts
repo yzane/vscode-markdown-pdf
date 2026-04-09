@@ -58,11 +58,36 @@ describe('markdownItCheckbox', function () {
     assert.ok(!html.includes('<label'));
   });
 
+  it('should not rewrite prose when checkbox marker appears mid-sentence', function () {
+    const html = render('prefix [ ] item');
+    assert.ok(!html.includes('<input'));
+    assert.ok(!html.includes('<label'));
+    assert.ok(html.includes('<p>prefix [ ] item</p>'));
+  });
+
+  it('should keep formatted label content inside the label', function () {
+    const html = render('[ ] **bold** [link](https://example.com) `code`');
+    assert.ok(html.includes('<input type="checkbox" id="checkbox0">'));
+    assert.ok(html.includes('<label for="checkbox0"><strong>bold</strong> <a href="https://example.com">link</a> <code>code</code></label>'));
+  });
+
   it('should work inside list items', function () {
     const html = render('- [ ] unchecked\n- [x] checked');
     assert.ok(html.includes('<input type="checkbox" id="checkbox0">'));
     assert.ok(html.includes('<label for="checkbox0">unchecked</label>'));
     assert.ok(html.includes('<input type="checkbox" id="checkbox1" checked="true">'));
     assert.ok(html.includes('<label for="checkbox1">checked</label>'));
+  });
+
+  it('should reset ids for each render on the same markdown-it instance', function () {
+    const md = markdownIt();
+    md.use(markdownItCheckbox);
+
+    const firstHtml = md.render('[ ] first');
+    const secondHtml = md.render('[ ] second');
+
+    assert.ok(firstHtml.includes('<input type="checkbox" id="checkbox0">'));
+    assert.ok(secondHtml.includes('<input type="checkbox" id="checkbox0">'));
+    assert.ok(!secondHtml.includes('checkbox1'));
   });
 });
