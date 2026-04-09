@@ -55,15 +55,16 @@ export function markdownItNamedHeaders(md: MarkdownIt, options?: NamedHeadersOpt
     }
 
     const title = tokenToPlainText(tokens[idx + 1]);
-    let slug = slugify(title);
+    const baseSlug = slugify(title);
+    let slug = baseSlug;
 
-    const existingCount = slugCounts.get(slug);
+    const existingCount = slugCounts.get(baseSlug);
     if (existingCount !== undefined) {
       const newCount = existingCount + 1;
-      slugCounts.set(slug, newCount);
-      slug = slugify(slug + '-' + newCount);
+      slugCounts.set(baseSlug, newCount);
+      slug = `${baseSlug}-${newCount}`;
     } else {
-      slugCounts.set(slug, 0);
+      slugCounts.set(baseSlug, 0);
     }
 
     tokens[idx].attrSet('id', slug);

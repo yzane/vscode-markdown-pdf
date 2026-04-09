@@ -87,5 +87,33 @@ describe('markdownItNamedHeaders', function () {
       const html = md.render('# Hello World');
       assert.ok(html.includes('id="HELLO_WORLD"'));
     });
+
+    it('should append duplicate suffixes after custom slugify collapses headings', function () {
+      const md = markdownIt();
+      md.use(markdownItNamedHeaders, { slugify: () => 'x' });
+      const html = md.render('# One\n\n# Two\n\n# Three');
+      const headingIds = Array.from(html.matchAll(/<h1\b[^>]*\bid="([^"]+)"[^>]*>/g), function (match) {
+        return match[1];
+      });
+      assert.deepStrictEqual(headingIds, ['x', 'x-1', 'x-2']);
+    });
+
+    it('should reset duplicate state between renders on the same MarkdownIt instance', function () {
+      const md = markdownIt();
+      md.use(markdownItNamedHeaders);
+
+      const firstHtml = md.render('# Heading\n\n# Heading');
+      const secondHtml = md.render('# Heading\n\n# Heading');
+
+      const firstIds = Array.from(firstHtml.matchAll(/<h1\b[^>]*\bid="([^"]+)"[^>]*>/g), function (match) {
+        return match[1];
+      });
+      const secondIds = Array.from(secondHtml.matchAll(/<h1\b[^>]*\bid="([^"]+)"[^>]*>/g), function (match) {
+        return match[1];
+      });
+
+      assert.deepStrictEqual(firstIds, ['heading', 'heading-1']);
+      assert.deepStrictEqual(secondIds, ['heading', 'heading-1']);
+    });
   });
 });
