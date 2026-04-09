@@ -72,7 +72,7 @@ describe('utils', function () {
       assert.strictEqual(utils.Slug('What\'s this?!'), 'whats-this');
     });
 
-    it('should remove leading and trailing hyphens', function () {
+    it('should preserve leading and trailing hyphens', function () {
       assert.strictEqual(utils.Slug(' -hello- '), '-hello-');
     });
 
@@ -88,7 +88,7 @@ describe('utils', function () {
       assert.strictEqual(utils.Slug('   '), '');
     });
 
-    it('should collapse multiple spaces into a single hyphen', function () {
+    it('should replace each space with a hyphen', function () {
       assert.strictEqual(utils.Slug('hello   world'), 'hello---world');
     });
 
