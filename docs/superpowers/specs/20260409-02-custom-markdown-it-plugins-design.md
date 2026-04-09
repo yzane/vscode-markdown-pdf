@@ -64,7 +64,9 @@ export function markdownItNamedHeaders(md: MarkdownIt, options?: NamedHeadersOpt
 
 #### GitHub 互換 slugifier
 
-VS Code の `slugify.ts`（`vscode-markdown-languageservice`）と同じロジックを移植する。元は [github-slugger](https://github.com/Flet/github-slugger) のロジック。
+VS Code の [`slugify.ts`](https://github.com/microsoft/vscode/blob/b9c18c3652cb212220bdde9c07f7715514b3265a/extensions/markdown-language-features/src/slugify.ts) と同じロジックを移植する。元は [github-slugger](https://github.com/Flet/github-slugger) のロジック。
+
+heading に id を付与するルールは VS Code の [`markdownEngine.ts#addNamedHeaders`](https://github.com/microsoft/vscode/blob/b9c18c3652cb212220bdde9c07f7715514b3265a/extensions/markdown-language-features/src/markdownEngine.ts#L241-L262) を参照。
 
 ```typescript
 // github-slugger ベースの正規表現（VS Code と同一）
