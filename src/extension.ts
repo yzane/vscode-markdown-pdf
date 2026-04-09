@@ -204,8 +204,7 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
         };
       }
 
-      // toc
-      // https://github.com/leff/markdown-it-named-headers
+      // toc via the local named-headers plugin
       const tocOptions = {
         slugify: utils.Slug
       };
