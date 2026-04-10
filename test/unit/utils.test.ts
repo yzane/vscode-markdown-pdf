@@ -1398,6 +1398,33 @@ describe('utils', function () {
       assert.ok(result.indexOf('/abs/photo.png') >= 0);
     });
 
+    it('should rewrite the real src attribute and preserve data-src', function () {
+      const result = utils.transformHtmlBlockImages('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('real.png') >= 0);
+      assert.ok(result.indexOf('lazy.png') >= 0);
+      assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
+    });
+
+    it('should handle spacing around src equals', function () {
+      const result = utils.transformHtmlBlockImages('<img src = "photo.png">', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+    });
+
+    it('should handle multiple images with mixed attribute ordering', function () {
+      const result = utils.transformHtmlBlockImages(
+        '<img data-src="lazy.png" src="real.png"><img alt="desc" src = "photo.png">',
+        '/doc/test.md',
+      );
+      assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
+      assert.ok(result.indexOf('real.png') >= 0);
+      assert.ok(result.indexOf('alt="desc"') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+      const matches = result.match(/file:\/\//g);
+      assert.strictEqual(matches!.length, 2);
+    });
+
     it('should handle self-closing img tags', function () {
       const result = utils.transformHtmlBlockImages('<img src="photo.png" />', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);

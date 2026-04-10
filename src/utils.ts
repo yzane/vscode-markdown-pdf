@@ -457,9 +457,11 @@ export function transformHtmlBlockImages(html: string, filename: string): string
   if (!html) {
     return '';
   }
-  return html.replace(/<img\s([^>]*?)src=(["'])(.*?)\2([^>]*?)>/gi, (match, before, quote, src, after) => {
-    const href = convertImgPath(src, filename);
-    return `<img ${before}src=${quote}${href}${quote}${after}>`;
+  return html.replace(/<img\b[^>]*>/gi, (tag) => {
+    return tag.replace(/(\s)src\s*=\s*(["'])(.*?)\2/i, (match, whitespace, quote, src) => {
+      const href = convertImgPath(src, filename);
+      return `${whitespace}src=${quote}${href}${quote}`;
+    });
   });
 }
 
