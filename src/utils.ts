@@ -425,6 +425,14 @@ export function renderTemplate(template: string, view: Record<string, string>): 
   });
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
 export function parseFrontMatter(text: string): { data: Record<string, unknown>; content: string } {
   const match = text.match(/^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
   if (!match) {
@@ -441,7 +449,7 @@ export function parseFrontMatter(text: string): { data: Record<string, unknown>;
   }
   const data = yaml.load(yamlStr);
   return {
-    data: (typeof data === 'object' && data !== null && !Array.isArray(data) ? data : {}) as Record<string, unknown>,
+    data: isPlainRecord(data) ? data : {},
     content: content,
   };
 }

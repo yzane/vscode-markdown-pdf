@@ -1673,6 +1673,13 @@ describe('utils', function () {
       assert.strictEqual(result.content, 'body');
     });
 
+    it('should return empty data when front matter is a timestamp scalar', function () {
+      const text = '---\n2020-01-01\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, 'body');
+    });
+
     it('should handle empty front matter block', function () {
       const text = '---\n---\n# Hello';
       const result = utils.parseFrontMatter(text);
