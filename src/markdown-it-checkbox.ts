@@ -1,3 +1,5 @@
+// markdown-it plugin: renders GitHub-style task list checkboxes, turning
+// lines like `[ ] item` or `[x] item` into <input type="checkbox"> elements.
 import type MarkdownIt from 'markdown-it';
 import type Token from 'markdown-it/lib/token.mjs';
 
@@ -115,6 +117,7 @@ function checkboxReplace(
   };
 }
 
+/** Installs the checkbox plugin that renders GitHub-style task list items. */
 export function markdownItCheckbox(md: MarkdownIt): void {
   const idState = { value: 0 };
 
