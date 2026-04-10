@@ -1652,6 +1652,20 @@ describe('utils', function () {
       assert.strictEqual(result.content, 'body');
     });
 
+    it('should parse front matter at EOF without a trailing newline', function () {
+      const text = '---\nbreaks: true\n---';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, '');
+    });
+
+    it('should return empty data when front matter is a scalar value', function () {
+      const text = '---\n42\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, 'body');
+    });
+
     it('should handle empty front matter block', function () {
       const text = '---\n---\n# Hello';
       const result = utils.parseFrontMatter(text);

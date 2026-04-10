@@ -150,23 +150,30 @@ function isMarkdownPdfOnSaveExclude(): boolean | undefined {
   }
 }
 
+function getFrontMatterBoolean(data: Record<string, unknown>, key: string): boolean | null | undefined {
+  const value = data[key];
+  return typeof value === 'boolean' || value === null ? value : undefined;
+}
+
+function getFrontMatterString(data: Record<string, unknown>, key: string): string | undefined {
+  const value = data[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
 /*
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename: string, type: string, text: string): string | undefined {
   const matterParts = utils.parseFrontMatter(text);
-  const matterData = matterParts.data as {
-    breaks?: boolean | null;
-    emoji?: boolean | null;
-    plantumlOpenMarker?: string;
-    plantumlCloseMarker?: string;
-  };
   let statusbarmessage: vscode.Disposable | undefined;
 
   try {
     try {
       statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
-      const breaks = utils.setBooleanValue(matterData.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
+      const breaks = utils.setBooleanValue(
+        getFrontMatterBoolean(matterParts.data, 'breaks'),
+        vscode.workspace.getConfiguration('markdown-pdf')['breaks'],
+      );
       const md = markdownIt(utils.buildMarkdownItOptions({
         breaks: breaks,
         hljs: hljs,
@@ -193,7 +200,10 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       md.use(markdownItCheckbox);
 
       // emoji
-      const emoji_f = utils.setBooleanValue(matterData.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
+      const emoji_f = utils.setBooleanValue(
+        getFrontMatterBoolean(matterParts.data, 'emoji'),
+        vscode.workspace.getConfiguration('markdown-pdf')['emoji'],
+      );
       if (emoji_f) {
         const emojies_defs = JSON.parse(utils.readFile(path.join(EXTENSION_ROOT, 'data', 'emoji.json')) as string);
         const emojiOptions = {
@@ -221,8 +231,8 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       // PlantUML
       // https://github.com/gmunguia/markdown-it-plantuml
       const plantumlOptions = utils.buildPlantumlOptions({
-        frontmatterOpenMarker: matterData.plantumlOpenMarker,
-        frontmatterCloseMarker: matterData.plantumlCloseMarker,
+        frontmatterOpenMarker: getFrontMatterString(matterParts.data, 'plantumlOpenMarker'),
+        frontmatterCloseMarker: getFrontMatterString(matterParts.data, 'plantumlCloseMarker'),
         settingsOpenMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '',
         settingsCloseMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '',
         server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
