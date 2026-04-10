@@ -1480,6 +1480,11 @@ describe('utils', function () {
       assert.strictEqual(result, '<textarea><img src=x.png></textarea>');
     });
 
+    it('should handle whitespace before the closing raw-text tag', function () {
+      const result = utils.transformHtmlBlockImages('<script>const html = "<img src=x.png>";</script ><img src=real.png>', '/doc/test.md');
+      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="file:///doc/real.png">');
+    });
+
     it('should preserve surrounding html', function () {
       const result = utils.transformHtmlBlockImages('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
       assert.ok(result.indexOf('<p>before</p>') >= 0);
