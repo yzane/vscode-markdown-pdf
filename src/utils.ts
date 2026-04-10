@@ -496,11 +496,83 @@ function findHtmlTagEnd(html: string, startIndex: number): number {
 }
 
 function transformImgTag(tag: string, filename: string): string {
-  return tag.replace(/(^|[\s/])src\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i, (match, prefix, doubleQuoted, singleQuoted, unquoted) => {
-    const src = doubleQuoted ?? singleQuoted ?? unquoted;
-    const href = convertImgPath(src, filename);
-    return `${prefix}src="${href}"`;
-  });
+  let result = '';
+  let i = 0;
+  while (i < tag.length) {
+    const char = tag[i];
+    if (char === '"' || char === "'") {
+      const quote = char;
+      const start = i;
+      i++;
+      while (i < tag.length && tag[i] !== quote) {
+        i++;
+      }
+      if (i < tag.length) {
+        i++;
+      }
+      result += tag.slice(start, i);
+      continue;
+    }
+
+    if (/\s/.test(char) || char === '/' || char === '>') {
+      result += char;
+      i++;
+      continue;
+    }
+
+    const attributeStart = i;
+    while (i < tag.length && !/\s|=|\/|>/.test(tag[i])) {
+      i++;
+    }
+    const name = tag.slice(attributeStart, i);
+    const lowerName = name.toLowerCase();
+
+    let whitespaceBeforeEquals = '';
+    while (i < tag.length && /\s/.test(tag[i])) {
+      whitespaceBeforeEquals += tag[i];
+      i++;
+    }
+
+    if (i >= tag.length || tag[i] !== '=') {
+      result += tag.slice(attributeStart, i);
+      continue;
+    }
+
+    i++;
+    let whitespaceAfterEquals = '';
+    while (i < tag.length && /\s/.test(tag[i])) {
+      whitespaceAfterEquals += tag[i];
+      i++;
+    }
+
+    const valueStart = i;
+    let value = '';
+    if (i < tag.length && (tag[i] === '"' || tag[i] === "'")) {
+      const quote = tag[i];
+      i++;
+      const quotedValueStart = i;
+      while (i < tag.length && tag[i] !== quote) {
+        i++;
+      }
+      value = tag.slice(quotedValueStart, i);
+      if (i < tag.length) {
+        i++;
+      }
+    } else {
+      while (i < tag.length && !/\s|>/.test(tag[i])) {
+        i++;
+      }
+      value = tag.slice(valueStart, i);
+    }
+
+    if (lowerName === 'src') {
+      const href = convertImgPath(value, filename);
+      result += `${name}${whitespaceBeforeEquals}=${whitespaceAfterEquals}"${href}"`;
+    } else {
+      result += tag.slice(attributeStart, i);
+    }
+  }
+  return result;
 }
 
 export function buildEmojiTag(emoji: string, emojiData: string | undefined | null): string {

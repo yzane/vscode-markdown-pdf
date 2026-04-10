@@ -1407,7 +1407,7 @@ describe('utils', function () {
 
     it('should handle spacing around src equals', function () {
       const result = utils.transformHtmlBlockImages('<img src = "photo.png">', '/doc/test.md');
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.strictEqual(result, '<img src = "file:///doc/photo.png">');
     });
 
     it('should handle unquoted src attributes', function () {
@@ -1420,10 +1420,10 @@ describe('utils', function () {
         '<img data-src="lazy.png" src="real.png"><img alt="desc" src = "photo.png">',
         '/doc/test.md',
       );
-      assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
-      assert.ok(result.indexOf('alt="desc"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.strictEqual(
+        result,
+        '<img data-src="lazy.png" src="file:///doc/real.png"><img alt="desc" src = "file:///doc/photo.png">',
+      );
     });
 
     it('should handle self-closing img tags', function () {
@@ -1443,6 +1443,11 @@ describe('utils', function () {
       const result = utils.transformHtmlBlockImages('<img alt="a > b" src="photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('alt="a > b"') >= 0);
       assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+    });
+
+    it('should preserve quoted non-src attributes that contain src text', function () {
+      const result = utils.transformHtmlBlockImages('<img alt="look src=bad.png" src="real.png">', '/doc/test.md');
+      assert.strictEqual(result, '<img alt="look src=bad.png" src="file:///doc/real.png">');
     });
 
     it('should preserve surrounding html', function () {
