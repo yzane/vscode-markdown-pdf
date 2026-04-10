@@ -457,11 +457,49 @@ export function transformHtmlBlockImages(html: string, filename: string): string
   if (!html) {
     return '';
   }
-  return html.replace(/<img\b[^>]*>/gi, (tag) => {
-    return tag.replace(/(\s)src\s*=\s*(["'])(.*?)\2/i, (match, whitespace, quote, src) => {
-      const href = convertImgPath(src, filename);
-      return `${whitespace}src=${quote}${href}${quote}`;
-    });
+  let result = '';
+  let lastIndex = 0;
+  const tagPattern = /<img\b/gi;
+  let match: RegExpExecArray | null;
+  while ((match = tagPattern.exec(html)) !== null) {
+    const tagStart = match.index;
+    const tagEnd = findHtmlTagEnd(html, tagPattern.lastIndex);
+    if (tagEnd === -1) {
+      break;
+    }
+    result += html.slice(lastIndex, tagStart) + transformImgTag(html.slice(tagStart, tagEnd + 1), filename);
+    lastIndex = tagEnd + 1;
+    tagPattern.lastIndex = lastIndex;
+  }
+  return result + html.slice(lastIndex);
+}
+
+function findHtmlTagEnd(html: string, startIndex: number): number {
+  let quote: string | null = null;
+  for (let i = startIndex; i < html.length; i++) {
+    const char = html[i];
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (char === '>') {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function transformImgTag(tag: string, filename: string): string {
+  return tag.replace(/(^|[\s/])src\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i, (match, prefix, doubleQuoted, singleQuoted, unquoted) => {
+    const src = doubleQuoted ?? singleQuoted ?? unquoted;
+    const href = convertImgPath(src, filename);
+    return `${prefix}src="${href}"`;
   });
 }
 

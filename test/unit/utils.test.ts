@@ -1400,16 +1400,19 @@ describe('utils', function () {
 
     it('should rewrite the real src attribute and preserve data-src', function () {
       const result = utils.transformHtmlBlockImages('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
-      assert.ok(result.indexOf('file://') >= 0);
-      assert.ok(result.indexOf('real.png') >= 0);
-      assert.ok(result.indexOf('lazy.png') >= 0);
       assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
+      assert.ok(result.indexOf('data-src="lazy.png" src="file:///doc/real.png"') >= 0);
     });
 
     it('should handle spacing around src equals', function () {
       const result = utils.transformHtmlBlockImages('<img src = "photo.png">', '/doc/test.md');
-      assert.ok(result.indexOf('file://') >= 0);
-      assert.ok(result.indexOf('photo.png') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+    });
+
+    it('should handle unquoted src attributes', function () {
+      const result = utils.transformHtmlBlockImages('<img src=photo.png>', '/doc/test.md');
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
     });
 
     it('should handle multiple images with mixed attribute ordering', function () {
@@ -1418,11 +1421,9 @@ describe('utils', function () {
         '/doc/test.md',
       );
       assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
-      assert.ok(result.indexOf('real.png') >= 0);
       assert.ok(result.indexOf('alt="desc"') >= 0);
-      assert.ok(result.indexOf('photo.png') >= 0);
-      const matches = result.match(/file:\/\//g);
-      assert.strictEqual(matches!.length, 2);
+      assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
     });
 
     it('should handle self-closing img tags', function () {
@@ -1433,10 +1434,15 @@ describe('utils', function () {
 
     it('should handle img tags with other attributes', function () {
       const result = utils.transformHtmlBlockImages('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
-      assert.ok(result.indexOf('file://') >= 0);
-      assert.ok(result.indexOf('photo.png') >= 0);
       assert.ok(result.indexOf('alt="desc"') >= 0);
       assert.ok(result.indexOf('width="100"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+    });
+
+    it('should handle quotes that contain a greater-than sign', function () {
+      const result = utils.transformHtmlBlockImages('<img alt="a > b" src="photo.png">', '/doc/test.md');
+      assert.ok(result.indexOf('alt="a > b"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
     });
 
     it('should preserve surrounding html', function () {
