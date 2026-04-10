@@ -1,3 +1,6 @@
+// markdown-it plugin: expands :[alt](path/to/file.md) include directives
+// before rendering, while preserving content inside fenced and inline code
+// regions.
 import type MarkdownIt from 'markdown-it';
 import fs from 'fs';
 import path from 'path';
@@ -204,6 +207,7 @@ function processIncludes(
   return text;
 }
 
+/** Installs the include plugin that expands :[alt](path) directives at parse time. */
 export function markdownItInclude(md: MarkdownIt, options: string | MarkdownItIncludeOptions): void {
   const opts: MarkdownItIncludeOptions =
     typeof options === 'string' ? { root: options } : options;

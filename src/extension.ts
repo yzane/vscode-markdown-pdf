@@ -1,3 +1,5 @@
+// VS Code extension entry point: registers markdown-pdf commands and drives
+// the markdown-to-HTML/PDF/image conversion workflow via puppeteer-core.
 import * as vscode from 'vscode';
 import path from 'path';
 import fs from 'fs';
@@ -35,6 +37,7 @@ function getExtensionCacheDir(): string {
   return '';
 }
 
+/** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context;
   init();
@@ -59,6 +62,7 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 // this method is called when your extension is deactivated
+/** Deactivates the extension. Currently a no-op; kept for VS Code API compatibility. */
 export function deactivate(): void {
 }
 

@@ -1,3 +1,5 @@
+// markdown-it plugin: assigns GitHub-compatible slug IDs to headings so
+// in-document links and tables of contents resolve consistently.
 import type MarkdownIt from 'markdown-it';
 import type Token from 'markdown-it/lib/token.mjs';
 
@@ -40,6 +42,7 @@ function tokenToPlainText(token: Token): string {
   }
 }
 
+/** Installs the named-headers plugin that assigns slug IDs to headings. */
 export function markdownItNamedHeaders(md: MarkdownIt, options?: NamedHeadersOptions): void {
   const slugify = options?.slugify ?? githubSlugify;
 

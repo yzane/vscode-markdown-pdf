@@ -1,3 +1,6 @@
+// Shared helpers for the markdown-pdf extension: file I/O, path and URL
+// resolution, HTML/CSS assembly, and option builders for markdown-it and
+// Puppeteer.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -5,6 +8,7 @@ import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import { githubSlugify } from './markdown-it-named-headers';
 
+/** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
 export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
   if (a === false) {
     return false;
@@ -13,6 +17,7 @@ export function setBooleanValue(a: boolean | undefined | null, b: boolean | unde
   }
 }
 
+/** Checks whether a path exists, logging and returning false on any fs error. */
 export function isExistsPath(filePath: string): boolean {
   if (filePath.length === 0) {
     return false;
@@ -26,6 +31,7 @@ export function isExistsPath(filePath: string): boolean {
   }
 }
 
+/** Checks whether a path exists and is a directory, logging and returning false otherwise. */
 export function isExistsDir(dirname: string): boolean {
   if (dirname.length === 0) {
     return false;
@@ -43,10 +49,12 @@ export function isExistsDir(dirname: string): boolean {
   }
 }
 
+/** Generates a GitHub-compatible slug from a heading title. */
 export function Slug(string: string): string {
   return githubSlugify(string);
 }
 
+/** Substitutes %%ISO-DATETIME%%, %%ISO-DATE%%, and %%ISO-TIME%% placeholders with the current values. */
 export function transformTemplate(templateText: string): string {
   if (templateText.indexOf('%%ISO-DATETIME%%') !== -1) {
     templateText = templateText.replace('%%ISO-DATETIME%%', new Date().toISOString().substr(0, 19).replace('T', ' '));
@@ -61,6 +69,10 @@ export function transformTemplate(templateText: string): string {
   return templateText;
 }
 
+/**
+ * Reads a file synchronously, stripping file:// URI prefixes beforehand.
+ * Returns '' on any I/O failure; warnings are logged to console and errors are never re-thrown.
+ */
 export function readFile(filename: string, encode?: BufferEncoding | null): string | Buffer {
   if (filename.length === 0) {
     return '';
@@ -88,6 +100,7 @@ export function readFile(filename: string, encode?: BufferEncoding | null): stri
   }
 }
 
+/** Reads a CSS file and wraps its contents in a <style> tag, or returns '' when the file is empty. */
 export function makeCss(filename: string): string {
   const css = readFile(filename);
   if (css) {
@@ -97,6 +110,7 @@ export function makeCss(filename: string): string {
   }
 }
 
+/** Resolves an image src to an absolute file:// URL, or returns the original src for remote URLs. */
 export function convertImgPath(src: string, filename: string): string {
   let href = decodeURIComponent(src);
   href = href.replace(/("|')/g, '')
@@ -127,6 +141,7 @@ export function convertImgPath(src: string, filename: string): string {
   }
 }
 
+/** Returns true when filename matches any of the given regex pattern strings. */
 export function isExcludeFile(filename: string, patterns: string[] | undefined | string): boolean {
   if (!patterns || !Array.isArray(patterns) || patterns.length === 0) {
     return false;
@@ -140,6 +155,7 @@ export function isExcludeFile(filename: string, patterns: string[] | undefined |
   return false;
 }
 
+/** Resolves a style href to an absolute file:// URL, leaving http/https/data URLs untouched. */
 export function resolveHref(href: string | undefined | null, resourceFsPath: string, stylesRelativePathFile: boolean | undefined, workspaceFsPath: string | undefined): string | undefined | null {
   if (!href) {
     return href;
@@ -170,6 +186,10 @@ export function resolveHref(href: string | undefined | null, resourceFsPath: str
   return 'file://' + path.join(path.dirname(resourceFsPath), href);
 }
 
+/**
+ * Resolves the output directory for a converted file.
+ * Returns null when a configured absolute outputDirectory does not exist.
+ */
 export function resolveOutputDir(filename: string, outputDirectory: string | undefined | null, outputDirectoryRelativePathFile: boolean | undefined, resourceFsPath: string, workspaceFsPath: string | undefined): string | null {
   if (!outputDirectory || outputDirectory.length === 0) {
     return filename;
@@ -233,6 +253,7 @@ interface BuildStyleTagsOptions {
   resolveHrefFn: (href: string) => string;
 }
 
+/** Builds the concatenated <style> and <link> tags for default, highlight, and user styles. */
 export function buildStyleTags(options: BuildStyleTagsOptions): string {
   let style = '';
   let filename = '';
@@ -295,6 +316,7 @@ interface PdfConfig {
   margin: { top: string; right: string; bottom: string; left: string };
 }
 
+/** Builds the options object passed to Puppeteer's page.pdf() call. */
 export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
   let formatOption: string = '';
   if (!config.width && !config.height) {
@@ -326,6 +348,7 @@ interface ImageConfig {
   omitBackground: boolean;
 }
 
+/** Builds the options object passed to Puppeteer's page.screenshot() call. */
 export function buildImageOptions(config: ImageConfig): Record<string, unknown> {
   const qualityOption = config.type === 'png' ? undefined : config.quality;
   const clip = config.clip;
@@ -353,6 +376,7 @@ export function buildImageOptions(config: ImageConfig): Record<string, unknown> 
   };
 }
 
+/** Returns a markdown-it highlight callback that renders mermaid blocks as <div> and other languages via highlight.js. */
 export function buildHighlightCallback(hljs: HLJSApi, escapeHtml: (str: string) => string): (str: string, lang: string) => string {
   return function (str: string, lang: string): string {
     if (lang && lang.match(/\bmermaid\b/i)) {
@@ -379,6 +403,7 @@ interface MarkdownItConfig {
   escapeHtml: (str: string) => string;
 }
 
+/** Builds the options object passed to the markdown-it constructor. */
 export function buildMarkdownItOptions(config: MarkdownItConfig): Record<string, unknown> {
   return {
     html: true,
@@ -395,6 +420,7 @@ interface PlantumlConfig {
   server: string;
 }
 
+/** Builds the options object passed to the markdown-it-plantuml plugin. */
 export function buildPlantumlOptions(config: PlantumlConfig): { openMarker: string; closeMarker: string; server: string } {
   return {
     openMarker: config.frontmatterOpenMarker || config.settingsOpenMarker || '@startuml',
@@ -410,6 +436,7 @@ interface HtmlViewDataConfig {
   mermaidServer: string;
 }
 
+/** Builds the view model passed to the HTML template renderer. */
 export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; style: string; content: string; mermaid: string } {
   return {
     title: config.title,
@@ -419,6 +446,7 @@ export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; 
   };
 }
 
+/** Substitutes {{{key}}} placeholders in a template with matching values from view. */
 export function renderTemplate(template: string, view: Record<string, string>): string {
   return template.replace(/\{\{\{(\w+)\}\}\}/g, function (match: string, key: string): string {
     return key in view ? view[key] : match;
@@ -433,6 +461,11 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
+/**
+ * Parses YAML front matter from a markdown string, tolerating a leading BOM
+ * and an empty front matter block. Returns an empty data object when YAML is
+ * missing, empty, or not a plain object.
+ */
 export function parseFrontMatter(text: string): { data: Record<string, unknown>; content: string } {
   const match = text.match(/^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
   if (!match) {
@@ -454,6 +487,7 @@ export function parseFrontMatter(text: string): { data: Record<string, unknown>;
   };
 }
 
+/** Resolves the requested export types from an option string and the configured default, or null for an unsupported type. */
 export function resolveExportTypes(optionType: string | undefined, configuredType: string[] | string | undefined): string[] | null {
   const typesFormat = ['html', 'pdf', 'png', 'jpeg'];
 
@@ -476,6 +510,7 @@ export function resolveExportTypes(optionType: string | undefined, configuredTyp
   return null;
 }
 
+/** Transforms an image href for the given export type: decoded for html, absolute file:// for others. */
 export function transformImageHref(href: string, type: string, filename: string): string {
   if (type === 'html') {
     return decodeURIComponent(href).replace(/("|')/g, '');
@@ -483,6 +518,12 @@ export function transformImageHref(href: string, type: string, filename: string)
   return convertImgPath(href, filename);
 }
 
+/**
+ * Rewrites src attributes of <img> tags inside raw HTML blocks to absolute
+ * file:// URLs, skipping content inside comments, <script>, <style>, and
+ * <textarea>. Uses a hand-rolled scanner to avoid pulling in a full HTML
+ * parsing dependency.
+ */
 export function transformHtmlBlockImages(html: string, filename: string): string {
   if (!html) {
     return '';
@@ -660,6 +701,7 @@ function transformImgTag(tag: string, filename: string): string {
   return result;
 }
 
+/** Builds an <img> tag carrying a base64-encoded emoji, or a ':name:' fallback when emoji data is missing. */
 export function buildEmojiTag(emoji: string, emojiData: string | undefined | null): string {
   if (emojiData) {
     return '<img class="emoji" alt="' + emoji + '" src="data:image/png;base64,' + emojiData + '" />';
@@ -667,6 +709,7 @@ export function buildEmojiTag(emoji: string, emojiData: string | undefined | nul
   return ':' + emoji + ':';
 }
 
+/** Returns validate and render callbacks for the markdown-it-container plugin. */
 export function buildContainerRenderer(): { validate: (name: string) => number; render: (tokens: Array<{ info: string }>, idx: number) => string } {
   return {
     validate: function (name: string): number {
@@ -681,6 +724,7 @@ export function buildContainerRenderer(): { validate: (name: string) => number; 
   };
 }
 
+/** Generates a temporary html filename derived from the source markdown filename. */
 export function generateTmpHtmlFilename(filename: string): string {
   const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
