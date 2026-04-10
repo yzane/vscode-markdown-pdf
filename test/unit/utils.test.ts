@@ -1631,6 +1631,13 @@ describe('utils', function () {
       assert.strictEqual(result.content, '# Hello');
     });
 
+    it('should parse front matter after a UTF-8 BOM', function () {
+      const text = '\uFEFF---\nbreaks: true\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, 'body');
+    });
+
     it('should return empty data when no front matter exists', function () {
       const text = '# Hello\nWorld';
       const result = utils.parseFrontMatter(text);

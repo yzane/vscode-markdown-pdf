@@ -426,9 +426,9 @@ export function renderTemplate(template: string, view: Record<string, string>): 
 }
 
 export function parseFrontMatter(text: string): { data: Record<string, unknown>; content: string } {
-  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
+  const match = text.match(/^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
   if (!match) {
-    const emptyMatch = text.match(/^---\r?\n---(?:\r?\n|$)([\s\S]*)$/);
+    const emptyMatch = text.match(/^(?:\uFEFF)?---\r?\n---(?:\r?\n|$)([\s\S]*)$/);
     if (emptyMatch) {
       return { data: {}, content: emptyMatch[1] };
     }
