@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import { githubSlugify } from './markdown-it-named-headers';
 
@@ -422,6 +423,27 @@ export function renderTemplate(template: string, view: Record<string, string>): 
   return template.replace(/\{\{\{(\w+)\}\}\}/g, function (match: string, key: string): string {
     return key in view ? view[key] : match;
   });
+}
+
+export function parseFrontMatter(text: string): { data: Record<string, unknown>; content: string } {
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  if (!match) {
+    const emptyMatch = text.match(/^---\r?\n---\r?\n([\s\S]*)$/);
+    if (!emptyMatch) {
+      return { data: {}, content: text };
+    }
+    return { data: {}, content: emptyMatch[1] };
+  }
+  const yamlStr = match[1];
+  const content = match[2];
+  if (!yamlStr.trim()) {
+    return { data: {}, content: content };
+  }
+  const data = yaml.load(yamlStr);
+  return {
+    data: (typeof data === 'object' && data !== null ? data : {}) as Record<string, unknown>,
+    content: content,
+  };
 }
 
 export function resolveExportTypes(optionType: string | undefined, configuredType: string[] | string | undefined): string[] | null {

@@ -4,7 +4,6 @@ import fs from 'fs';
 import os from 'os';
 import * as utils from './utils';
 import * as chromiumResolver from './chromium-resolver';
-import grayMatter from 'gray-matter';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
 import { markdownItCheckbox } from './markdown-it-checkbox';
@@ -155,13 +154,19 @@ function isMarkdownPdfOnSaveExclude(): boolean | undefined {
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename: string, type: string, text: string): string | undefined {
-  const matterParts = grayMatter(text);
+  const matterParts = utils.parseFrontMatter(text);
+  const matterData = matterParts.data as {
+    breaks?: boolean | null;
+    emoji?: boolean | null;
+    plantumlOpenMarker?: string;
+    plantumlCloseMarker?: string;
+  };
   let statusbarmessage: vscode.Disposable | undefined;
 
   try {
     try {
       statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
-      const breaks = utils.setBooleanValue(matterParts.data.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
+      const breaks = utils.setBooleanValue(matterData.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
       const md = markdownIt(utils.buildMarkdownItOptions({
         breaks: breaks,
         hljs: hljs,
@@ -188,7 +193,7 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       md.use(markdownItCheckbox);
 
       // emoji
-      const emoji_f = utils.setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
+      const emoji_f = utils.setBooleanValue(matterData.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
       if (emoji_f) {
         const emojies_defs = JSON.parse(utils.readFile(path.join(EXTENSION_ROOT, 'data', 'emoji.json')) as string);
         const emojiOptions = {
@@ -216,8 +221,8 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       // PlantUML
       // https://github.com/gmunguia/markdown-it-plantuml
       const plantumlOptions = utils.buildPlantumlOptions({
-        frontmatterOpenMarker: matterParts.data.plantumlOpenMarker,
-        frontmatterCloseMarker: matterParts.data.plantumlCloseMarker,
+        frontmatterOpenMarker: matterData.plantumlOpenMarker,
+        frontmatterCloseMarker: matterData.plantumlCloseMarker,
         settingsOpenMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '',
         settingsCloseMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '',
         server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''

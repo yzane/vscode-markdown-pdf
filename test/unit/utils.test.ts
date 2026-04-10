@@ -1622,4 +1622,62 @@ describe('utils', function () {
       assert.strictEqual(utils.renderTemplate(template, view), 'val and val');
     });
   });
+
+  describe('parseFrontMatter', function () {
+    it('should parse YAML front matter and return data and content', function () {
+      const text = '---\nbreaks: true\nemoji: false\n---\n# Hello';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true, emoji: false });
+      assert.strictEqual(result.content, '# Hello');
+    });
+
+    it('should return empty data when no front matter exists', function () {
+      const text = '# Hello\nWorld';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '# Hello\nWorld');
+    });
+
+    it('should handle front matter with string values', function () {
+      const text = '---\nplantumlOpenMarker: "@startuml"\n---\nContent';
+      const result = utils.parseFrontMatter(text);
+      assert.strictEqual(result.data.plantumlOpenMarker, '@startuml');
+      assert.strictEqual(result.content, 'Content');
+    });
+
+    it('should handle empty front matter block', function () {
+      const text = '---\n---\n# Hello';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '# Hello');
+    });
+
+    it('should handle front matter with trailing newline', function () {
+      const text = '---\nbreaks: true\n---\n\n# Hello\n';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, '\n# Hello\n');
+    });
+
+    it('should not treat --- in body as front matter delimiter', function () {
+      const text = '# Hello\n---\nbreaks: true\n---\n';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '# Hello\n---\nbreaks: true\n---\n');
+    });
+
+    it('should handle empty string', function () {
+      const text = '';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '');
+    });
+
+    it('should handle front matter only (no content after)', function () {
+      const text = '---\nbreaks: true\n---\n';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, '');
+    });
+  });
 });
