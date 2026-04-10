@@ -1645,6 +1645,13 @@ describe('utils', function () {
       assert.strictEqual(result.content, 'Content');
     });
 
+    it('should return empty data when front matter is a YAML sequence', function () {
+      const text = '---\n- a\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, 'body');
+    });
+
     it('should handle empty front matter block', function () {
       const text = '---\n---\n# Hello';
       const result = utils.parseFrontMatter(text);

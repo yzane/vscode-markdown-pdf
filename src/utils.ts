@@ -441,7 +441,7 @@ export function parseFrontMatter(text: string): { data: Record<string, unknown>;
   }
   const data = yaml.load(yamlStr);
   return {
-    data: (typeof data === 'object' && data !== null ? data : {}) as Record<string, unknown>,
+    data: (typeof data === 'object' && data !== null && !Array.isArray(data) ? data : {}) as Record<string, unknown>,
     content: content,
   };
 }
