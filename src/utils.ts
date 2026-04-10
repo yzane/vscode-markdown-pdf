@@ -482,6 +482,17 @@ export function transformHtmlBlockImages(html: string, filename: string): string
     }
 
     const tag = html.slice(index, tagEnd + 1);
+    const tagName = getTagName(tag);
+    if (tagName && isRawTextElement(tagName)) {
+      const rawTextEnd = findRawTextElementEnd(html, tagEnd + 1, tagName);
+      if (rawTextEnd === -1) {
+        return result + html.slice(index);
+      }
+      result += html.slice(index, rawTextEnd);
+      index = rawTextEnd;
+      continue;
+    }
+
     result += isRealImgTag(tag) ? transformImgTag(tag, filename) : tag;
     index = tagEnd + 1;
   }
@@ -511,6 +522,24 @@ function findHtmlTagEnd(html: string, startIndex: number): number {
 
 function isRealImgTag(tag: string): boolean {
   return /^<img(?=[\s/>])/i.test(tag);
+}
+
+function getTagName(tag: string): string | null {
+  const match = /^<\/?\s*([a-z0-9-]+)/i.exec(tag);
+  return match ? match[1].toLowerCase() : null;
+}
+
+function isRawTextElement(tagName: string | null): boolean {
+  return tagName === 'script' || tagName === 'style' || tagName === 'textarea';
+}
+
+function findRawTextElementEnd(html: string, startIndex: number, tagName: string): number {
+  const closingTag = `</${tagName}>`;
+  const closingIndex = html.toLowerCase().indexOf(closingTag, startIndex);
+  if (closingIndex === -1) {
+    return -1;
+  }
+  return closingIndex + closingTag.length;
 }
 
 function transformImgTag(tag: string, filename: string): string {

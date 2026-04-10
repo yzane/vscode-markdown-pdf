@@ -1465,6 +1465,21 @@ describe('utils', function () {
       assert.strictEqual(result, '<img-card src="x.png"></img-card>');
     });
 
+    it('should ignore img text inside script content', function () {
+      const result = utils.transformHtmlBlockImages('<script>const html = "<img src=x.png>";</script>', '/doc/test.md');
+      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script>');
+    });
+
+    it('should ignore img text inside style content', function () {
+      const result = utils.transformHtmlBlockImages('<style>.icon { background: url("<img src=x.png>"); }</style>', '/doc/test.md');
+      assert.strictEqual(result, '<style>.icon { background: url("<img src=x.png>"); }</style>');
+    });
+
+    it('should ignore img text inside textarea content', function () {
+      const result = utils.transformHtmlBlockImages('<textarea><img src=x.png></textarea>', '/doc/test.md');
+      assert.strictEqual(result, '<textarea><img src=x.png></textarea>');
+    });
+
     it('should preserve surrounding html', function () {
       const result = utils.transformHtmlBlockImages('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
       assert.ok(result.indexOf('<p>before</p>') >= 0);
