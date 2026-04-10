@@ -8,7 +8,7 @@ import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import { githubSlugify } from './markdown-it-named-headers';
 
-/** Returns a when a is a defined boolean (including false); otherwise returns b. */
+/** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
 export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
   if (a === false) {
     return false;
