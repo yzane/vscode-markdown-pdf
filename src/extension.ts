@@ -13,7 +13,6 @@ import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
 import { markdownItInclude } from './markdown-it-include';
-import mustache from 'mustache';
 import puppeteer from 'puppeteer-core';
 import * as PB from '@puppeteer/browsers';
 
@@ -284,7 +283,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
       style: style,
       mermaidServer: vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || ''
     });
-    return mustache.render(template as string, view);
+    return utils.renderTemplate(template as string, view);
   } catch (error) {
     showErrorMessage('makeHtml()', error);
   }

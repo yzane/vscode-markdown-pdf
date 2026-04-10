@@ -419,6 +419,12 @@ export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; 
   };
 }
 
+export function renderTemplate(template: string, view: Record<string, string>): string {
+  return template.replace(/\{\{\{(\w+)\}\}\}/g, function (match: string, key: string): string {
+    return key in view ? view[key] : match;
+  });
+}
+
 export function resolveExportTypes(optionType: string | undefined, configuredType: string[] | string | undefined): string[] | null {
   const typesFormat = ['html', 'pdf', 'png', 'jpeg'];
 

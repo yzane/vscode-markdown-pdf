@@ -1497,4 +1497,35 @@ describe('utils', function () {
       assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/my.file.name.md'), path.join('/path/to', 'my.file.name_tmp.html'));
     });
   });
+  describe('renderTemplate', function () {
+    it('should replace triple-brace variables with view values', function () {
+      const template = '<title>{{{title}}}</title><style>{{{style}}}</style>';
+      const view = { title: 'My Doc', style: '.body { color: red; }' };
+      assert.strictEqual(utils.renderTemplate(template, view), '<title>My Doc</title><style>.body { color: red; }</style>');
+    });
+
+    it('should leave unmatched variables as-is', function () {
+      const template = '{{{title}}} {{{unknown}}}';
+      const view = { title: 'Hello' };
+      assert.strictEqual(utils.renderTemplate(template, view), 'Hello {{{unknown}}}');
+    });
+
+    it('should handle template with no variables', function () {
+      const template = '<p>No variables here</p>';
+      const view = { title: 'Hello' };
+      assert.strictEqual(utils.renderTemplate(template, view), '<p>No variables here</p>');
+    });
+
+    it('should not escape HTML in values', function () {
+      const template = '{{{content}}}';
+      const view = { content: '<h1>Title</h1>' };
+      assert.strictEqual(utils.renderTemplate(template, view), '<h1>Title</h1>');
+    });
+
+    it('should replace multiple occurrences of the same variable', function () {
+      const template = '{{{x}}} and {{{x}}}';
+      const view = { x: 'val' };
+      assert.strictEqual(utils.renderTemplate(template, view), 'val and val');
+    });
+  });
 });
