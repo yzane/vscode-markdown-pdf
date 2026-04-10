@@ -1,7 +1,6 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { load as cheerioLoad } from 'cheerio';
 import type { HLJSApi } from 'highlight.js';
 import { githubSlugify } from './markdown-it-named-headers';
 
@@ -458,13 +457,10 @@ export function transformHtmlBlockImages(html: string, filename: string): string
   if (!html) {
     return '';
   }
-  const $ = cheerioLoad(html);
-  $('img').each(function () {
-    const src = $(this).attr('src');
-    const href = convertImgPath(src as string, filename);
-    $(this).attr('src', href);
+  return html.replace(/<img\s([^>]*?)src=(["'])(.*?)\2([^>]*?)>/gi, (match, before, quote, src, after) => {
+    const href = convertImgPath(src, filename);
+    return `<img ${before}src=${quote}${href}${quote}${after}>`;
   });
-  return $.html();
 }
 
 export function buildEmojiTag(emoji: string, emojiData: string | undefined | null): string {

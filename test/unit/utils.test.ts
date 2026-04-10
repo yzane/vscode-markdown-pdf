@@ -1397,6 +1397,27 @@ describe('utils', function () {
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('/abs/photo.png') >= 0);
     });
+
+    it('should handle self-closing img tags', function () {
+      const result = utils.transformHtmlBlockImages('<img src="photo.png" />', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+    });
+
+    it('should handle img tags with other attributes', function () {
+      const result = utils.transformHtmlBlockImages('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+      assert.ok(result.indexOf('alt="desc"') >= 0);
+      assert.ok(result.indexOf('width="100"') >= 0);
+    });
+
+    it('should preserve surrounding html', function () {
+      const result = utils.transformHtmlBlockImages('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
+      assert.ok(result.indexOf('<p>before</p>') >= 0);
+      assert.ok(result.indexOf('<p>after</p>') >= 0);
+      assert.ok(result.indexOf('file://') >= 0);
+    });
   });
 
   describe('buildEmojiTag', function () {
