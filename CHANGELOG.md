@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.6.0 (2025/xx/xx)
+## 1.6.0 (2025/04/15)
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
 * Update: align slug generation with [latest VSCode behavior](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27)
 
