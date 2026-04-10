@@ -1,3 +1,6 @@
+// Chromium executable resolver: locates a usable Chrome/Edge binary from
+// user-configured path, system install locations, or Puppeteer's managed
+// browser cache.
 import fs from 'fs';
 import path from 'path';
 import * as PB from '@puppeteer/browsers';
@@ -7,6 +10,7 @@ import * as PB from '@puppeteer/browsers';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const puppeteerModule: { PUPPETEER_REVISIONS: { chrome: string } } = require('puppeteer-core');
 
+/** Resolves the Chromium executable path from a user-configured setting. */
 export function findChromiumFromUserSetting(executablePath: string): string | null {
   if (!executablePath) {
     return null;
@@ -21,7 +25,10 @@ export function findChromiumFromUserSetting(executablePath: string): string | nu
   }
 }
 
+/** Finds a system-installed Chromium or Edge executable, or null if none is available. */
 export function findChromiumFromSystem(): string | null {
+  // Why: if Puppeteer's system detection fails, silently fall through to
+  // the manual candidate scan below instead of failing the whole lookup.
   try {
     return PB.computeSystemExecutablePath({
       browser: PB.Browser.CHROME,
@@ -43,6 +50,7 @@ export function findChromiumFromSystem(): string | null {
   return null;
 }
 
+/** Returns platform-specific candidate paths for Chromium and Edge installs. */
 export function getEdgeAndChromiumCandidates(): string[] {
   if (process.platform === 'win32') {
     return getWindowsCandidates();
@@ -89,10 +97,12 @@ function getWindowsCandidates(): string[] {
   return candidates;
 }
 
+/** Returns the Chrome build id that the bundled puppeteer-core expects. */
 export function getExpectedBuildId(): string {
   return puppeteerModule.PUPPETEER_REVISIONS.chrome;
 }
 
+/** Ensures a managed Chromium matching the expected build id exists in cacheDir, downloading it if necessary. */
 export async function ensureChromiumDownloaded(
   cacheDir: string,
   onProgress?: (downloadedBytes: number, totalBytes: number) => void
@@ -101,6 +111,8 @@ export async function ensureChromiumDownloaded(
   const platform = PB.detectBrowserPlatform();
   let executablePath: string;
 
+  // Why: if the expected build is missing or inaccessible, fall through to
+  // PB.install() below rather than propagating the error.
   try {
     executablePath = PB.computeExecutablePath({
       browser: PB.Browser.CHROME,
@@ -128,6 +140,7 @@ export async function ensureChromiumDownloaded(
   return installedBrowser.executablePath;
 }
 
+/** Removes Chromium builds in cacheDir other than keepBuildId, logging any failures without throwing. */
 export async function cleanupOldChromium(cacheDir: string, keepBuildId: string): Promise<void> {
   try {
     const installedBrowsers = await PB.getInstalledBrowsers({ cacheDir: cacheDir });
@@ -156,6 +169,7 @@ export async function cleanupOldChromium(cacheDir: string, keepBuildId: string):
   }
 }
 
+/** Resolves a usable Chromium path by trying user setting, system install, and managed download in order. */
 export async function resolveChromiumPath(
   userExecutablePath: string,
   cacheDir: string,
