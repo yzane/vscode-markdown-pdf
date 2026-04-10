@@ -1450,6 +1450,21 @@ describe('utils', function () {
       assert.strictEqual(result, '<img alt="look src=bad.png" src="file:///doc/real.png">');
     });
 
+    it('should ignore img text inside comments', function () {
+      const result = utils.transformHtmlBlockImages('<!-- <img src="x.png"> -->', '/doc/test.md');
+      assert.strictEqual(result, '<!-- <img src="x.png"> -->');
+    });
+
+    it('should ignore img text inside quoted attributes on other tags', function () {
+      const result = utils.transformHtmlBlockImages('<p title="<img src=x.png>">x</p>', '/doc/test.md');
+      assert.strictEqual(result, '<p title="<img src=x.png>">x</p>');
+    });
+
+    it('should ignore custom element names that start with img', function () {
+      const result = utils.transformHtmlBlockImages('<img-card src="x.png"></img-card>', '/doc/test.md');
+      assert.strictEqual(result, '<img-card src="x.png"></img-card>');
+    });
+
     it('should preserve surrounding html', function () {
       const result = utils.transformHtmlBlockImages('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
       assert.ok(result.indexOf('<p>before</p>') >= 0);

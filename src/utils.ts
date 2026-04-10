@@ -458,20 +458,34 @@ export function transformHtmlBlockImages(html: string, filename: string): string
     return '';
   }
   let result = '';
-  let lastIndex = 0;
-  const tagPattern = /<img\b/gi;
-  let match: RegExpExecArray | null;
-  while ((match = tagPattern.exec(html)) !== null) {
-    const tagStart = match.index;
-    const tagEnd = findHtmlTagEnd(html, tagPattern.lastIndex);
-    if (tagEnd === -1) {
-      break;
+  let index = 0;
+  while (index < html.length) {
+    if (html.startsWith('<!--', index)) {
+      const commentEnd = html.indexOf('-->', index + 4);
+      if (commentEnd === -1) {
+        return result + html.slice(index);
+      }
+      result += html.slice(index, commentEnd + 3);
+      index = commentEnd + 3;
+      continue;
     }
-    result += html.slice(lastIndex, tagStart) + transformImgTag(html.slice(tagStart, tagEnd + 1), filename);
-    lastIndex = tagEnd + 1;
-    tagPattern.lastIndex = lastIndex;
+
+    if (html[index] !== '<') {
+      result += html[index];
+      index++;
+      continue;
+    }
+
+    const tagEnd = findHtmlTagEnd(html, index + 1);
+    if (tagEnd === -1) {
+      return result + html.slice(index);
+    }
+
+    const tag = html.slice(index, tagEnd + 1);
+    result += isRealImgTag(tag) ? transformImgTag(tag, filename) : tag;
+    index = tagEnd + 1;
   }
-  return result + html.slice(lastIndex);
+  return result;
 }
 
 function findHtmlTagEnd(html: string, startIndex: number): number {
@@ -493,6 +507,10 @@ function findHtmlTagEnd(html: string, startIndex: number): number {
     }
   }
   return -1;
+}
+
+function isRealImgTag(tag: string): boolean {
+  return /^<img(?=[\s/>])/i.test(tag);
 }
 
 function transformImgTag(tag: string, filename: string): string {
