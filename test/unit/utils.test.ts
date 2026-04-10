@@ -1397,6 +1397,100 @@ describe('utils', function () {
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('/abs/photo.png') >= 0);
     });
+
+    it('should rewrite the real src attribute and preserve data-src', function () {
+      const result = utils.transformHtmlBlockImages('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
+      assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
+      assert.ok(result.indexOf('data-src="lazy.png" src="file:///doc/real.png"') >= 0);
+    });
+
+    it('should handle spacing around src equals', function () {
+      const result = utils.transformHtmlBlockImages('<img src = "photo.png">', '/doc/test.md');
+      assert.strictEqual(result, '<img src = "file:///doc/photo.png">');
+    });
+
+    it('should handle unquoted src attributes', function () {
+      const result = utils.transformHtmlBlockImages('<img src=photo.png>', '/doc/test.md');
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+    });
+
+    it('should handle multiple images with mixed attribute ordering', function () {
+      const result = utils.transformHtmlBlockImages(
+        '<img data-src="lazy.png" src="real.png"><img alt="desc" src = "photo.png">',
+        '/doc/test.md',
+      );
+      assert.strictEqual(
+        result,
+        '<img data-src="lazy.png" src="file:///doc/real.png"><img alt="desc" src = "file:///doc/photo.png">',
+      );
+    });
+
+    it('should handle self-closing img tags', function () {
+      const result = utils.transformHtmlBlockImages('<img src="photo.png" />', '/doc/test.md');
+      assert.ok(result.indexOf('file://') >= 0);
+      assert.ok(result.indexOf('photo.png') >= 0);
+    });
+
+    it('should handle img tags with other attributes', function () {
+      const result = utils.transformHtmlBlockImages('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
+      assert.ok(result.indexOf('alt="desc"') >= 0);
+      assert.ok(result.indexOf('width="100"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+    });
+
+    it('should handle quotes that contain a greater-than sign', function () {
+      const result = utils.transformHtmlBlockImages('<img alt="a > b" src="photo.png">', '/doc/test.md');
+      assert.ok(result.indexOf('alt="a > b"') >= 0);
+      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+    });
+
+    it('should preserve quoted non-src attributes that contain src text', function () {
+      const result = utils.transformHtmlBlockImages('<img alt="look src=bad.png" src="real.png">', '/doc/test.md');
+      assert.strictEqual(result, '<img alt="look src=bad.png" src="file:///doc/real.png">');
+    });
+
+    it('should ignore img text inside comments', function () {
+      const result = utils.transformHtmlBlockImages('<!-- <img src="x.png"> -->', '/doc/test.md');
+      assert.strictEqual(result, '<!-- <img src="x.png"> -->');
+    });
+
+    it('should ignore img text inside quoted attributes on other tags', function () {
+      const result = utils.transformHtmlBlockImages('<p title="<img src=x.png>">x</p>', '/doc/test.md');
+      assert.strictEqual(result, '<p title="<img src=x.png>">x</p>');
+    });
+
+    it('should ignore custom element names that start with img', function () {
+      const result = utils.transformHtmlBlockImages('<img-card src="x.png"></img-card>', '/doc/test.md');
+      assert.strictEqual(result, '<img-card src="x.png"></img-card>');
+    });
+
+    it('should ignore img text inside script content', function () {
+      const result = utils.transformHtmlBlockImages('<script>const html = "<img src=x.png>";</script>', '/doc/test.md');
+      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script>');
+    });
+
+    it('should ignore img text inside style content', function () {
+      const result = utils.transformHtmlBlockImages('<style>.icon { background: url("<img src=x.png>"); }</style>', '/doc/test.md');
+      assert.strictEqual(result, '<style>.icon { background: url("<img src=x.png>"); }</style>');
+    });
+
+    it('should ignore img text inside textarea content', function () {
+      const result = utils.transformHtmlBlockImages('<textarea><img src=x.png></textarea>', '/doc/test.md');
+      assert.strictEqual(result, '<textarea><img src=x.png></textarea>');
+    });
+
+    it('should handle whitespace before the closing raw-text tag', function () {
+      const result = utils.transformHtmlBlockImages('<script>const html = "<img src=x.png>";</script ><img src=real.png>', '/doc/test.md');
+      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="file:///doc/real.png">');
+    });
+
+    it('should preserve surrounding html', function () {
+      const result = utils.transformHtmlBlockImages('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
+      assert.ok(result.indexOf('<p>before</p>') >= 0);
+      assert.ok(result.indexOf('<p>after</p>') >= 0);
+      assert.ok(result.indexOf('file://') >= 0);
+    });
   });
 
   describe('buildEmojiTag', function () {
@@ -1495,6 +1589,130 @@ describe('utils', function () {
 
     it('should handle filename with dots', function () {
       assert.strictEqual(utils.generateTmpHtmlFilename('/path/to/my.file.name.md'), path.join('/path/to', 'my.file.name_tmp.html'));
+    });
+  });
+  describe('renderTemplate', function () {
+    it('should replace triple-brace variables with view values', function () {
+      const template = '<title>{{{title}}}</title><style>{{{style}}}</style>';
+      const view = { title: 'My Doc', style: '.body { color: red; }' };
+      assert.strictEqual(utils.renderTemplate(template, view), '<title>My Doc</title><style>.body { color: red; }</style>');
+    });
+
+    it('should leave unmatched variables as-is', function () {
+      const template = '{{{title}}} {{{unknown}}}';
+      const view = { title: 'Hello' };
+      assert.strictEqual(utils.renderTemplate(template, view), 'Hello {{{unknown}}}');
+    });
+
+    it('should handle template with no variables', function () {
+      const template = '<p>No variables here</p>';
+      const view = { title: 'Hello' };
+      assert.strictEqual(utils.renderTemplate(template, view), '<p>No variables here</p>');
+    });
+
+    it('should not escape HTML in values', function () {
+      const template = '{{{content}}}';
+      const view = { content: '<h1>Title</h1>' };
+      assert.strictEqual(utils.renderTemplate(template, view), '<h1>Title</h1>');
+    });
+
+    it('should replace multiple occurrences of the same variable', function () {
+      const template = '{{{x}}} and {{{x}}}';
+      const view = { x: 'val' };
+      assert.strictEqual(utils.renderTemplate(template, view), 'val and val');
+    });
+  });
+
+  describe('parseFrontMatter', function () {
+    it('should parse YAML front matter and return data and content', function () {
+      const text = '---\nbreaks: true\nemoji: false\n---\n# Hello';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true, emoji: false });
+      assert.strictEqual(result.content, '# Hello');
+    });
+
+    it('should parse front matter after a UTF-8 BOM', function () {
+      const text = '\uFEFF---\nbreaks: true\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, 'body');
+    });
+
+    it('should return empty data when no front matter exists', function () {
+      const text = '# Hello\nWorld';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '# Hello\nWorld');
+    });
+
+    it('should handle front matter with string values', function () {
+      const text = '---\nplantumlOpenMarker: "@startuml"\n---\nContent';
+      const result = utils.parseFrontMatter(text);
+      assert.strictEqual(result.data.plantumlOpenMarker, '@startuml');
+      assert.strictEqual(result.content, 'Content');
+    });
+
+    it('should return empty data when front matter is a YAML sequence', function () {
+      const text = '---\n- a\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, 'body');
+    });
+
+    it('should parse front matter at EOF without a trailing newline', function () {
+      const text = '---\nbreaks: true\n---';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, '');
+    });
+
+    it('should return empty data when front matter is a scalar value', function () {
+      const text = '---\n42\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, 'body');
+    });
+
+    it('should return empty data when front matter is a timestamp scalar', function () {
+      const text = '---\n2020-01-01\n---\nbody';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, 'body');
+    });
+
+    it('should handle empty front matter block', function () {
+      const text = '---\n---\n# Hello';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '# Hello');
+    });
+
+    it('should handle front matter with trailing newline', function () {
+      const text = '---\nbreaks: true\n---\n\n# Hello\n';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, '\n# Hello\n');
+    });
+
+    it('should not treat --- in body as front matter delimiter', function () {
+      const text = '# Hello\n---\nbreaks: true\n---\n';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '# Hello\n---\nbreaks: true\n---\n');
+    });
+
+    it('should handle empty string', function () {
+      const text = '';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, {});
+      assert.strictEqual(result.content, '');
+    });
+
+    it('should handle front matter only (no content after)', function () {
+      const text = '---\nbreaks: true\n---\n';
+      const result = utils.parseFrontMatter(text);
+      assert.deepStrictEqual(result.data, { breaks: true });
+      assert.strictEqual(result.content, '');
     });
   });
 });

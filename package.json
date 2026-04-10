@@ -916,9 +916,9 @@
     "sample": "vscode-test --config .vscode-test.mjs --label sample"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/markdown-it": "^14.1.2",
     "@types/mocha": "^10.0.10",
-    "@types/mustache": "^4.2.6",
     "@types/node": "^25.5.2",
     "@types/vscode": "^1.110.0",
     "@vscode/test-cli": "^0.0.12",
@@ -928,15 +928,13 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
-    "cheerio": "^1.2.0",
     "emoji-images": "^0.1.1",
-    "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
+    "js-yaml": "^4.1.1",
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-plantuml": "^1.4.1",
-    "mustache": "^4.2.0",
     "puppeteer-core": "^24.40.0"
   }
 }

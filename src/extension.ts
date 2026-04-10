@@ -4,7 +4,6 @@ import fs from 'fs';
 import os from 'os';
 import * as utils from './utils';
 import * as chromiumResolver from './chromium-resolver';
-import grayMatter from 'gray-matter';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
 import { markdownItCheckbox } from './markdown-it-checkbox';
@@ -13,7 +12,6 @@ import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
 import { markdownItInclude } from './markdown-it-include';
-import mustache from 'mustache';
 import puppeteer from 'puppeteer-core';
 import * as PB from '@puppeteer/browsers';
 
@@ -152,17 +150,30 @@ function isMarkdownPdfOnSaveExclude(): boolean | undefined {
   }
 }
 
+function getFrontMatterBoolean(data: Record<string, unknown>, key: string): boolean | null | undefined {
+  const value = data[key];
+  return typeof value === 'boolean' || value === null ? value : undefined;
+}
+
+function getFrontMatterString(data: Record<string, unknown>, key: string): string | undefined {
+  const value = data[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
 /*
  * convert markdown to html (markdown-it)
  */
 function convertMarkdownToHtml(filename: string, type: string, text: string): string | undefined {
-  const matterParts = grayMatter(text);
+  const matterParts = utils.parseFrontMatter(text);
   let statusbarmessage: vscode.Disposable | undefined;
 
   try {
     try {
       statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Converting (convertMarkdownToHtml) ...');
-      const breaks = utils.setBooleanValue(matterParts.data.breaks, vscode.workspace.getConfiguration('markdown-pdf')['breaks']);
+      const breaks = utils.setBooleanValue(
+        getFrontMatterBoolean(matterParts.data, 'breaks'),
+        vscode.workspace.getConfiguration('markdown-pdf')['breaks'],
+      );
       const md = markdownIt(utils.buildMarkdownItOptions({
         breaks: breaks,
         hljs: hljs,
@@ -189,7 +200,10 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       md.use(markdownItCheckbox);
 
       // emoji
-      const emoji_f = utils.setBooleanValue(matterParts.data.emoji, vscode.workspace.getConfiguration('markdown-pdf')['emoji']);
+      const emoji_f = utils.setBooleanValue(
+        getFrontMatterBoolean(matterParts.data, 'emoji'),
+        vscode.workspace.getConfiguration('markdown-pdf')['emoji'],
+      );
       if (emoji_f) {
         const emojies_defs = JSON.parse(utils.readFile(path.join(EXTENSION_ROOT, 'data', 'emoji.json')) as string);
         const emojiOptions = {
@@ -217,8 +231,8 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       // PlantUML
       // https://github.com/gmunguia/markdown-it-plantuml
       const plantumlOptions = utils.buildPlantumlOptions({
-        frontmatterOpenMarker: matterParts.data.plantumlOpenMarker,
-        frontmatterCloseMarker: matterParts.data.plantumlCloseMarker,
+        frontmatterOpenMarker: getFrontMatterString(matterParts.data, 'plantumlOpenMarker'),
+        frontmatterCloseMarker: getFrontMatterString(matterParts.data, 'plantumlCloseMarker'),
         settingsOpenMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '',
         settingsCloseMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '',
         server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
@@ -284,7 +298,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
       style: style,
       mermaidServer: vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || ''
     });
-    return mustache.render(template as string, view);
+    return utils.renderTemplate(template as string, view);
   } catch (error) {
     showErrorMessage('makeHtml()', error);
   }

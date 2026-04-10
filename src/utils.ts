@@ -1,7 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { load as cheerioLoad } from 'cheerio';
+import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import { githubSlugify } from './markdown-it-named-headers';
 
@@ -419,6 +419,41 @@ export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; 
   };
 }
 
+export function renderTemplate(template: string, view: Record<string, string>): string {
+  return template.replace(/\{\{\{(\w+)\}\}\}/g, function (match: string, key: string): string {
+    return key in view ? view[key] : match;
+  });
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+export function parseFrontMatter(text: string): { data: Record<string, unknown>; content: string } {
+  const match = text.match(/^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/);
+  if (!match) {
+    const emptyMatch = text.match(/^(?:\uFEFF)?---\r?\n---(?:\r?\n|$)([\s\S]*)$/);
+    if (emptyMatch) {
+      return { data: {}, content: emptyMatch[1] };
+    }
+    return { data: {}, content: text };
+  }
+  const yamlStr = match[1];
+  const content = match[2];
+  if (!yamlStr.trim()) {
+    return { data: {}, content: content };
+  }
+  const data = yaml.load(yamlStr);
+  return {
+    data: isPlainRecord(data) ? data : {},
+    content: content,
+  };
+}
+
 export function resolveExportTypes(optionType: string | undefined, configuredType: string[] | string | undefined): string[] | null {
   const typesFormat = ['html', 'pdf', 'png', 'jpeg'];
 
@@ -452,13 +487,177 @@ export function transformHtmlBlockImages(html: string, filename: string): string
   if (!html) {
     return '';
   }
-  const $ = cheerioLoad(html);
-  $('img').each(function () {
-    const src = $(this).attr('src');
-    const href = convertImgPath(src as string, filename);
-    $(this).attr('src', href);
-  });
-  return $.html();
+  let result = '';
+  let index = 0;
+  while (index < html.length) {
+    if (html.startsWith('<!--', index)) {
+      const commentEnd = html.indexOf('-->', index + 4);
+      if (commentEnd === -1) {
+        return result + html.slice(index);
+      }
+      result += html.slice(index, commentEnd + 3);
+      index = commentEnd + 3;
+      continue;
+    }
+
+    if (html[index] !== '<') {
+      result += html[index];
+      index++;
+      continue;
+    }
+
+    const tagEnd = findHtmlTagEnd(html, index + 1);
+    if (tagEnd === -1) {
+      return result + html.slice(index);
+    }
+
+    const tag = html.slice(index, tagEnd + 1);
+    const tagName = getTagName(tag);
+    if (tagName && isOpeningTag(tag) && isRawTextElement(tagName)) {
+      const rawTextEnd = findRawTextElementEnd(html, tagEnd + 1, tagName);
+      if (rawTextEnd === -1) {
+        return result + html.slice(index);
+      }
+      result += html.slice(index, rawTextEnd);
+      index = rawTextEnd;
+      continue;
+    }
+
+    result += isRealImgTag(tag) ? transformImgTag(tag, filename) : tag;
+    index = tagEnd + 1;
+  }
+  return result;
+}
+
+function findHtmlTagEnd(html: string, startIndex: number): number {
+  let quote: string | null = null;
+  for (let i = startIndex; i < html.length; i++) {
+    const char = html[i];
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+    if (char === '>') {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function isRealImgTag(tag: string): boolean {
+  return /^<img(?=[\s/>])/i.test(tag);
+}
+
+function getTagName(tag: string): string | null {
+  const match = /^<\/?\s*([a-z0-9-]+)/i.exec(tag);
+  return match ? match[1].toLowerCase() : null;
+}
+
+function isOpeningTag(tag: string): boolean {
+  return /^<\s*[a-z0-9-]/i.test(tag);
+}
+
+function isRawTextElement(tagName: string | null): boolean {
+  return tagName === 'script' || tagName === 'style' || tagName === 'textarea';
+}
+
+function findRawTextElementEnd(html: string, startIndex: number, tagName: string): number {
+  const closingPattern = new RegExp(`</${escapeRegExp(tagName)}\\s*>`, 'i');
+  const match = closingPattern.exec(html.slice(startIndex));
+  if (!match) {
+    return -1;
+  }
+  return startIndex + match.index + match[0].length;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function transformImgTag(tag: string, filename: string): string {
+  let result = '';
+  let i = 0;
+  while (i < tag.length) {
+    const char = tag[i];
+    if (char === '"' || char === "'") {
+      const quote = char;
+      const start = i;
+      i++;
+      while (i < tag.length && tag[i] !== quote) {
+        i++;
+      }
+      if (i < tag.length) {
+        i++;
+      }
+      result += tag.slice(start, i);
+      continue;
+    }
+
+    if (/\s/.test(char) || char === '/' || char === '>') {
+      result += char;
+      i++;
+      continue;
+    }
+
+    const attributeStart = i;
+    while (i < tag.length && !/\s|=|\/|>/.test(tag[i])) {
+      i++;
+    }
+    const name = tag.slice(attributeStart, i);
+    const lowerName = name.toLowerCase();
+
+    let whitespaceBeforeEquals = '';
+    while (i < tag.length && /\s/.test(tag[i])) {
+      whitespaceBeforeEquals += tag[i];
+      i++;
+    }
+
+    if (i >= tag.length || tag[i] !== '=') {
+      result += tag.slice(attributeStart, i);
+      continue;
+    }
+
+    i++;
+    let whitespaceAfterEquals = '';
+    while (i < tag.length && /\s/.test(tag[i])) {
+      whitespaceAfterEquals += tag[i];
+      i++;
+    }
+
+    const valueStart = i;
+    let value = '';
+    if (i < tag.length && (tag[i] === '"' || tag[i] === "'")) {
+      const quote = tag[i];
+      i++;
+      const quotedValueStart = i;
+      while (i < tag.length && tag[i] !== quote) {
+        i++;
+      }
+      value = tag.slice(quotedValueStart, i);
+      if (i < tag.length) {
+        i++;
+      }
+    } else {
+      while (i < tag.length && !/\s|>/.test(tag[i])) {
+        i++;
+      }
+      value = tag.slice(valueStart, i);
+    }
+
+    if (lowerName === 'src') {
+      const href = convertImgPath(value, filename);
+      result += `${name}${whitespaceBeforeEquals}=${whitespaceAfterEquals}"${href}"`;
+    } else {
+      result += tag.slice(attributeStart, i);
+    }
+  }
+  return result;
 }
 
 export function buildEmojiTag(emoji: string, emojiData: string | undefined | null): string {
