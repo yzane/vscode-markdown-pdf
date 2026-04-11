@@ -7,7 +7,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [Specification Changes](#specification-changes)
+- [Breaking Changes in 2.0.0](#breaking-changes-in-200)
 - [Features](#features)
 - [Install](#install)
 - [Usage](#usage)
@@ -23,7 +23,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 <div class="page"/>
 
-## Specification Changes
+## Breaking Changes in 2.0.0
 
 Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ](#faq) section for details.
 
