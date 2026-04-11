@@ -9,7 +9,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 - [Breaking Changes in 2.0.0](#breaking-changes-in-200)
 - [Features](#features)
-- [Install](#install)
+- [Chromium](#chromium)
 - [Usage](#usage)
 - [Extension Settings](#extension-settings)
 - [Options](#options)
@@ -128,9 +128,7 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
-## Install
-
-### Chromium resolution
+## Chromium
 
 Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the following sources in order:
 
