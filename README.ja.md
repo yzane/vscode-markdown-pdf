@@ -7,7 +7,7 @@
 
 - [仕様変更](#仕様変更)
 - [機能](#機能)
-- [インストール](#インストール)
+- [Chromium](#chromium)
 - [使い方](#使い方)
 - [拡張機能 設定](#拡張機能-設定)
 - [オプション](#オプション)
@@ -125,9 +125,7 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
-## インストール
-
-### Chromium の解決
+## Chromium
 
 Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラウザを使用します。以下の順番で解決を試みます:
 
