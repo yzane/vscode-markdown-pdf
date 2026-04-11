@@ -7,9 +7,9 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [Specification Changes](#specification-changes)
+- [Breaking Changes in 2.0.0](#breaking-changes-in-200)
 - [Features](#features)
-- [Install](#install)
+- [Chromium](#chromium)
 - [Usage](#usage)
 - [Extension Settings](#extension-settings)
 - [Options](#options)
@@ -23,7 +23,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 <div class="page"/>
 
-## Specification Changes
+## Breaking Changes in 2.0.0
 
 Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ](#faq) section for details.
 
@@ -34,16 +34,16 @@ Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ
 
 ## Features
 
-Supports the following features
-* [Syntax highlighting](https://highlightjs.org/demo)
-* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
-* Built-in checkbox syntax support (custom markdown-it plugin)
-* Built-in heading IDs with GitHub-compatible slug generation
-* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
-* [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](https://plantuml.com/)
-  * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](https://mermaid-js.github.io/mermaid/)
+| Feature | Description | Example |
+|---|---|---|
+| [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
+| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
+| Checkbox | GitHub-style task lists (built-in custom plugin) | `- [ ]` / `- [x]` |
+| Heading IDs | GitHub-compatible heading anchors (built-in custom plugin) | `# Heading` → `#heading` |
+| [Container](https://github.com/markdown-it/markdown-it-container) | Admonition-like blocks | `::: warning` |
+| Include | Embed Markdown fragments (built-in custom plugin) | `:[label](path.md)` |
+| [PlantUML](https://plantuml.com/) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| [Mermaid](https://mermaid-js.github.io/mermaid/) | Diagrams from fenced code blocks | ` ```mermaid ` |
 
 Sample files
  * [pdf](sample/README.pdf)
@@ -51,7 +51,35 @@ Sample files
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
 
-### markdown-it-container
+### Heading IDs
+
+Headings automatically receive GitHub-compatible anchor IDs. For example:
+
+| Heading | Generated ID |
+|---|---|
+| `# My Heading` | `#my-heading` |
+| `# API Reference` | `#api-reference` |
+| `# 日本語見出し` | `#日本語見出し` |
+
+See [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ for details.
+
+### Checkbox
+
+INPUT
+```
+- [ ] Task A
+- [x] Task B
+```
+
+OUTPUT
+```html
+<ul>
+  <li><input type="checkbox" disabled> Task A</li>
+  <li><input type="checkbox" disabled checked> Task B</li>
+</ul>
+```
+
+### Container
 
 INPUT
 ```
@@ -67,7 +95,9 @@ OUTPUT
 </div>
 ```
 
-### markdown-it-plantuml
+### PlantUML
+
+Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
 
 INPUT
 ```
@@ -81,7 +111,7 @@ OUTPUT
 
 ![PlantUML](images/PlantUML.png)
 
-### markdown-it-include
+### Include
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 
@@ -110,7 +140,7 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### mermaid
+### Mermaid
 
 INPUT
 <pre>
@@ -128,9 +158,7 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
-## Install
-
-### Chromium resolution
+## Chromium
 
 Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the following sources in order:
 
@@ -281,7 +309,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - Relative path
     - If you open the `Markdown file`, it will be interpreted as a relative path from the file
     - If you open a `folder`, it will be interpreted as a relative path from the root folder
-    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from each root folder
       - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
 
 ```javascript
@@ -320,7 +348,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - Relative path
     - If you open the `Markdown file`, it will be interpreted as a relative path from the file
     - If you open a `folder`, it will be interpreted as a relative path from the root folder
-    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from each root folder
       - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
 
 ```javascript
@@ -380,7 +408,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### Emoji options
 
 #### `markdown-pdf.emoji`
-  - Enable emoji. [EMOJI CHEAT SHEET](https://www.webpagefx.com/tools/emoji-cheat-sheet/)
+  - Enable emoji. [EMOJI CHEAT SHEET](https://www.webfx.com/tools/emoji-cheat-sheet/)
   - boolean. Default: true
 
 ### Configuration options
@@ -399,7 +427,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 
 #### `markdown-pdf.scale`
   - Scale of the page rendering
-  - number. default: 1
+  - number. Default: 1
 
 ```javascript
 "markdown-pdf.scale": 1
@@ -502,7 +530,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 
 ### PNG, JPEG options
 
-  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
+  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.screenshotoptions.md)
 
 #### `markdown-pdf.quality`
   - jpeg only. The quality of the image, between 0-100. Not applicable to png images
@@ -539,7 +567,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - Oppening delimiter used for the plantuml parser.
+  - Opening delimiter used for the plantuml parser.
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`

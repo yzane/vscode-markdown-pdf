@@ -7,7 +7,7 @@
 
 - [仕様変更](#仕様変更)
 - [機能](#機能)
-- [インストール](#インストール)
+- [Chromium](#chromium)
 - [使い方](#使い方)
 - [拡張機能 設定](#拡張機能-設定)
 - [オプション](#オプション)
@@ -32,15 +32,16 @@
 
 ## 機能
 
-以下の機能をサポートしています。
-* [Syntax highlighting](https://highlightjs.org/demo)
-* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
-* [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
-* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
-* [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](https://plantuml.com/)
-  * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](https://mermaid-js.github.io/mermaid/)
+| 機能 | 説明 | 記法例 |
+|---|---|---|
+| [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
+| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
+| Checkbox | GitHub 形式のタスクリスト (内製カスタムプラグイン) | `- [ ]` / `- [x]` |
+| Heading IDs | GitHub 互換の見出しアンカー生成 (内製カスタムプラグイン) | `# 見出し` → `#見出し` |
+| [Container](https://github.com/markdown-it/markdown-it-container) | 注記ブロック | `::: warning` |
+| Include | Markdown フラグメントの埋め込み (内製カスタムプラグイン) | `:[label](path.md)` |
+| [PlantUML](https://plantuml.com/) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| [Mermaid](https://mermaid-js.github.io/mermaid/) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
 
 サンプルファイル
  * [pdf](sample/README.pdf)
@@ -48,7 +49,35 @@
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
 
-### markdown-it-container
+### Heading IDs
+
+見出しには GitHub 互換のアンカー ID が自動的に付与されます。例:
+
+| 見出し | 生成される ID |
+|---|---|
+| `# My Heading` | `#my-heading` |
+| `# API リファレンス` | `#api-リファレンス` |
+| `# 日本語見出し` | `#日本語見出し` |
+
+詳細は FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change) を参照してください。
+
+### Checkbox
+
+INPUT
+```
+- [ ] タスク A
+- [x] タスク B
+```
+
+OUTPUT
+```html
+<ul>
+  <li><input type="checkbox" disabled> タスク A</li>
+  <li><input type="checkbox" disabled checked> タスク B</li>
+</ul>
+```
+
+### Container
 
 INPUT
 ```
@@ -64,7 +93,9 @@ OUTPUT
 </div>
 ```
 
-### markdown-it-plantuml
+### PlantUML
+
+[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
 
 INPUT
 ```
@@ -78,7 +109,7 @@ OUTPUT
 
 ![PlantUML](images/PlantUML.png)
 
-### markdown-it-include
+### Include
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 
@@ -107,7 +138,7 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### mermaid
+### Mermaid
 
 INPUT
 <pre>
@@ -125,9 +156,7 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
-## インストール
-
-### Chromium の解決
+## Chromium
 
 Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラウザを使用します。以下の順番で解決を試みます:
 
@@ -252,7 +281,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 #### `markdown-pdf.convertOnSave`
   - 保存時の自動変換を有効にします
   - boolean. Default: false
-  - 設定の反映には、Visutal Studio Code の再起動が必要です
+  - 設定の反映には、Visual Studio Code の再起動が必要です
 
 #### `markdown-pdf.convertOnSaveExclude`
   - convertOnSave オプションの除外ファイル名を指定します
@@ -266,6 +295,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   "work\\test"  // 全ての \ は \\ と記述する必要があります。(Windows)
 ],
 ```
+
 #### `markdown-pdf.outputDirectory`
   - 出力ディレクトリを指定します
   - 全ての `\` は `\\` と記述する必要があります (Windows)
@@ -285,7 +315,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ```
 
   - 相対パス (ホームディレクトリ)
-    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+    - パスが `~` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
 
 ```javascript
 "markdown-pdf.outputDirectory": "~/output",
@@ -326,7 +356,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ```
 
   - 相対パス (ホームディレクトリ)
-    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+    - パスが `~` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
 
 ```javascript
 "markdown-pdf.styles": [
@@ -375,7 +405,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### Emoji options
 
 #### `markdown-pdf.emoji`
-  - 絵文字を有効にします [EMOJI CHEAT SHEET](https://www.webpagefx.com/tools/emoji-cheat-sheet/)
+  - 絵文字を有効にします [EMOJI CHEAT SHEET](https://www.webfx.com/tools/emoji-cheat-sheet/)
   - boolean. Default: true
 
 ### Configuration options
@@ -384,7 +414,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   - バンドルされた Chromium の代わりに実行する Google Chrome / Microsoft Edge / Chromium のパスを指定します
   - この設定がインストール済みブラウザの検出や管理済み Chromium のダウンロードとどう連携するかは、FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) を参照してください
   - 全ての `\` は `\\` と記述する必要があります (Windows)
-  - 設定の反映には、Visutal Studio Code の再起動が必要です
+  - 設定の反映には、Visual Studio Code の再起動が必要です
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -394,7 +424,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 #### `markdown-pdf.scale`
   - ページレンダリングのスケール
-  - number. default: 1
+  - number. Default: 1
 
 ```javascript
 "markdown-pdf.scale": 1
@@ -437,6 +467,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
     ```javascript
     "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
     ```
+
 #### `markdown-pdf.footerTemplate`
   - フッターを出力する為のHTMLテンプレートを指定します
   - 詳細は、[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate) を参照してください
@@ -496,7 +527,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 ### PNG, JPEG options
 
-  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
+  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.screenshotoptions.md)
 
 #### `markdown-pdf.quality`
   - jpeg only. イメージの品質を 0-100 の範囲で指定します。 png では無効です。
@@ -713,6 +744,7 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 詳細は [Change Log](CHANGELOG.md) を参照してください。
 
 ### 1.6.0 (2025/04/15)
+* Refactor: 外部 checkbox / named-header の markdown-it パッケージを内製実装に置換
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
 * Update: align slug generation with [latest VSCode behavior](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27)
 
