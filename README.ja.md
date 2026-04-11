@@ -32,15 +32,16 @@
 
 ## 機能
 
-以下の機能をサポートしています。
-* [Syntax highlighting](https://highlightjs.org/demo)
-* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
-* [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
-* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
-* [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](https://plantuml.com/)
-  * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](https://mermaid-js.github.io/mermaid/)
+| 機能 | 説明 | 記法例 |
+|---|---|---|
+| [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
+| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
+| Checkbox | GitHub 形式のタスクリスト (内製カスタムプラグイン) | `- [ ]` / `- [x]` |
+| Heading IDs | GitHub 互換の見出しアンカー生成 (内製カスタムプラグイン) | `# 見出し` → `#見出し` |
+| [Container](https://github.com/markdown-it/markdown-it-container) | 注記ブロック | `::: warning` |
+| Include | Markdown フラグメントの埋め込み (内製カスタムプラグイン) | `:[label](path.md)` |
+| [PlantUML](https://plantuml.com/) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| [Mermaid](https://mermaid-js.github.io/mermaid/) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
 
 サンプルファイル
  * [pdf](sample/README.pdf)
