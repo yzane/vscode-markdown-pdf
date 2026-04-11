@@ -1,5 +1,30 @@
 # Change Log
 
+## 2.0.0 (2026/04/11)
+
+### Breaking Changes
+
+* Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change.
+* Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed. Legacy names are mapped to current names when possible, and `tomorrow.css` is used as a fallback when no mapping is available.
+* Front matter parsing is now handled by a custom implementation. YAML sequences and non-plain objects in front matter are now rejected.
+* Chromium download and cache management moved to a built-in `chromium-resolver`. The previous temporary directory fallback has been removed; the managed Chromium is stored under the VS Code global storage directory.
+
+### Changes
+
+* Migrate source code to TypeScript and bundle the extension with esbuild
+* Bundle `puppeteer-core` and manage Chromium via the built-in `chromium-resolver`, preferring an installed Chrome/Edge and falling back to an automatic download
+* Replace `markdown-it-include`, `markdown-it-named-headers`, and `markdown-it-checkbox` with in-repo custom implementations
+* Remove `cheerio`, `mustache`, and `gray-matter` dependencies in favor of internal implementations
+* Add unit and integration test suites using `vscode-test-cli`, including sample generation and HTML snapshot comparison
+* Simplify VS Code variant detection and remove the obsolete temp-cache fallback
+
+### Fixes
+
+* Fix global storage path resolution for the Chromium cache
+* Gracefully handle include errors in the custom `markdown-it-include` plugin
+* Image `src` transformation now handles quoted attributes, flexible spacing, and raw-text contexts correctly
+* Front matter parsing now handles BOM-prefixed files and rejects invalid structures
+
 ## 1.6.0 (2025/04/15)
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
 * Update: align slug generation with [latest VSCode behavior](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27)
