@@ -51,6 +51,34 @@ Sample files
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
 
+### Heading IDs
+
+Headings automatically receive GitHub-compatible anchor IDs. For example:
+
+| Heading | Generated ID |
+|---|---|
+| `# My Heading` | `#my-heading` |
+| `# API Reference` | `#api-reference` |
+| `# 日本語見出し` | `#日本語見出し` |
+
+See [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ for details.
+
+### Checkbox
+
+INPUT
+```
+- [ ] Task A
+- [x] Task B
+```
+
+OUTPUT
+```html
+<ul>
+  <li><input type="checkbox" disabled> Task A</li>
+  <li><input type="checkbox" disabled checked> Task B</li>
+</ul>
+```
+
 ### Container
 
 INPUT
