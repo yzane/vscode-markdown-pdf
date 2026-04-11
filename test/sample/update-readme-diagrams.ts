@@ -36,7 +36,7 @@ function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
 async function exportDiagramPng(markdownSource: string, outputName: string): Promise<void> {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-readme-diagram-'));
   const markdownPath = path.join(tempDir, outputName + '.md');
-  const generatedPng = path.join(tempDir, outputName + '.png');
+  const generatedPng = path.join(tempDir, 'sample', outputName + '.png');
   const finalPng = path.join(IMAGES_DIR, outputName + '.png');
 
   fs.writeFileSync(markdownPath, markdownSource, 'utf-8');
