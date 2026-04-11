@@ -13,7 +13,7 @@ describe('readme-diagrams', function () {
   const README_SNIPPET = [
     '## Intro',
     '',
-    '### markdown-it-plantuml',
+    '### PlantUML',
     '',
     'INPUT',
     '```',
@@ -22,7 +22,7 @@ describe('readme-diagrams', function () {
     '@enduml',
     '```',
     '',
-    '### mermaid',
+    '### Mermaid',
     '',
     'INPUT',
     '```mermaid',
@@ -35,13 +35,13 @@ describe('readme-diagrams', function () {
   ].join('\n');
 
   it('extractReadmeSection should return heading body until next heading', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### markdown-it-plantuml');
+    const section = extractReadmeSection(README_SNIPPET, '### PlantUML');
     assert.ok(section.includes('@startuml'));
-    assert.ok(!section.includes('### mermaid'));
+    assert.ok(!section.includes('### Mermaid'));
   });
 
   it('extractFirstFencedBlock should return first fenced block content', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### markdown-it-plantuml');
+    const section = extractReadmeSection(README_SNIPPET, '### PlantUML');
     assert.strictEqual(
       extractFirstFencedBlock(section),
       '@startuml\nAlice -> Bob: hello\n@enduml'
@@ -49,7 +49,7 @@ describe('readme-diagrams', function () {
   });
 
   it('extractFirstFencedBlock should filter by language when specified', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### mermaid');
+    const section = extractReadmeSection(README_SNIPPET, '### Mermaid');
     assert.strictEqual(extractFirstFencedBlock(section, 'mermaid'), 'graph TD\n  A-->B');
   });
 

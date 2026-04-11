@@ -42,8 +42,8 @@ export function extractFirstFencedBlock(section: string, language?: string): str
 
 export function extractReadmeDiagramSources(markdown: string): { plantuml: string; mermaid: string } {
   return {
-    plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '### markdown-it-plantuml')),
-    mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '### mermaid'), 'mermaid'),
+    plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '### PlantUML')),
+    mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '### Mermaid'), 'mermaid'),
   };
 }
 
