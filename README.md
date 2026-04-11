@@ -706,6 +706,8 @@ During the download, `Installing Chromium` is shown in the status bar.
 * Change: Remove `cheerio`, `mustache`, and `gray-matter` dependencies
 * Add: Unit and integration test suites (`vscode-test-cli`)
 
+For details, see [Change Log](CHANGELOG.md).
+
 ### 1.6.0 (2025/04/15)
 * Refactor: replace external checkbox and named-header markdown-it packages with built-in implementations
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
