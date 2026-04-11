@@ -38,12 +38,12 @@ Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ
 |---|---|---|
 | [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
 | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
-| Checkbox | GitHub-style task lists (built-in custom plugin) | `- [ ]` / `- [x]` |
-| Heading IDs | GitHub-compatible heading anchors (built-in custom plugin) | `# Heading` → `#heading` |
-| [Container](https://github.com/markdown-it/markdown-it-container) | Admonition-like blocks | `::: warning` |
-| Include | Embed Markdown fragments (built-in custom plugin) | `:[label](path.md)` |
-| [PlantUML](https://plantuml.com/) | UML diagrams from code blocks | `@startuml` … `@enduml` |
-| [Mermaid](https://mermaid-js.github.io/mermaid/) | Diagrams from fenced code blocks | ` ```mermaid ` |
+| [Checkbox](#checkbox) | GitHub-style task lists (built-in custom plugin) | `- [ ]` / `- [x]` |
+| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors (built-in custom plugin) | `# Heading` → `#heading` |
+| [Container](#container) | Admonition-like blocks | `::: warning` |
+| [Include](#include) | Embed Markdown fragments (built-in custom plugin) | `:[label](path.md)` |
+| [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
 
 Sample files
  * [pdf](sample/README.pdf)
@@ -80,6 +80,8 @@ OUTPUT
 ```
 
 ### Container
+
+Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container).
 
 INPUT
 ```
@@ -141,6 +143,8 @@ Content of CHANGELOG.md
 ```
 
 ### Mermaid
+
+Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/).
 
 INPUT
 <pre>
@@ -673,7 +677,7 @@ BOM-prefixed files are still supported.
 Markdown PDF resolves a Chromium-based browser in the following order:
 
 1. The path specified in [markdown-pdf.executablePath](#markdown-pdfexecutablepath), if the file exists.
-2. An installed browser on your system. Google Chrome (stable) is detected via `@puppeteer/browsers` at its standard OS install location; Microsoft Edge and Chromium are probed at the fixed paths listed below.
+2. An installed browser on your system. Google Chrome (stable) is detected via [@puppeteer/browsers](https://pptr.dev/browsers-api) at its standard OS install location; Microsoft Edge and Chromium are probed at the fixed paths listed below.
 3. A managed Chromium that Markdown PDF automatically downloads on first use.
 
 The first match wins. The per-OS scan order for installed Edge and Chromium is:

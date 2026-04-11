@@ -414,32 +414,32 @@ code {
 <td><code>:smile:</code></td>
 </tr>
 <tr>
-<td>Checkbox</td>
+<td><a href="#checkbox">Checkbox</a></td>
 <td>GitHub-style task lists (built-in custom plugin)</td>
 <td><code>- [ ]</code> / <code>- [x]</code></td>
 </tr>
 <tr>
-<td>Heading IDs</td>
+<td><a href="#heading-ids">Heading IDs</a></td>
 <td>GitHub-compatible heading anchors (built-in custom plugin)</td>
 <td><code># Heading</code> → <code>#heading</code></td>
 </tr>
 <tr>
-<td><a href="https://github.com/markdown-it/markdown-it-container">Container</a></td>
+<td><a href="#container">Container</a></td>
 <td>Admonition-like blocks</td>
 <td><code>::: warning</code></td>
 </tr>
 <tr>
-<td>Include</td>
+<td><a href="#include">Include</a></td>
 <td>Embed Markdown fragments (built-in custom plugin)</td>
 <td><code>:[label](path.md)</code></td>
 </tr>
 <tr>
-<td><a href="https://plantuml.com/">PlantUML</a></td>
+<td><a href="#plantuml">PlantUML</a></td>
 <td>UML diagrams from code blocks</td>
 <td><code>@startuml</code> … <code>@enduml</code></td>
 </tr>
 <tr>
-<td><a href="https://mermaid-js.github.io/mermaid/">Mermaid</a></td>
+<td><a href="#mermaid">Mermaid</a></td>
 <td>Diagrams from fenced code blocks</td>
 <td><code>```mermaid</code></td>
 </tr>
@@ -489,6 +489,7 @@ code {
 <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span>
 </div></code></pre>
 <h3 id="container">Container</h3>
+<p>Admonition-like blocks via <a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a>.</p>
 <p>INPUT</p>
 <pre class="hljs"><code><div>::: warning
 *here be dragons*
@@ -531,6 +532,7 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 </div></code></pre>
 <h3 id="mermaid">Mermaid</h3>
+<p>Render diagrams from fenced code blocks via <a href="https://mermaid-js.github.io/mermaid/">Mermaid</a>.</p>
 <p>INPUT</p>
 <pre>
 ```mermaid
@@ -1186,7 +1188,7 @@ stateDiagram
 <p>Markdown PDF resolves a Chromium-based browser in the following order:</p>
 <ol>
 <li>The path specified in <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a>, if the file exists.</li>
-<li>An installed browser on your system. Google Chrome (stable) is detected via <code>@puppeteer/browsers</code> at its standard OS install location; Microsoft Edge and Chromium are probed at the fixed paths listed below.</li>
+<li>An installed browser on your system. Google Chrome (stable) is detected via <a href="https://pptr.dev/browsers-api">@puppeteer/browsers</a> at its standard OS install location; Microsoft Edge and Chromium are probed at the fixed paths listed below.</li>
 <li>A managed Chromium that Markdown PDF automatically downloads on first use.</li>
 </ol>
 <p>The first match wins. The per-OS scan order for installed Edge and Chromium is:</p>

@@ -36,12 +36,12 @@
 |---|---|---|
 | [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
 | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
-| Checkbox | GitHub 形式のタスクリスト (内製カスタムプラグイン) | `- [ ]` / `- [x]` |
-| Heading IDs | GitHub 互換の見出しアンカー生成 (内製カスタムプラグイン) | `# 見出し` → `#見出し` |
-| [Container](https://github.com/markdown-it/markdown-it-container) | 注記ブロック | `::: warning` |
-| Include | Markdown フラグメントの埋め込み (内製カスタムプラグイン) | `:[label](path.md)` |
-| [PlantUML](https://plantuml.com/) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
-| [Mermaid](https://mermaid-js.github.io/mermaid/) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
+| [Checkbox](#checkbox) | GitHub 形式のタスクリスト (内製カスタムプラグイン) | `- [ ]` / `- [x]` |
+| [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー生成 (内製カスタムプラグイン) | `# 見出し` → `#見出し` |
+| [Container](#container) | 注記ブロック | `::: warning` |
+| [Include](#include) | Markdown フラグメントの埋め込み (内製カスタムプラグイン) | `:[label](path.md)` |
+| [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
 
 サンプルファイル
  * [pdf](sample/README.pdf)
@@ -78,6 +78,8 @@ OUTPUT
 ```
 
 ### Container
+
+[markdown-it-container](https://github.com/markdown-it/markdown-it-container) を使った注記ブロックです。
 
 INPUT
 ```
@@ -139,6 +141,8 @@ Content of CHANGELOG.md
 ```
 
 ### Mermaid
+
+[Mermaid](https://mermaid-js.github.io/mermaid/) のフェンスドコードブロックから図を生成します。
 
 INPUT
 <pre>
@@ -678,7 +682,7 @@ BOM 付きファイルは引き続きサポートされます。
 Markdown PDF は以下の順番で Chromium ベースのブラウザを解決します:
 
 1. [markdown-pdf.executablePath](#markdown-pdfexecutablepath) で指定されたパス (ファイルが存在する場合)
-2. システムにインストール済みのブラウザ。Google Chrome (stable) は `@puppeteer/browsers` 経由で OS 標準のインストール場所から検出されます。Microsoft Edge と Chromium は下記の固定パスを順にスキャンします。
+2. システムにインストール済みのブラウザ。Google Chrome (stable) は [@puppeteer/browsers](https://pptr.dev/browsers-api) 経由で OS 標準のインストール場所から検出されます。Microsoft Edge と Chromium は下記の固定パスを順にスキャンします。
 3. Markdown PDF が初回使用時に自動ダウンロードする管理済み Chromium
 
 最初にマッチしたものが使用されます。OS ごとの検出順序は以下のとおりです。
