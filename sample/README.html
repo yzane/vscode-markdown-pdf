@@ -371,9 +371,9 @@ code {
 <h2 id="table-of-contents">Table of Contents</h2>
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 <ul>
-<li><a href="#specification-changes">Specification Changes</a></li>
+<li><a href="#breaking-changes-in-200">Breaking Changes in 2.0.0</a></li>
 <li><a href="#features">Features</a></li>
-<li><a href="#install">Install</a></li>
+<li><a href="#chromium">Chromium</a></li>
 <li><a href="#usage">Usage</a></li>
 <li><a href="#extension-settings">Extension Settings</a></li>
 <li><a href="#options">Options</a></li>
@@ -385,7 +385,7 @@ code {
 </ul>
 <!-- /TOC -->
 <div class="page"/>
-<h2 id="specification-changes">Specification Changes</h2>
+<h2 id="breaking-changes-in-200">Breaking Changes in 2.0.0</h2>
 <p>Version 2.0.0 introduces changes that may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
 <ul>
 <li>Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change. See <a href="#why-did-my-heading-anchors-change">Why did my heading anchors change?</a>.</li>
@@ -394,21 +394,57 @@ code {
 <li>Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use. See <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> and <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a>.</li>
 </ul>
 <h2 id="features">Features</h2>
-<p>Supports the following features</p>
-<ul>
-<li><a href="https://highlightjs.org/demo">Syntax highlighting</a></li>
-<li><a href="https://www.webfx.com/tools/emoji-cheat-sheet/">emoji</a></li>
-<li>Built-in checkbox syntax support (custom markdown-it plugin)</li>
-<li>Built-in heading IDs with GitHub-compatible slug generation</li>
-<li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it-container</a></li>
-<li><a href="https://github.com/camelaissani/markdown-it-include">markdown-it-include</a></li>
-<li><a href="https://plantuml.com/">PlantUML</a>
-<ul>
-<li><a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a></li>
-</ul>
-</li>
-<li><a href="https://mermaid-js.github.io/mermaid/">mermaid</a></li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://highlightjs.org/demo">Syntax highlighting</a></td>
+<td>Code block highlighting via highlight.js</td>
+<td><code>```js</code></td>
+</tr>
+<tr>
+<td><a href="https://www.webfx.com/tools/emoji-cheat-sheet/">Emoji</a></td>
+<td>Emoji shortcodes</td>
+<td><code>:smile:</code></td>
+</tr>
+<tr>
+<td>Checkbox</td>
+<td>GitHub-style task lists (built-in custom plugin)</td>
+<td><code>- [ ]</code> / <code>- [x]</code></td>
+</tr>
+<tr>
+<td>Heading IDs</td>
+<td>GitHub-compatible heading anchors (built-in custom plugin)</td>
+<td><code># Heading</code> → <code>#heading</code></td>
+</tr>
+<tr>
+<td><a href="https://github.com/markdown-it/markdown-it-container">Container</a></td>
+<td>Admonition-like blocks</td>
+<td><code>::: warning</code></td>
+</tr>
+<tr>
+<td>Include</td>
+<td>Embed Markdown fragments (built-in custom plugin)</td>
+<td><code>:[label](path.md)</code></td>
+</tr>
+<tr>
+<td><a href="https://plantuml.com/">PlantUML</a></td>
+<td>UML diagrams from code blocks</td>
+<td><code>@startuml</code> … <code>@enduml</code></td>
+</tr>
+<tr>
+<td><a href="https://mermaid-js.github.io/mermaid/">Mermaid</a></td>
+<td>Diagrams from fenced code blocks</td>
+<td><code>```mermaid</code></td>
+</tr>
+</tbody>
+</table>
 <p>Sample files</p>
 <ul>
 <li><a href="sample/README.pdf">pdf</a></li>
@@ -416,7 +452,43 @@ code {
 <li><a href="sample/README.png">png</a></li>
 <li><a href="sample/README.jpeg">jpeg</a></li>
 </ul>
-<h3 id="markdown-it-container">markdown-it-container</h3>
+<h3 id="heading-ids">Heading IDs</h3>
+<p>Headings automatically receive GitHub-compatible anchor IDs. For example:</p>
+<table>
+<thead>
+<tr>
+<th>Heading</th>
+<th>Generated ID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code># My Heading</code></td>
+<td><code>#my-heading</code></td>
+</tr>
+<tr>
+<td><code># API Reference</code></td>
+<td><code>#api-reference</code></td>
+</tr>
+<tr>
+<td><code># 日本語見出し</code></td>
+<td><code>#日本語見出し</code></td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="#why-did-my-heading-anchors-change">Why did my heading anchors change?</a> in the FAQ for details.</p>
+<h3 id="checkbox">Checkbox</h3>
+<p>INPUT</p>
+<pre class="hljs"><code><div>- [ ] Task A
+- [x] Task B
+</div></code></pre>
+<p>OUTPUT</p>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;checkbox&quot;</span> <span class="hljs-attr">disabled</span>&gt;</span> Task A<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;checkbox&quot;</span> <span class="hljs-attr">disabled</span> <span class="hljs-attr">checked</span>&gt;</span> Task B<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span>
+</div></code></pre>
+<h3 id="container">Container</h3>
 <p>INPUT</p>
 <pre class="hljs"><code><div>::: warning
 *here be dragons*
@@ -427,7 +499,8 @@ code {
 <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">em</span>&gt;</span>here be dragons<span class="hljs-tag">&lt;/<span class="hljs-name">em</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
 <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
 </div></code></pre>
-<h3 id="markdown-it-plantuml">markdown-it-plantuml</h3>
+<h3 id="plantuml">PlantUML</h3>
+<p>Render UML diagrams via <a href="https://plantuml.com/">PlantUML</a> using <a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a>.</p>
 <p>INPUT</p>
 <pre class="hljs"><code><div>@startuml
 Bob -[#red]&gt; Alice : hello
@@ -436,7 +509,7 @@ Alice -[#0000FF]-&gt;Bob : ok
 </div></code></pre>
 <p>OUTPUT</p>
 <p><img src="images/PlantUML.png" alt="PlantUML"></p>
-<h3 id="markdown-it-include">markdown-it-include</h3>
+<h3 id="include">Include</h3>
 <p>Include markdown fragment files: <code>:[alternate-text](relative-path-to-file.md)</code>.</p>
 <pre class="hljs"><code><div>├── [plugins]
 │  └── README.md
@@ -457,7 +530,7 @@ Content of plugins/README.md
 
 Content of CHANGELOG.md
 </div></code></pre>
-<h3 id="mermaid">mermaid</h3>
+<h3 id="mermaid">Mermaid</h3>
 <p>INPUT</p>
 <pre>
 ```mermaid
@@ -471,8 +544,7 @@ stateDiagram
 </pre>
 <p>OUTPUT</p>
 <p><img src="images/mermaid.png" alt="mermaid"></p>
-<h2 id="install">Install</h2>
-<h3 id="chromium-resolution">Chromium resolution</h3>
+<h2 id="chromium">Chromium</h2>
 <p>Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the following sources in order:</p>
 <ol>
 <li>The path specified in <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a></li>
@@ -777,7 +849,7 @@ stateDiagram
 <ul>
 <li>If you open the <code>Markdown file</code>, it will be interpreted as a relative path from the file</li>
 <li>If you open a <code>folder</code>, it will be interpreted as a relative path from the root folder</li>
-<li>If you open the <code>workspace</code>, it will be interpreted as a relative path from the each root folder
+<li>If you open the <code>workspace</code>, it will be interpreted as a relative path from each root folder
 <ul>
 <li>See <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a></li>
 </ul>
@@ -823,7 +895,7 @@ stateDiagram
 <ul>
 <li>If you open the <code>Markdown file</code>, it will be interpreted as a relative path from the file</li>
 <li>If you open a <code>folder</code>, it will be interpreted as a relative path from the root folder</li>
-<li>If you open the <code>workspace</code>, it will be interpreted as a relative path from the each root folder
+<li>If you open the <code>workspace</code>, it will be interpreted as a relative path from each root folder
 <ul>
 <li>See <a href="https://code.visualstudio.com/docs/editor/multi-root-workspaces">Multi-root Workspaces</a></li>
 </ul>
@@ -887,7 +959,7 @@ stateDiagram
 <h3 id="emoji-options">Emoji options</h3>
 <h4 id="markdown-pdfemoji"><code>markdown-pdf.emoji</code></h4>
 <ul>
-<li>Enable emoji. <a href="https://www.webpagefx.com/tools/emoji-cheat-sheet/">EMOJI CHEAT SHEET</a></li>
+<li>Enable emoji. <a href="https://www.webfx.com/tools/emoji-cheat-sheet/">EMOJI CHEAT SHEET</a></li>
 <li>boolean. Default: true</li>
 </ul>
 <h3 id="configuration-options">Configuration options</h3>
@@ -904,7 +976,7 @@ stateDiagram
 <h4 id="markdown-pdfscale"><code>markdown-pdf.scale</code></h4>
 <ul>
 <li>Scale of the page rendering</li>
-<li>number. default: 1</li>
+<li>number. Default: 1</li>
 </ul>
 <pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.scale&quot;</span>: <span class="hljs-number">1</span>
 </div></code></pre>
@@ -1001,7 +1073,7 @@ stateDiagram
 </div></code></pre>
 <h3 id="png-jpeg-options">PNG, JPEG options</h3>
 <ul>
-<li>png and jpeg only. <a href="https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions">puppeteer page.screenshot options</a></li>
+<li>png and jpeg only. <a href="https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.screenshotoptions.md">puppeteer page.screenshot options</a></li>
 </ul>
 <h4 id="markdown-pdfquality"><code>markdown-pdf.quality</code></h4>
 <ul>
@@ -1037,7 +1109,7 @@ stateDiagram
 <h3 id="plantuml-options">PlantUML options</h3>
 <h4 id="markdown-pdfplantumlopenmarker"><code>markdown-pdf.plantumlOpenMarker</code></h4>
 <ul>
-<li>Oppening delimiter used for the plantuml parser.</li>
+<li>Opening delimiter used for the plantuml parser.</li>
 <li>Default: @startuml</li>
 </ul>
 <h4 id="markdown-pdfplantumlclosemarker"><code>markdown-pdf.plantumlCloseMarker</code></h4>
