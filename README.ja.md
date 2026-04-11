@@ -286,7 +286,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ```
 
   - 相対パス (ホームディレクトリ)
-    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+    - パスが `~` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
 
 ```javascript
 "markdown-pdf.outputDirectory": "~/output",
@@ -327,7 +327,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ```
 
   - 相対パス (ホームディレクトリ)
-    - パスが `^` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
+    - パスが `~` で始まっている場合、ホームディレクトリからの相対パスとして解釈されます
 
 ```javascript
 "markdown-pdf.styles": [
@@ -376,7 +376,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### Emoji options
 
 #### `markdown-pdf.emoji`
-  - 絵文字を有効にします [EMOJI CHEAT SHEET](https://www.webpagefx.com/tools/emoji-cheat-sheet/)
+  - 絵文字を有効にします [EMOJI CHEAT SHEET](https://www.webfx.com/tools/emoji-cheat-sheet/)
   - boolean. Default: true
 
 ### Configuration options
@@ -395,7 +395,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 #### `markdown-pdf.scale`
   - ページレンダリングのスケール
-  - number. default: 1
+  - number. Default: 1
 
 ```javascript
 "markdown-pdf.scale": 1
@@ -498,7 +498,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 ### PNG, JPEG options
 
-  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
+  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.screenshotoptions.md)
 
 #### `markdown-pdf.quality`
   - jpeg only. イメージの品質を 0-100 の範囲で指定します。 png では無効です。

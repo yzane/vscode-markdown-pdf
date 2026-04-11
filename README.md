@@ -380,7 +380,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### Emoji options
 
 #### `markdown-pdf.emoji`
-  - Enable emoji. [EMOJI CHEAT SHEET](https://www.webpagefx.com/tools/emoji-cheat-sheet/)
+  - Enable emoji. [EMOJI CHEAT SHEET](https://www.webfx.com/tools/emoji-cheat-sheet/)
   - boolean. Default: true
 
 ### Configuration options
@@ -399,7 +399,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 
 #### `markdown-pdf.scale`
   - Scale of the page rendering
-  - number. default: 1
+  - number. Default: 1
 
 ```javascript
 "markdown-pdf.scale": 1
@@ -502,7 +502,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 
 ### PNG, JPEG options
 
-  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
+  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.screenshotoptions.md)
 
 #### `markdown-pdf.quality`
   - jpeg only. The quality of the image, between 0-100. Not applicable to png images
