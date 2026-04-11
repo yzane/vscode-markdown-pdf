@@ -281,7 +281,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - Relative path
     - If you open the `Markdown file`, it will be interpreted as a relative path from the file
     - If you open a `folder`, it will be interpreted as a relative path from the root folder
-    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from each root folder
       - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
 
 ```javascript
@@ -320,7 +320,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - Relative path
     - If you open the `Markdown file`, it will be interpreted as a relative path from the file
     - If you open a `folder`, it will be interpreted as a relative path from the root folder
-    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from each root folder
       - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
 
 ```javascript
@@ -539,7 +539,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - Oppening delimiter used for the plantuml parser.
+  - Opening delimiter used for the plantuml parser.
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
