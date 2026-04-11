@@ -17,7 +17,7 @@ const PLANTUML_PNG_PATH = path.resolve(IMAGES_DIR, 'PlantUML.png');
 const MERMAID_PNG_PATH = path.resolve(IMAGES_DIR, 'mermaid.png');
 const PLANTUML_SERVER = 'http://www.plantuml.com/plantuml';
 const MERMAID_SCRIPT_URL = 'https://unpkg.com/mermaid/dist/mermaid.min.js';
-const CHROMIUM_CACHE_DIR = path.resolve(ROOT, '.tmp', 'readme-diagrams', 'chromium');
+const CHROMIUM_CACHE_DIR = path.join(os.tmpdir(), 'markdown-pdf-readme-diagrams', 'chromium');
 
 function formatError(error: unknown): string {
   if (error instanceof Error) {
