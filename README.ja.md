@@ -23,10 +23,12 @@
 
 ## 仕様変更
 
-- シンタックスハイライトのスタイル変更
-  - バージョン1.6.0から、highlight.js がバージョン9から11に更新されました。これにより、一部のシンタックスハイライトのスタイル名が変更または削除されています。
-  - 設定されたスタイル名が現在の名前ではない場合、拡張機能は警告メッセージを表示します。古いスタイル名の別名は、可能な場合は現在のスタイル名に読み替えられ、それでも対応するスタイルが見つからない場合にのみ `tomorrow.css` にフォールバックします。
-  - [利用可能なスタイル](https://github.com/highlightjs/highlight.js/tree/main/src/styles)を確認し、必要に応じて [markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle) の設定を更新してください。
+バージョン 2.0.0 では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+
+- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
+- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
+- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
+- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ## 機能
 
@@ -125,14 +127,17 @@ OUTPUT
 
 ## インストール
 
-Markdown PDF をインストールして、Visual Studio Code で Markdownファイルを最初に開いた時、Chromium のダウンロードが自動で始まります。
+### Chromium の解決
 
-しかしサイズが大きい為 (~170Mb Mac, ~282Mb Linux, ~280Mb Win) 、環境によっては時間がかかります。
-ダウンロード中は、ステータスバーに `Installing Puppeteer` のメッセージが表示されます。
+Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラウザを使用します。以下の順番で解決を試みます:
 
-もしプロキシを使う必要がある場合、settings.json に `http.proxy` でプロキシを設定し、Visual Studio Code を再起動してください。
+1. [markdown-pdf.executablePath](#markdown-pdfexecutablepath) で指定されたパス
+2. システムにインストール済みの Google Chrome / Microsoft Edge / Chromium
+3. 初回使用時に自動ダウンロードされる管理済み Chromium
 
-ダウンロードが上手くいかない場合や、Markdown PDF のバージョンアップの度にダウンロードするのを避けたい場合、[markdown-pdf.executablePath](#markdown-pdfexecutablepath) オプションでインストール済みの [Chrome](https://www.google.co.jp/chrome/) か Chromium を指定してください。
+詳細は FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) および [Where is Chromium downloaded?](#where-is-chromium-downloaded) を参照してください。
+
+プロキシ経由で接続している場合は、settings.json に `http.proxy` オプションを設定し、Visual Studio Code を再起動してください。
 
 <div class="page"/>
 
@@ -376,7 +381,8 @@ Markdown PDF をインストールして、Visual Studio Code で Markdownファ
 ### Configuration options
 
 #### `markdown-pdf.executablePath`
-  - バンドルされた Chromium の代わりに実行する Chromium または Chrome のパスを指定します
+  - バンドルされた Chromium の代わりに実行する Google Chrome / Microsoft Edge / Chromium のパスを指定します
+  - この設定がインストール済みブラウザの検出や管理済み Chromium のダウンロードとどう連携するかは、FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) を参照してください
   - 全ての `\` は `\\` と記述する必要があります (Windows)
   - 設定の反映には、Visutal Studio Code の再起動が必要です
 
@@ -596,6 +602,96 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 <div class="page"/>
 ```
 
+<a id="why-did-my-heading-anchors-change"></a>
+
+### 見出しのアンカーが変わったのはなぜ？
+
+バージョン 2.0.0 から、Markdown PDF は GitHub 互換の VS Code slug 生成に準拠したカスタム実装の `markdown-it-named-headers` で見出し ID を生成します。従来の実装と比較して、新しい slug ジェネレータは CJK 文字とアンダースコアを保持する一方でサポートされない記号を除去するため、既存の内部アンカー (例: `#some-heading`) の解決結果が変わる可能性があります。
+
+目次や相互参照など特定のアンカー文字列に依存している Markdown を使っている場合は、エクスポート後にアンカーを確認し、リンクを必要に応じて更新してください。
+
+<a id="why-did-my-syntax-highlight-style-stop-working"></a>
+
+### シンタックスハイライトのスタイルが効かなくなったのはなぜ？
+
+バージョン 2.0.0 から、Markdown PDF は `highlight.js` v11 を使用するようになりました (以前は v9)。v9 のスタイル名の一部は名称変更または削除されています。Markdown PDF は古いスタイル名を可能な範囲で現在の名前にマッピングし、見つからないときは警告メッセージを表示します。マッピング不能な場合は `tomorrow.css` にフォールバックします。
+
+[利用可能なスタイル](https://github.com/highlightjs/highlight.js/tree/main/src/styles)を確認し、[markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle) の設定を現行のスタイル名に更新してください。
+
+<a id="why-is-my-front-matter-no-longer-parsed"></a>
+
+### フロントマターが解析されなくなったのはなぜ？
+
+バージョン 2.0.0 から、Markdown PDF は `gray-matter` ではなくカスタム実装で YAML フロントマターを解析します。新しいパーサーはより厳格で、以前のパーサーが受け入れていた以下のケースを拒否します:
+
+- トップレベルが YAML シーケンス (配列) のフロントマター
+- プレーンオブジェクトに解析されないフロントマター
+- 不正な YAML 構造
+
+有効なフロントマターはトップレベルが YAML マッピング (オブジェクト) である必要があります。例:
+
+``` yaml
+---
+title: My Document
+"markdown-pdf":
+  displayHeaderFooter: true
+---
+```
+
+BOM 付きファイルは引き続きサポートされます。
+
+<a id="how-is-the-chromium-browser-selected"></a>
+
+### Chromium ブラウザはどのように選択されますか？
+
+Markdown PDF は以下の順番で Chromium ベースのブラウザを解決します:
+
+1. [markdown-pdf.executablePath](#markdown-pdfexecutablepath) で指定されたパス (ファイルが存在する場合)
+2. システムにインストール済みのブラウザ。Google Chrome (stable) は `@puppeteer/browsers` 経由で OS 標準のインストール場所から検出されます。Microsoft Edge と Chromium は下記の固定パスを順にスキャンします。
+3. Markdown PDF が初回使用時に自動ダウンロードする管理済み Chromium
+
+最初にマッチしたものが使用されます。OS ごとの検出順序は以下のとおりです。
+
+**Windows**
+
+1. Google Chrome (stable インストール、`@puppeteer/browsers` で検出)
+2. `%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe`
+3. `%LOCALAPPDATA%\Chromium\Application\chrome.exe`
+4. `%PROGRAMFILES%\Microsoft\Edge\Application\msedge.exe`
+5. `%PROGRAMFILES%\Chromium\Application\chrome.exe`
+6. `%PROGRAMFILES(X86)%\Microsoft\Edge\Application\msedge.exe`
+7. `%PROGRAMFILES(X86)%\Chromium\Application\chrome.exe`
+
+**macOS**
+
+1. Google Chrome (stable インストール、`@puppeteer/browsers` で検出)
+2. `/Applications/Chromium.app/Contents/MacOS/Chromium`
+3. `/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge`
+
+**Linux**
+
+1. Google Chrome (stable インストール、`@puppeteer/browsers` で検出)
+2. `/usr/bin/chromium-browser`
+3. `/usr/bin/chromium`
+4. `/usr/bin/microsoft-edge`
+5. `/usr/bin/microsoft-edge-stable`
+
+<a id="where-is-chromium-downloaded"></a>
+
+### Chromium はどこにダウンロードされますか？
+
+インストール済みブラウザが見つからない場合、Markdown PDF は初回使用時に管理済み Chromium をダウンロードします。ダウンロード先は拡張機能の VS Code global storage ディレクトリです:
+
+| OS | ダウンロードパス |
+| --- | --- |
+| Windows | `%APPDATA%\Code\User\globalStorage\yzane.markdown-pdf\` |
+| macOS | `~/Library/Application Support/Code/User/globalStorage/yzane.markdown-pdf/` |
+| Linux | `~/.config/Code/User/globalStorage/yzane.markdown-pdf/` |
+
+VS Code Insiders や VSCodium を使用している場合は、ベースパスが `Code - Insiders` や `VSCodium` などに変わります。
+
+ダウンロード中はステータスバーに `Installing Chromium` が表示されます。
+
 <div class="page"/>
 
 ## 既知の問題
@@ -605,6 +701,14 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 
 ## [Release Notes](CHANGELOG.md)
+
+### 2.0.0 (2026/04/11)
+* Breaking: 見出し ID の slug 生成、フロントマター解析、Chromium 解決ロジックが変更されました。詳細は [FAQ](#faq) を参照してください。
+* Change: ソースコードを TypeScript に移行し、esbuild でバンドルするよう変更
+* Change: `puppeteer-core` をバンドルし、内製の `chromium-resolver` で Chromium を管理 (インストール済み Chrome/Edge を優先し、見つからなければ自動ダウンロード)
+* Change: `markdown-it-include` / `markdown-it-named-headers` / `markdown-it-checkbox` を内製実装に置換
+* Change: `cheerio` / `mustache` / `gray-matter` 依存を削除
+* Add: ユニットテストと統合テスト (`vscode-test-cli`)
 
 ### 1.6.0 (2025/04/15)
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
@@ -616,20 +720,11 @@ MIT
 
 
 ## Special thanks
-* [GoogleChrome/puppeteer](https://github.com/GoogleChrome/puppeteer)
+* [puppeteer/puppeteer](https://github.com/puppeteer/puppeteer)
 * [markdown-it/markdown-it](https://github.com/markdown-it/markdown-it)
-* [mcecot/markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
-* [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
 * [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)
-* [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
-* [janl/mustache.js](https://github.com/janl/mustache.js)
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
-* [jonschlinkert/gray-matter](https://github.com/jonschlinkert/gray-matter)
-
-and
-
-* [cakebake/markdown-themeable-pdf](https://github.com/cakebake/markdown-themeable-pdf)
