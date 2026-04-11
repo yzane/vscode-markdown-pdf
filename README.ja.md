@@ -36,10 +36,10 @@
 |---|---|---|
 | [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
 | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
-| [Checkbox](#checkbox) | GitHub 形式のタスクリスト (内製カスタムプラグイン) | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー生成 (内製カスタムプラグイン) | `# 見出し` → `#見出し` |
+| [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
+| [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー生成 | `# 見出し` → `#見出し` |
 | [Container](#container) | 注記ブロック | `::: warning` |
-| [Include](#include) | Markdown フラグメントの埋め込み (内製カスタムプラグイン) | `:[label](path.md)` |
+| [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
 | [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
 | [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
 

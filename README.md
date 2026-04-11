@@ -38,10 +38,10 @@ Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ
 |---|---|---|
 | [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
 | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
-| [Checkbox](#checkbox) | GitHub-style task lists (built-in custom plugin) | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors (built-in custom plugin) | `# Heading` → `#heading` |
+| [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
+| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
 | [Container](#container) | Admonition-like blocks | `::: warning` |
-| [Include](#include) | Embed Markdown fragments (built-in custom plugin) | `:[label](path.md)` |
+| [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
 | [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
 | [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
 
