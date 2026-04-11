@@ -910,6 +910,7 @@
     "package": "npm run build && vsce package",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "tsx --test test/unit/**/*.test.ts",
+    "update-readme-diagrams": "node --import tsx scripts/update-readme-diagrams.ts",
     "pretest:integration": "npm run build",
     "test:integration": "vscode-test --config .vscode-test.mjs --label integration",
     "presample": "npm run build",
