@@ -49,6 +49,34 @@
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
 
+### Heading IDs
+
+見出しには GitHub 互換のアンカー ID が自動的に付与されます。例:
+
+| 見出し | 生成される ID |
+|---|---|
+| `# My Heading` | `#my-heading` |
+| `# API リファレンス` | `#api-リファレンス` |
+| `# 日本語見出し` | `#日本語見出し` |
+
+詳細は FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change) を参照してください。
+
+### Checkbox
+
+INPUT
+```
+- [ ] タスク A
+- [x] タスク B
+```
+
+OUTPUT
+```html
+<ul>
+  <li><input type="checkbox" disabled> タスク A</li>
+  <li><input type="checkbox" disabled checked> タスク B</li>
+</ul>
+```
+
 ### Container
 
 INPUT
