@@ -34,16 +34,16 @@ Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ
 
 ## Features
 
-Supports the following features
-* [Syntax highlighting](https://highlightjs.org/demo)
-* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
-* Built-in checkbox syntax support (custom markdown-it plugin)
-* Built-in heading IDs with GitHub-compatible slug generation
-* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
-* [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](https://plantuml.com/)
-  * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](https://mermaid-js.github.io/mermaid/)
+| Feature | Description | Example |
+|---|---|---|
+| [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
+| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
+| Checkbox | GitHub-style task lists (built-in custom plugin) | `- [ ]` / `- [x]` |
+| Heading IDs | GitHub-compatible heading anchors (built-in custom plugin) | `# Heading` → `#heading` |
+| [Container](https://github.com/markdown-it/markdown-it-container) | Admonition-like blocks | `::: warning` |
+| Include | Embed Markdown fragments (built-in custom plugin) | `:[label](path.md)` |
+| [PlantUML](https://plantuml.com/) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| [Mermaid](https://mermaid-js.github.io/mermaid/) | Diagrams from fenced code blocks | ` ```mermaid ` |
 
 Sample files
  * [pdf](sample/README.pdf)
