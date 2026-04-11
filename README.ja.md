@@ -715,6 +715,7 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 詳細は [Change Log](CHANGELOG.md) を参照してください。
 
 ### 1.6.0 (2025/04/15)
+* Refactor: 外部 checkbox / named-header の markdown-it パッケージを内製実装に置換
 * Fix: Allow underscores in section header identifiers [#404](https://github.com/yzane/vscode-markdown-pdf/pull/404)
 * Update: align slug generation with [latest VSCode behavior](https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27)
 
