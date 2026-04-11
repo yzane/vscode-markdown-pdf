@@ -49,7 +49,7 @@
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
 
-### markdown-it-container
+### Container
 
 INPUT
 ```
@@ -65,7 +65,9 @@ OUTPUT
 </div>
 ```
 
-### markdown-it-plantuml
+### PlantUML
+
+[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
 
 INPUT
 ```
@@ -79,7 +81,7 @@ OUTPUT
 
 ![PlantUML](images/PlantUML.png)
 
-### markdown-it-include
+### Include
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 
@@ -108,7 +110,7 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### mermaid
+### Mermaid
 
 INPUT
 <pre>
