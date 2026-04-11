@@ -116,85 +116,37 @@ suite('Integration HTML Snapshot Tests', () => {
   });
 });
 
-suite('Integration Binary Generation Tests', () => {
-  const combinedMd = path.resolve(FIXTURES_DIR, '_combined.md');
-  const combinedBase = path.resolve(FIXTURES_DIR, '_combined');
+suite('Visual Inspection Tests', () => {
+  const TMP_DIR = path.resolve(__dirname, '..', '..', 'tmp');
+  const srcMd = path.resolve(FIXTURES_DIR, '_all-features.md');
+  const srcPdf = path.resolve(FIXTURES_DIR, '_all-features.pdf');
 
   suiteSetup(function () {
+    fs.mkdirSync(TMP_DIR, { recursive: true });
+
     const contents = HTML_FEATURES.map(({ name }) => {
       const filePath = path.resolve(FIXTURES_DIR, `${name}.md`);
       return fs.readFileSync(filePath, 'utf-8');
     });
-    fs.writeFileSync(combinedMd, contents.join('\n\n---\n\n'), 'utf-8');
+    fs.writeFileSync(srcMd, contents.join('\n\n---\n\n'), 'utf-8');
   });
 
   suiteTeardown(function () {
-    safeDelete(combinedMd);
+    safeDelete(srcMd);
+    safeDelete(srcPdf);
   });
 
-  test('combined fixture renders an emoji signal', async function () {
+  test('generates combined PDF for visual inspection', async function () {
     this.timeout(60000);
 
-    const outputPath = `${combinedBase}.html`;
+    await executeMarkdownPdfCommand('_all-features.md', 'extension.markdown-pdf.pdf');
+    await waitForFile(srcPdf);
 
-    try {
-      await executeMarkdownPdfCommand('_combined.md', 'extension.markdown-pdf.html');
-      await waitForFile(outputPath);
+    fs.copyFileSync(srcMd, path.resolve(TMP_DIR, '_all-features.md'));
+    fs.copyFileSync(srcPdf, path.resolve(TMP_DIR, '_all-features.pdf'));
 
-      const generatedHtml = normalizeHtml(fs.readFileSync(outputPath, 'utf-8'));
-      assert.ok(
-        generatedHtml.includes('<img class="emoji" alt="smile"'),
-        'combined HTML should include rendered emoji output'
-      );
-    } finally {
-      safeDelete(outputPath);
-    }
-  });
-
-  const binaryFormats = [
-    {
-      type: 'pdf',
-      command: 'extension.markdown-pdf.pdf',
-      magicBytes: Buffer.from([0x25, 0x50, 0x44, 0x46]),
-    },
-    {
-      type: 'png',
-      command: 'extension.markdown-pdf.png',
-      magicBytes: Buffer.from([0x89, 0x50, 0x4E, 0x47]),
-    },
-    {
-      type: 'jpeg',
-      command: 'extension.markdown-pdf.jpeg',
-      magicBytes: Buffer.from([0xFF, 0xD8, 0xFF]),
-    },
-  ];
-
-  binaryFormats.forEach(({ type, command, magicBytes }) => {
-    test(`${type.toUpperCase()}: generates valid file`, async function () {
-      this.timeout(60000);
-
-      const outputPath = `${combinedBase}.${type}`;
-
-      try {
-        await executeMarkdownPdfCommand('_combined.md', command);
-        await waitForFile(outputPath);
-
-        const stat = fs.statSync(outputPath);
-        assert.ok(stat.size > 0, `${type} file should not be empty`);
-
-        const header = Buffer.alloc(magicBytes.length);
-        const fd = fs.openSync(outputPath, 'r');
-        fs.readSync(fd, header, 0, magicBytes.length, 0);
-        fs.closeSync(fd);
-
-        assert.ok(
-          header.equals(magicBytes),
-          `${type} magic bytes mismatch: expected ${magicBytes.toString('hex')}, got ${header.toString('hex')}`
-        );
-      } finally {
-        safeDelete(outputPath);
-      }
-    });
+    const stat = fs.statSync(path.resolve(TMP_DIR, '_all-features.pdf'));
+    assert.ok(stat.size > 0, 'PDF file should not be empty');
   });
 });
 

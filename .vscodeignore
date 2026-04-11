@@ -16,6 +16,7 @@ sample/**
 
 # Test
 test/**
+tmp/
 
 # Config and build artifacts
 .eslintrc.json
