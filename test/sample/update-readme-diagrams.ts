@@ -2,7 +2,6 @@ import assert from 'assert';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { suite, test } from 'mocha';
 import * as vscode from 'vscode';
 
 import { extractReadmeDiagramSources } from '../../src/readme-diagrams';
