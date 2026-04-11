@@ -252,7 +252,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 #### `markdown-pdf.convertOnSave`
   - 保存時の自動変換を有効にします
   - boolean. Default: false
-  - 設定の反映には、Visutal Studio Code の再起動が必要です
+  - 設定の反映には、Visual Studio Code の再起動が必要です
 
 #### `markdown-pdf.convertOnSaveExclude`
   - convertOnSave オプションの除外ファイル名を指定します
@@ -266,6 +266,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   "work\\test"  // 全ての \ は \\ と記述する必要があります。(Windows)
 ],
 ```
+
 #### `markdown-pdf.outputDirectory`
   - 出力ディレクトリを指定します
   - 全ての `\` は `\\` と記述する必要があります (Windows)
@@ -384,7 +385,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   - バンドルされた Chromium の代わりに実行する Google Chrome / Microsoft Edge / Chromium のパスを指定します
   - この設定がインストール済みブラウザの検出や管理済み Chromium のダウンロードとどう連携するかは、FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) を参照してください
   - 全ての `\` は `\\` と記述する必要があります (Windows)
-  - 設定の反映には、Visutal Studio Code の再起動が必要です
+  - 設定の反映には、Visual Studio Code の再起動が必要です
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
@@ -437,6 +438,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
     ```javascript
     "markdown-pdf.headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
     ```
+
 #### `markdown-pdf.footerTemplate`
   - フッターを出力する為のHTMLテンプレートを指定します
   - 詳細は、[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate) を参照してください
