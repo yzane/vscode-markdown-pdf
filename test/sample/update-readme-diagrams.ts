@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
 
-import { extractReadmeDiagramSources } from '../../src/readme-diagrams';
+import { extractReadmeDiagramSources, resolveReadmeDiagramExportPath } from '../../src/readme-diagrams';
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '..', '..');
 const README_MD = path.resolve(WORKSPACE_ROOT, 'README.md');
@@ -35,7 +35,14 @@ function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
 async function exportDiagramPng(markdownSource: string, outputName: string): Promise<void> {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-readme-diagram-'));
   const markdownPath = path.join(tempDir, outputName + '.md');
-  const generatedPng = path.join(tempDir, 'sample', outputName + '.png');
+  const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(markdownPath));
+  const generatedPng = resolveReadmeDiagramExportPath(
+    path.join(tempDir, outputName + '.png'),
+    markdownPath,
+    vscode.workspace.getConfiguration('markdown-pdf').get<string>('outputDirectory'),
+    vscode.workspace.getConfiguration('markdown-pdf').get<boolean>('outputDirectoryRelativePathFile'),
+    workspace ? workspace.uri.fsPath : undefined
+  );
   const finalPng = path.join(IMAGES_DIR, outputName + '.png');
 
   fs.writeFileSync(markdownPath, markdownSource, 'utf-8');

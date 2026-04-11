@@ -6,6 +6,7 @@ import {
   extractFirstFencedBlock,
   extractReadmeDiagramSources,
   extractReadmeSection,
+  resolveReadmeDiagramExportPath,
 } from '../../src/readme-diagrams';
 
 describe('readme-diagrams', function () {
@@ -75,5 +76,44 @@ describe('readme-diagrams', function () {
     assert.ok(html.includes('<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>'));
     assert.ok(html.includes('<div class="mermaid">graph TD\n  A-->B</div>'));
     assert.ok(html.includes('mermaid.initialize({ startOnLoad: true })'));
+  });
+
+  it('resolveReadmeDiagramExportPath should use workspace-relative output when workspace exists', function () {
+    assert.strictEqual(
+      resolveReadmeDiagramExportPath(
+        '/tmp/PlantUML.png',
+        '/tmp/PlantUML.md',
+        'sample',
+        false,
+        '/workspace'
+      ),
+      '/workspace/sample/PlantUML.png'
+    );
+  });
+
+  it('resolveReadmeDiagramExportPath should fall back to file-relative output without a workspace', function () {
+    assert.strictEqual(
+      resolveReadmeDiagramExportPath(
+        '/tmp/PlantUML.png',
+        '/tmp/PlantUML.md',
+        'sample',
+        false,
+        undefined
+      ),
+      '/tmp/sample/PlantUML.png'
+    );
+  });
+
+  it('resolveReadmeDiagramExportPath should keep adjacent output when outputDirectory is empty', function () {
+    assert.strictEqual(
+      resolveReadmeDiagramExportPath(
+        '/tmp/PlantUML.png',
+        '/tmp/PlantUML.md',
+        '',
+        false,
+        undefined
+      ),
+      '/tmp/PlantUML.png'
+    );
   });
 });

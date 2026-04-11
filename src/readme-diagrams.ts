@@ -1,5 +1,6 @@
 import MarkdownIt from 'markdown-it';
 import markdownItPlantuml from 'markdown-it-plantuml';
+import { resolveOutputDir } from './utils';
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -76,4 +77,26 @@ export function buildMermaidRenderHtml(mermaidSource: string, mermaidScriptUrl: 
     '</body>',
     '</html>',
   ].join('');
+}
+
+export function resolveReadmeDiagramExportPath(
+  filename: string,
+  resourceFsPath: string,
+  outputDirectory: string | undefined | null,
+  outputDirectoryRelativePathFile: boolean | undefined,
+  workspaceFsPath: string | undefined
+): string {
+  const resolved = resolveOutputDir(
+    filename,
+    outputDirectory,
+    outputDirectoryRelativePathFile,
+    resourceFsPath,
+    workspaceFsPath
+  );
+
+  if (resolved === null) {
+    throw new Error('Resolved output directory does not exist');
+  }
+
+  return resolved;
 }
