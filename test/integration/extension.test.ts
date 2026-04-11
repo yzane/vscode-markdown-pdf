@@ -118,8 +118,8 @@ suite('Integration HTML Snapshot Tests', () => {
 
 suite('Visual Inspection Tests', () => {
   const TMP_DIR = path.resolve(__dirname, '..', '..', 'tmp');
-  const allFeaturesMd = path.resolve(TMP_DIR, '_all-features.md');
-  const allFeaturesPdf = path.resolve(TMP_DIR, '_all-features.pdf');
+  const srcMd = path.resolve(FIXTURES_DIR, '_all-features.md');
+  const srcPdf = path.resolve(FIXTURES_DIR, '_all-features.pdf');
 
   suiteSetup(function () {
     fs.mkdirSync(TMP_DIR, { recursive: true });
@@ -128,19 +128,24 @@ suite('Visual Inspection Tests', () => {
       const filePath = path.resolve(FIXTURES_DIR, `${name}.md`);
       return fs.readFileSync(filePath, 'utf-8');
     });
-    fs.writeFileSync(allFeaturesMd, contents.join('\n\n---\n\n'), 'utf-8');
+    fs.writeFileSync(srcMd, contents.join('\n\n---\n\n'), 'utf-8');
+  });
+
+  suiteTeardown(function () {
+    safeDelete(srcMd);
+    safeDelete(srcPdf);
   });
 
   test('generates combined PDF for visual inspection', async function () {
     this.timeout(60000);
 
-    const doc = await vscode.workspace.openTextDocument(allFeaturesMd);
-    await vscode.window.showTextDocument(doc);
-    await vscode.commands.executeCommand('extension.markdown-pdf.pdf');
-    await new Promise<void>((resolve) => setTimeout(resolve, 2000));
-    await waitForFile(allFeaturesPdf);
+    await executeMarkdownPdfCommand('_all-features.md', 'extension.markdown-pdf.pdf');
+    await waitForFile(srcPdf);
 
-    const stat = fs.statSync(allFeaturesPdf);
+    fs.copyFileSync(srcMd, path.resolve(TMP_DIR, '_all-features.md'));
+    fs.copyFileSync(srcPdf, path.resolve(TMP_DIR, '_all-features.pdf'));
+
+    const stat = fs.statSync(path.resolve(TMP_DIR, '_all-features.pdf'));
     assert.ok(stat.size > 0, 'PDF file should not be empty');
   });
 });
