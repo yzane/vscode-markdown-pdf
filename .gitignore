@@ -1,7 +1,25 @@
-.history
-.vscode-test
+# Dependencies
 node_modules
-work/**
+
+# Build output
+dist/
 *.vsix
-*.bat
+
+# VS Code test runner
+.vscode-test
+
+# Working directory
+work/
+
+# Editor / local history
+.history
+.worktrees/
+
+# AI tools
+.claude/settings.local.json
+.cocoindex_code/
+.codex
 .eslintrc.json
+
+# Visual inspection output
+tmp/

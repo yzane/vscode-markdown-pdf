@@ -1,10 +1,38 @@
+# Source files (bundled into dist/)
+src/**
+tsconfig.json
+
+# Development and CI
 .vscode/**
-typings/**
-test/**
-.gitignore
-jsconfig.json
-*.vsix
+.github/**
+.vscode-test/**
+.cocoindex_code/**
+.claude/**
+
+# Documentation and samples
+docs/**
 work/**
-*.bat
-.eslintrc.json
 sample/**
+
+# Test
+test/**
+tmp/
+
+# Config and build artifacts
+.eslintrc.json
+*.vsix
+*.bat
+.gitignore
+.codex
+.vscode-test.mjs
+CLAUDE.md
+AGENTS.md
+
+# Node modules - exclude all, then re-include needed packages
+node_modules/**
+
+# Runtime asset packages (only specific subdirectories needed at runtime)
+!node_modules/emoji-images/pngs/
+!node_modules/emoji-images/pngs/**
+!node_modules/highlight.js/styles/
+!node_modules/highlight.js/styles/**

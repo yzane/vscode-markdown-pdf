@@ -7,9 +7,9 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [Specification Changes](#specification-changes)
+- [Breaking Changes in 2.0.0](#breaking-changes-in-200)
 - [Features](#features)
-- [Install](#install)
+- [Chromium](#chromium)
 - [Usage](#usage)
 - [Extension Settings](#extension-settings)
 - [Options](#options)
@@ -23,24 +23,27 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 <div class="page"/>
 
-## Specification Changes
+## Breaking Changes in 2.0.0
 
-- Default Date Format for PDF Headers and Footers Modified
-  - Starting from version 1.5.0, the default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
-  - This change aims to improve the consistency of date displays, as the previous format could vary depending on the environment.
-  - If you wish to use the previous format, please refer to [markdown-pdf.headerTemplate](#markdown-pdfheadertemplate).
+Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ](#faq) section for details.
+
+- Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change. See [Why did my heading anchors change?](#why-did-my-heading-anchors-change).
+- Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed. See [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working).
+- Front matter parsing is now stricter. Some previously accepted formats may be rejected. See [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed).
+- Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use. See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) and [Where is Chromium downloaded?](#where-is-chromium-downloaded).
 
 ## Features
 
-Supports the following features
-* [Syntax highlighting](https://highlightjs.org/static/demo/)
-* [emoji](https://www.webfx.com/tools/emoji-cheat-sheet/)
-* [markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
-* [markdown-it-container](https://github.com/markdown-it/markdown-it-container)
-* [markdown-it-include](https://github.com/camelaissani/markdown-it-include)
-* [PlantUML](https://plantuml.com/)
-  * [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [mermaid](https://mermaid-js.github.io/mermaid/)
+| Feature | Description | Example |
+|---|---|---|
+| [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
+| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
+| [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
+| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
+| [Container](#container) | Admonition-like blocks | `::: warning` |
+| [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
+| [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
 
 Sample files
  * [pdf](sample/README.pdf)
@@ -48,7 +51,37 @@ Sample files
  * [png](sample/README.png)
  * [jpeg](sample/README.jpeg)
 
-### markdown-it-container
+### Heading IDs
+
+Headings automatically receive GitHub-compatible anchor IDs. For example:
+
+| Heading | Generated ID |
+|---|---|
+| `# My Heading` | `#my-heading` |
+| `# API Reference` | `#api-reference` |
+| `# 日本語見出し` | `#日本語見出し` |
+
+See [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ for details.
+
+### Checkbox
+
+INPUT
+```
+- [ ] Task A
+- [x] Task B
+```
+
+OUTPUT
+```html
+<ul>
+  <li><input type="checkbox" disabled> Task A</li>
+  <li><input type="checkbox" disabled checked> Task B</li>
+</ul>
+```
+
+### Container
+
+Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container).
 
 INPUT
 ```
@@ -64,7 +97,9 @@ OUTPUT
 </div>
 ```
 
-### markdown-it-plantuml
+### PlantUML
+
+Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
 
 INPUT
 ```
@@ -78,7 +113,7 @@ OUTPUT
 
 ![PlantUML](images/PlantUML.png)
 
-### markdown-it-include
+### Include
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 
@@ -107,7 +142,9 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### mermaid
+### Mermaid
+
+Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/).
 
 INPUT
 <pre>
@@ -125,17 +162,17 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
-## Install
+## Chromium
 
-Chromium download starts automatically when Markdown PDF is installed and Markdown file is first opened with Visual Studio Code.
+Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the following sources in order:
 
-However, it is time-consuming depending on the environment because of its large size (~ 170Mb Mac, ~ 282Mb Linux, ~ 280Mb Win).
+1. The path specified in [markdown-pdf.executablePath](#markdown-pdfexecutablepath)
+2. An installed Google Chrome, Microsoft Edge, or Chromium on your system
+3. A managed Chromium automatically downloaded on first use
 
-During downloading, the message `Installing Chromium` is displayed in the status bar.
+See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) and [Where is Chromium downloaded?](#where-is-chromium-downloaded) in the FAQ for details.
 
-If you are behind a proxy, set the `http.proxy` option to settings.json and restart Visual Studio Code.
-
-If the download is not successful or you want to avoid downloading every time you upgrade Markdown PDF, please specify the installed [Chrome](https://www.google.co.jp/chrome/) or 'Chromium' with [markdown-pdf.executablePath](#markdown-pdfexecutablepath) option.
+If you are behind a proxy, set the `http.proxy` option in settings.json and restart Visual Studio Code.
 
 <div class="page"/>
 
@@ -276,7 +313,7 @@ If the download is not successful or you want to avoid downloading every time yo
   - Relative path
     - If you open the `Markdown file`, it will be interpreted as a relative path from the file
     - If you open a `folder`, it will be interpreted as a relative path from the root folder
-    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from each root folder
       - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
 
 ```javascript
@@ -315,7 +352,7 @@ If the download is not successful or you want to avoid downloading every time yo
   - Relative path
     - If you open the `Markdown file`, it will be interpreted as a relative path from the file
     - If you open a `folder`, it will be interpreted as a relative path from the root folder
-    - If you open the `workspace`, it will be interpreted as a relative path from the each root folder
+    - If you open the `workspace`, it will be interpreted as a relative path from each root folder
       - See [Multi-root Workspaces](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
 
 ```javascript
@@ -358,9 +395,9 @@ If the download is not successful or you want to avoid downloading every time yo
   - boolean. Default: true
 
 #### `markdown-pdf.highlightStyle`
-  - Set the style file name. for example: github.css, monokai.css ...
-  - [file name list](https://github.com/isagalaev/highlight.js/tree/master/src/styles)
-  - demo site : https://highlightjs.org/static/demo/
+  - Set the current `highlight.js` style file name. Examples: `github.css`, `monokai.css`, `base16/solarized-dark.css`
+  - [file name list](https://github.com/highlightjs/highlight.js/tree/main/src/styles)
+  - demo site : https://highlightjs.org/demo
 
 ```javascript
 "markdown-pdf.highlightStyle": "github.css",
@@ -375,13 +412,14 @@ If the download is not successful or you want to avoid downloading every time yo
 ### Emoji options
 
 #### `markdown-pdf.emoji`
-  - Enable emoji. [EMOJI CHEAT SHEET](https://www.webpagefx.com/tools/emoji-cheat-sheet/)
+  - Enable emoji. [EMOJI CHEAT SHEET](https://www.webfx.com/tools/emoji-cheat-sheet/)
   - boolean. Default: true
 
 ### Configuration options
 
 #### `markdown-pdf.executablePath`
-  - Path to a Chromium or Chrome executable to run instead of the bundled Chromium
+  - Path to a Google Chrome, Microsoft Edge, or Chromium executable to run instead of the bundled Chromium
+  - See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) in the FAQ for how this setting interacts with installed browser detection and the managed Chromium download
   - All `\` need to be written as `\\` (Windows)
   - To apply the settings, you need to restart Visual Studio Code
 
@@ -393,7 +431,7 @@ If the download is not successful or you want to avoid downloading every time yo
 
 #### `markdown-pdf.scale`
   - Scale of the page rendering
-  - number. default: 1
+  - number. Default: 1
 
 ```javascript
 "markdown-pdf.scale": 1
@@ -496,7 +534,7 @@ If the download is not successful or you want to avoid downloading every time yo
 
 ### PNG, JPEG options
 
-  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagescreenshotoptions)
+  - png and jpeg only. [puppeteer page.screenshot options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.screenshotoptions.md)
 
 #### `markdown-pdf.quality`
   - jpeg only. The quality of the image, between 0-100. Not applicable to png images
@@ -533,7 +571,7 @@ If the download is not successful or you want to avoid downloading every time yo
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - Oppening delimiter used for the plantuml parser.
+  - Opening delimiter used for the plantuml parser.
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
@@ -602,6 +640,86 @@ Please use the following to insert a page break.
 <div class="page"/>
 ```
 
+### Why did my heading anchors change?
+
+Starting with 2.0.0, Markdown PDF generates heading IDs using a custom `markdown-it-named-headers` implementation that follows GitHub-compatible VS Code slug generation. Compared to the previous implementation, the new slug generator preserves CJK characters and underscores while removing unsupported punctuation, which can cause existing internal anchors (e.g. `#some-heading`) to resolve differently.
+
+If your Markdown relies on specific anchor strings (for example, a table of contents or cross-document links), re-check the generated anchors after exporting and update the links as needed.
+
+### Why did my syntax highlight style stop working?
+
+Starting with 2.0.0, Markdown PDF uses `highlight.js` v11 (previously v9). Some style names from v9 have been renamed or removed. Markdown PDF maps legacy style names to current names where possible and shows a warning message when a configured style cannot be found. If no mapping is available, the extension falls back to `tomorrow.css`.
+
+Please check the [available styles](https://github.com/highlightjs/highlight.js/tree/main/src/styles) and update your [markdown-pdf.highlightStyle](#markdown-pdfhighlightstyle) setting to a current style name.
+
+### Why is my front matter no longer parsed?
+
+Starting with 2.0.0, Markdown PDF parses YAML front matter with a custom implementation instead of `gray-matter`. The new parser is stricter and rejects the following cases that the old parser may have accepted:
+
+- Top-level YAML sequences (arrays) as front matter
+- Front matter that does not parse into a plain object
+- Malformed YAML structures
+
+A valid front matter must be a YAML mapping (object) at the top level, for example:
+
+``` yaml
+---
+title: My Document
+"markdown-pdf":
+  displayHeaderFooter: true
+---
+```
+
+BOM-prefixed files are still supported.
+
+### How is the Chromium browser selected?
+
+Markdown PDF resolves a Chromium-based browser in the following order:
+
+1. The path specified in [markdown-pdf.executablePath](#markdown-pdfexecutablepath), if the file exists.
+2. An installed browser on your system. Google Chrome (stable) is detected via [@puppeteer/browsers](https://pptr.dev/browsers-api) at its standard OS install location; Microsoft Edge and Chromium are probed at the fixed paths listed below.
+3. A managed Chromium that Markdown PDF automatically downloads on first use.
+
+The first match wins. The per-OS scan order for installed Edge and Chromium is:
+
+**Windows**
+
+1. Google Chrome (stable install, detected via `@puppeteer/browsers`)
+2. `%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe`
+3. `%LOCALAPPDATA%\Chromium\Application\chrome.exe`
+4. `%PROGRAMFILES%\Microsoft\Edge\Application\msedge.exe`
+5. `%PROGRAMFILES%\Chromium\Application\chrome.exe`
+6. `%PROGRAMFILES(X86)%\Microsoft\Edge\Application\msedge.exe`
+7. `%PROGRAMFILES(X86)%\Chromium\Application\chrome.exe`
+
+**macOS**
+
+1. Google Chrome (stable install, detected via `@puppeteer/browsers`)
+2. `/Applications/Chromium.app/Contents/MacOS/Chromium`
+3. `/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge`
+
+**Linux**
+
+1. Google Chrome (stable install, detected via `@puppeteer/browsers`)
+2. `/usr/bin/chromium-browser`
+3. `/usr/bin/chromium`
+4. `/usr/bin/microsoft-edge`
+5. `/usr/bin/microsoft-edge-stable`
+
+### Where is Chromium downloaded?
+
+If no installed browser is found, Markdown PDF downloads a managed Chromium on first use. The download is stored under the extension's VS Code global storage directory:
+
+| OS | Download path |
+| --- | --- |
+| Windows | `%APPDATA%\Code\User\globalStorage\yzane.markdown-pdf\` |
+| macOS | `~/Library/Application Support/Code/User/globalStorage/yzane.markdown-pdf/` |
+| Linux | `~/.config/Code/User/globalStorage/yzane.markdown-pdf/` |
+
+If you use VS Code Insiders or VSCodium, the base path changes accordingly (for example `Code - Insiders` or `VSCodium` instead of `Code`).
+
+During the download, `Installing Chromium` is shown in the status bar.
+
 <div class="page"/>
 
 ## Known Issues
@@ -612,14 +730,15 @@ Please use the following to insert a page break.
 
 ## [Release Notes](CHANGELOG.md)
 
-### 1.5.0 (2023/09/08)
-* Improve: The default date format for headers and footers has been changed to the ISO-based format (YYYY-MM-DD).
-  * Support different date formats in templates [#197](https://github.com/yzane/vscode-markdown-pdf/pull/197)
-* Improve: Avoid TimeoutError: Navigation timeout of 30000 ms exceeded and TimeoutError: waiting for Page.printToPDF failed: timeout 30000ms exceeded [#266](https://github.com/yzane/vscode-markdown-pdf/pull/266)
-* Fix: Fix description of outputDirectoryRelativePathFile [#238](https://github.com/yzane/vscode-markdown-pdf/pull/238)
-* README
-  * Add: Specification Changes
-  * Fix: Broken link
+### 2.0.0 (2026/04/13)
+* Breaking: Heading ID slug generation, front matter parsing, and Chromium resolution have changed. See the [FAQ](#faq) for details.
+* Change: Migrate to TypeScript and bundle with esbuild
+* Change: Bundle `puppeteer-core` and manage Chromium via the built-in `chromium-resolver` (installed Chrome/Edge preferred, auto-download fallback)
+* Change: Replace `markdown-it-include`, `markdown-it-named-headers`, and `markdown-it-checkbox` with in-repo custom implementations
+* Change: Remove `cheerio`, `mustache`, and `gray-matter` dependencies
+* Add: Unit and integration test suites (`vscode-test-cli`)
+
+For details, see [Change Log](CHANGELOG.md).
 
 ## License
 
@@ -627,21 +746,11 @@ MIT
 
 
 ## Special thanks
-* [GoogleChrome/puppeteer](https://github.com/GoogleChrome/puppeteer)
+* [puppeteer/puppeteer](https://github.com/puppeteer/puppeteer)
 * [markdown-it/markdown-it](https://github.com/markdown-it/markdown-it)
-* [mcecot/markdown-it-checkbox](https://github.com/mcecot/markdown-it-checkbox)
-* [leff/markdown-it-named-headers](https://github.com/leff/markdown-it-named-headers)
 * [markdown-it/markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji)
 * [HenrikJoreteg/emoji-images](https://github.com/HenrikJoreteg/emoji-images)
-* [isagalaev/highlight.js](https://github.com/isagalaev/highlight.js)
-* [cheeriojs/cheerio](https://github.com/cheeriojs/cheerio)
-* [janl/mustache.js](https://github.com/janl/mustache.js)
+* [highlightjs/highlight.js](https://github.com/highlightjs/highlight.js)
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
-* [camelaissani/markdown-it-include](https://github.com/camelaissani/markdown-it-include)
 * [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
-* [jonschlinkert/gray-matter](https://github.com/jonschlinkert/gray-matter)
-
-and
-
-* [cakebake/markdown-themeable-pdf](https://github.com/cakebake/markdown-themeable-pdf)
