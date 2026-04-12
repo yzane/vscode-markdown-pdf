@@ -737,7 +737,7 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 
 ## [Release Notes](CHANGELOG.md)
 
-### 2.0.0 (2026/04/11)
+### 2.0.0 (2026/04/13)
 * Breaking: 見出し ID の slug 生成、フロントマター解析、Chromium 解決ロジックが変更されました。詳細は [FAQ](#faq) を参照してください。
 * Change: ソースコードを TypeScript に移行し、esbuild でバンドルするよう変更
 * Change: `puppeteer-core` をバンドルし、内製の `chromium-resolver` で Chromium を管理 (インストール済み Chrome/Edge を優先し、見つからなければ自動ダウンロード)

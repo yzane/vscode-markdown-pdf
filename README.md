@@ -730,7 +730,7 @@ During the download, `Installing Chromium` is shown in the status bar.
 
 ## [Release Notes](CHANGELOG.md)
 
-### 2.0.0 (2026/04/11)
+### 2.0.0 (2026/04/13)
 * Breaking: Heading ID slug generation, front matter parsing, and Chromium resolution have changed. See the [FAQ](#faq) for details.
 * Change: Migrate to TypeScript and bundle with esbuild
 * Change: Bundle `puppeteer-core` and manage Chromium via the built-in `chromium-resolver` (installed Chrome/Edge preferred, auto-download fallback)
