@@ -631,10 +631,14 @@ Visual Studio Code の `files.autoGuessEncoding` オプションを使うと、�
 
 ### 改ページ
 
-改ページを挿入するには、以下を使用してください。
+改ページを挿入するには、以下のいずれかを使用してください。
 
 ``` html
 <div class="page"/>
+```
+
+``` html
+<div class="page"></div>
 ```
 
 <a id="why-did-my-heading-anchors-change"></a>
@@ -736,6 +740,9 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 
 
 ## [Release Notes](CHANGELOG.md)
+
+### 2.0.1 (2026/04/14)
+* Fix: 自己閉じタグ `<div class="page" />` で改ページが正しく動作するよう修正 [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
 
 ### 2.0.0 (2026/04/13)
 * Breaking: 見出し ID の slug 生成、フロントマター解析、Chromium 解決ロジックが変更されました。詳細は [FAQ](#faq) を参照してください。

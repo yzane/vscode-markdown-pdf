@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.0.1 (2026/04/14)
+
+### Fixes
+
+* Fix: Self-closing `<div class="page" />` now correctly triggers a page break [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
+
 ## 2.0.0 (2026/04/13)
 
 ### Breaking Changes

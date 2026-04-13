@@ -196,7 +196,7 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
 
       if (type !== 'html') {
         md.renderer.rules.html_block = function (tokens, idx) {
-          return utils.transformHtmlBlockImages(tokens[idx].content, filename);
+          return utils.transformHtmlBlock(tokens[idx].content, filename);
         };
       }
 
