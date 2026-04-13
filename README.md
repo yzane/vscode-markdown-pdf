@@ -634,10 +634,14 @@ For example, to output to the "output" directory in the same directory as the Ma
 
 ### Page Break
 
-Please use the following to insert a page break.
+Please use either of the following to insert a page break.
 
 ``` html
 <div class="page"/>
+```
+
+``` html
+<div class="page"></div>
 ```
 
 ### Why did my heading anchors change?
@@ -729,6 +733,9 @@ During the download, `Installing Chromium` is shown in the status bar.
 
 
 ## [Release Notes](CHANGELOG.md)
+
+### 2.0.1 (2026/04/14)
+* Fix: Self-closing `<div class="page" />` now correctly triggers a page break [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
 
 ### 2.0.0 (2026/04/13)
 * Breaking: Heading ID slug generation, front matter parsing, and Chromium resolution have changed. See the [FAQ](#faq) for details.
