@@ -72,6 +72,7 @@ const HTML_FEATURES: HtmlFeature[] = [
   { name: 'breaks' },
   { name: 'image' },
   { name: 'include-codeblock' },
+  { name: 'page-break' },
 ];
 
 suite('Integration HTML Snapshot Tests', () => {

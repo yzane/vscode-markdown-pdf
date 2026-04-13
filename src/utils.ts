@@ -519,12 +519,14 @@ export function transformImageHref(href: string, type: string, filename: string)
 }
 
 /**
- * Rewrites src attributes of <img> tags inside raw HTML blocks to absolute
- * file:// URLs, skipping content inside comments, <script>, <style>, and
- * <textarea>. Uses a hand-rolled scanner to avoid pulling in a full HTML
- * parsing dependency.
+ * Transforms raw HTML blocks for non-html export types:
+ * - Rewrites src attributes of <img> tags to absolute file:// URLs
+ * - Normalizes self-closing non-void elements to open/close pairs
+ *
+ * Skips content inside comments, <script>, <style>, and <textarea>.
+ * Uses a hand-rolled scanner to avoid pulling in a full HTML parsing dependency.
  */
-export function transformHtmlBlockImages(html: string, filename: string): string {
+export function transformHtmlBlock(html: string, filename: string): string {
   if (!html) {
     return '';
   }
@@ -564,7 +566,7 @@ export function transformHtmlBlockImages(html: string, filename: string): string
       continue;
     }
 
-    result += isRealImgTag(tag) ? transformImgTag(tag, filename) : tag;
+    result += isRealImgTag(tag) ? transformImgTag(tag, filename) : normalizeSelfClosingTag(tag);
     index = tagEnd + 1;
   }
   return result;
@@ -606,6 +608,22 @@ function isOpeningTag(tag: string): boolean {
 
 function isRawTextElement(tagName: string | null): boolean {
   return tagName === 'script' || tagName === 'style' || tagName === 'textarea';
+}
+
+const VOID_ELEMENTS = new Set([
+  'area', 'base', 'br', 'col', 'embed', 'hr',
+  'img', 'input', 'link', 'meta', 'source', 'track', 'wbr',
+]);
+
+function normalizeSelfClosingTag(tag: string): string {
+  if (!tag.endsWith('/>')) {
+    return tag;
+  }
+  const tagName = getTagName(tag);
+  if (!tagName || VOID_ELEMENTS.has(tagName)) {
+    return tag;
+  }
+  return tag.slice(0, -2).trimEnd() + '></' + tagName + '>';
 }
 
 function findRawTextElementEnd(html: string, startIndex: number, tagName: string): number {
