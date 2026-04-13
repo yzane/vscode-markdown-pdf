@@ -519,12 +519,14 @@ export function transformImageHref(href: string, type: string, filename: string)
 }
 
 /**
- * Rewrites src attributes of <img> tags inside raw HTML blocks to absolute
- * file:// URLs, skipping content inside comments, <script>, <style>, and
- * <textarea>. Uses a hand-rolled scanner to avoid pulling in a full HTML
- * parsing dependency.
+ * Transforms raw HTML blocks for non-html export types:
+ * - Rewrites src attributes of <img> tags to absolute file:// URLs
+ * - Normalizes self-closing non-void elements to open/close pairs
+ *
+ * Skips content inside comments, <script>, <style>, and <textarea>.
+ * Uses a hand-rolled scanner to avoid pulling in a full HTML parsing dependency.
  */
-export function transformHtmlBlockImages(html: string, filename: string): string {
+export function transformHtmlBlock(html: string, filename: string): string {
   if (!html) {
     return '';
   }

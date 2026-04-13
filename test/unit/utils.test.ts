@@ -1362,15 +1362,15 @@ describe('utils', function () {
     });
   });
 
-  describe('transformHtmlBlockImages', function () {
+  describe('transformHtmlBlock', function () {
     it('should transform a single img tag src', function () {
-      const result = utils.transformHtmlBlockImages('<img src="photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src="photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('photo.png') >= 0);
     });
 
     it('should transform multiple img tags', function () {
-      const result = utils.transformHtmlBlockImages('<img src="a.png"><img src="b.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src="a.png"><img src="b.png">', '/doc/test.md');
       assert.ok(result.indexOf('a.png') >= 0);
       assert.ok(result.indexOf('b.png') >= 0);
       const matches = result.match(/file:\/\//g);
@@ -1378,45 +1378,45 @@ describe('utils', function () {
     });
 
     it('should return html unchanged when no img tags', function () {
-      const result = utils.transformHtmlBlockImages('<p>Hello world</p>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<p>Hello world</p>', '/doc/test.md');
       assert.ok(result.indexOf('Hello world') >= 0);
     });
 
     it('should handle empty html string', function () {
-      assert.strictEqual(utils.transformHtmlBlockImages('', '/doc/test.md'), '');
+      assert.strictEqual(utils.transformHtmlBlock('', '/doc/test.md'), '');
     });
 
     it('should handle relative path images', function () {
-      const result = utils.transformHtmlBlockImages('<img src="images/photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src="images/photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('photo.png') >= 0);
     });
 
     it('should handle absolute path images', function () {
-      const result = utils.transformHtmlBlockImages('<img src="/abs/photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src="/abs/photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('/abs/photo.png') >= 0);
     });
 
     it('should rewrite the real src attribute and preserve data-src', function () {
-      const result = utils.transformHtmlBlockImages('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
       assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
       assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
       assert.ok(result.indexOf('data-src="lazy.png" src="file:///doc/real.png"') >= 0);
     });
 
     it('should handle spacing around src equals', function () {
-      const result = utils.transformHtmlBlockImages('<img src = "photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src = "photo.png">', '/doc/test.md');
       assert.strictEqual(result, '<img src = "file:///doc/photo.png">');
     });
 
     it('should handle unquoted src attributes', function () {
-      const result = utils.transformHtmlBlockImages('<img src=photo.png>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src=photo.png>', '/doc/test.md');
       assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
     });
 
     it('should handle multiple images with mixed attribute ordering', function () {
-      const result = utils.transformHtmlBlockImages(
+      const result = utils.transformHtmlBlock(
         '<img data-src="lazy.png" src="real.png"><img alt="desc" src = "photo.png">',
         '/doc/test.md',
       );
@@ -1427,99 +1427,99 @@ describe('utils', function () {
     });
 
     it('should handle self-closing img tags', function () {
-      const result = utils.transformHtmlBlockImages('<img src="photo.png" />', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img src="photo.png" />', '/doc/test.md');
       assert.ok(result.indexOf('file://') >= 0);
       assert.ok(result.indexOf('photo.png') >= 0);
     });
 
     it('should handle img tags with other attributes', function () {
-      const result = utils.transformHtmlBlockImages('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
       assert.ok(result.indexOf('alt="desc"') >= 0);
       assert.ok(result.indexOf('width="100"') >= 0);
       assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
     });
 
     it('should handle quotes that contain a greater-than sign', function () {
-      const result = utils.transformHtmlBlockImages('<img alt="a > b" src="photo.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img alt="a > b" src="photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('alt="a > b"') >= 0);
       assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
     });
 
     it('should preserve quoted non-src attributes that contain src text', function () {
-      const result = utils.transformHtmlBlockImages('<img alt="look src=bad.png" src="real.png">', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img alt="look src=bad.png" src="real.png">', '/doc/test.md');
       assert.strictEqual(result, '<img alt="look src=bad.png" src="file:///doc/real.png">');
     });
 
     it('should ignore img text inside comments', function () {
-      const result = utils.transformHtmlBlockImages('<!-- <img src="x.png"> -->', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<!-- <img src="x.png"> -->', '/doc/test.md');
       assert.strictEqual(result, '<!-- <img src="x.png"> -->');
     });
 
     it('should ignore img text inside quoted attributes on other tags', function () {
-      const result = utils.transformHtmlBlockImages('<p title="<img src=x.png>">x</p>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<p title="<img src=x.png>">x</p>', '/doc/test.md');
       assert.strictEqual(result, '<p title="<img src=x.png>">x</p>');
     });
 
     it('should ignore custom element names that start with img', function () {
-      const result = utils.transformHtmlBlockImages('<img-card src="x.png"></img-card>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<img-card src="x.png"></img-card>', '/doc/test.md');
       assert.strictEqual(result, '<img-card src="x.png"></img-card>');
     });
 
     it('should ignore img text inside script content', function () {
-      const result = utils.transformHtmlBlockImages('<script>const html = "<img src=x.png>";</script>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<script>const html = "<img src=x.png>";</script>', '/doc/test.md');
       assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script>');
     });
 
     it('should ignore img text inside style content', function () {
-      const result = utils.transformHtmlBlockImages('<style>.icon { background: url("<img src=x.png>"); }</style>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<style>.icon { background: url("<img src=x.png>"); }</style>', '/doc/test.md');
       assert.strictEqual(result, '<style>.icon { background: url("<img src=x.png>"); }</style>');
     });
 
     it('should ignore img text inside textarea content', function () {
-      const result = utils.transformHtmlBlockImages('<textarea><img src=x.png></textarea>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<textarea><img src=x.png></textarea>', '/doc/test.md');
       assert.strictEqual(result, '<textarea><img src=x.png></textarea>');
     });
 
     it('should handle whitespace before the closing raw-text tag', function () {
-      const result = utils.transformHtmlBlockImages('<script>const html = "<img src=x.png>";</script ><img src=real.png>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<script>const html = "<img src=x.png>";</script ><img src=real.png>', '/doc/test.md');
       assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="file:///doc/real.png">');
     });
 
     it('should preserve surrounding html', function () {
-      const result = utils.transformHtmlBlockImages('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<p>before</p><img src="photo.png"><p>after</p>', '/doc/test.md');
       assert.ok(result.indexOf('<p>before</p>') >= 0);
       assert.ok(result.indexOf('<p>after</p>') >= 0);
       assert.ok(result.indexOf('file://') >= 0);
     });
 
     it('should normalize self-closing div to open/close pair', function () {
-      const result = utils.transformHtmlBlockImages('<div class="page" />', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<div class="page" />', '/doc/test.md');
       assert.strictEqual(result, '<div class="page"></div>');
     });
 
     it('should normalize self-closing div without space before slash', function () {
-      const result = utils.transformHtmlBlockImages('<div class="page"/>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<div class="page"/>', '/doc/test.md');
       assert.strictEqual(result, '<div class="page"></div>');
     });
 
     it('should normalize self-closing span', function () {
-      const result = utils.transformHtmlBlockImages('<span/>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<span/>', '/doc/test.md');
       assert.strictEqual(result, '<span></span>');
     });
 
     it('should normalize self-closing p with attributes', function () {
-      const result = utils.transformHtmlBlockImages('<p class="note" />', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<p class="note" />', '/doc/test.md');
       assert.strictEqual(result, '<p class="note"></p>');
     });
 
     it('should not normalize self-closing void elements', function () {
-      assert.strictEqual(utils.transformHtmlBlockImages('<hr class="page"/>', '/doc/test.md'), '<hr class="page"/>');
-      assert.strictEqual(utils.transformHtmlBlockImages('<br/>', '/doc/test.md'), '<br/>');
-      assert.strictEqual(utils.transformHtmlBlockImages('<input type="text" />', '/doc/test.md'), '<input type="text" />');
+      assert.strictEqual(utils.transformHtmlBlock('<hr class="page"/>', '/doc/test.md'), '<hr class="page"/>');
+      assert.strictEqual(utils.transformHtmlBlock('<br/>', '/doc/test.md'), '<br/>');
+      assert.strictEqual(utils.transformHtmlBlock('<input type="text" />', '/doc/test.md'), '<input type="text" />');
     });
 
     it('should not modify non-self-closing tags', function () {
-      const result = utils.transformHtmlBlockImages('<div class="page"></div>', '/doc/test.md');
+      const result = utils.transformHtmlBlock('<div class="page"></div>', '/doc/test.md');
       assert.strictEqual(result, '<div class="page"></div>');
     });
   });
