@@ -346,7 +346,7 @@ code {
 	font-size: inherit;
 }
 
-/* Page Break : use <div class="page"/> to insert page break
+/* Page Break : use <div class="page"/> or <div class="page"></div> to insert page break
 -------------------------------------------------------- */
 .page {
 	page-break-after: always;
@@ -415,12 +415,12 @@ code {
 </tr>
 <tr>
 <td><a href="#checkbox">Checkbox</a></td>
-<td>GitHub-style task lists (built-in custom plugin)</td>
+<td>GitHub-style task lists</td>
 <td><code>- [ ]</code> / <code>- [x]</code></td>
 </tr>
 <tr>
 <td><a href="#heading-ids">Heading IDs</a></td>
-<td>GitHub-compatible heading anchors (built-in custom plugin)</td>
+<td>GitHub-compatible heading anchors</td>
 <td><code># Heading</code> → <code>#heading</code></td>
 </tr>
 <tr>
@@ -430,7 +430,7 @@ code {
 </tr>
 <tr>
 <td><a href="#include">Include</a></td>
-<td>Embed Markdown fragments (built-in custom plugin)</td>
+<td>Embed Markdown fragments</td>
 <td><code>:[label](path.md)</code></td>
 </tr>
 <tr>
@@ -1160,8 +1160,10 @@ stateDiagram
 <span class="hljs-string">&quot;markdown-pdf.outputDirectoryRelativePathFile&quot;</span>: <span class="hljs-literal">true</span>,
 </div></code></pre>
 <h3 id="page-break">Page Break</h3>
-<p>Please use the following to insert a page break.</p>
+<p>Please use either of the following to insert a page break.</p>
 <pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;page&quot;</span>/&gt;</span>
+</div></code></pre>
+<pre class="hljs"><code><div><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;page&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
 </div></code></pre>
 <h3 id="why-did-my-heading-anchors-change">Why did my heading anchors change?</h3>
 <p>Starting with 2.0.0, Markdown PDF generates heading IDs using a custom <code>markdown-it-named-headers</code> implementation that follows GitHub-compatible VS Code slug generation. Compared to the previous implementation, the new slug generator preserves CJK characters and underscores while removing unsupported punctuation, which can cause existing internal anchors (e.g. <code>#some-heading</code>) to resolve differently.</p>
@@ -1249,7 +1251,11 @@ stateDiagram
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="release-notes"><a href="CHANGELOG.md">Release Notes</a></h2>
-<h3 id="200-20260411">2.0.0 (2026/04/11)</h3>
+<h3 id="201-20260414">2.0.1 (2026/04/14)</h3>
+<ul>
+<li>Fix: Self-closing <code>&lt;div class=&quot;page&quot; /&gt;</code> now correctly triggers a page break <a href="https://github.com/yzane/vscode-markdown-pdf/issues/428">#428</a></li>
+</ul>
+<h3 id="200-20260413">2.0.0 (2026/04/13)</h3>
 <ul>
 <li>Breaking: Heading ID slug generation, front matter parsing, and Chromium resolution have changed. See the <a href="#faq">FAQ</a> for details.</li>
 <li>Change: Migrate to TypeScript and bundle with esbuild</li>
@@ -1259,12 +1265,6 @@ stateDiagram
 <li>Add: Unit and integration test suites (<code>vscode-test-cli</code>)</li>
 </ul>
 <p>For details, see <a href="CHANGELOG.md">Change Log</a>.</p>
-<h3 id="160-20250415">1.6.0 (2025/04/15)</h3>
-<ul>
-<li>Refactor: replace external checkbox and named-header markdown-it packages with built-in implementations</li>
-<li>Fix: Allow underscores in section header identifiers <a href="https://github.com/yzane/vscode-markdown-pdf/pull/404">#404</a></li>
-<li>Update: use GitHub-compatible <a href="https://github.com/microsoft/vscode/blob/c07cee3039c8ea6e9bab02645599ec9e7796fd4c/extensions/markdown-language-features/src/slugify.ts#L27">VS Code slug generation</a> for heading identifiers</li>
-</ul>
 <h2 id="license">License</h2>
 <p>MIT</p>
 <h2 id="special-thanks">Special thanks</h2>
