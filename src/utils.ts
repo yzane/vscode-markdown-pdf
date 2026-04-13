@@ -564,7 +564,7 @@ export function transformHtmlBlockImages(html: string, filename: string): string
       continue;
     }
 
-    result += isRealImgTag(tag) ? transformImgTag(tag, filename) : tag;
+    result += isRealImgTag(tag) ? transformImgTag(tag, filename) : normalizeSelfClosingTag(tag);
     index = tagEnd + 1;
   }
   return result;
@@ -606,6 +606,22 @@ function isOpeningTag(tag: string): boolean {
 
 function isRawTextElement(tagName: string | null): boolean {
   return tagName === 'script' || tagName === 'style' || tagName === 'textarea';
+}
+
+const VOID_ELEMENTS = new Set([
+  'area', 'base', 'br', 'col', 'embed', 'hr',
+  'img', 'input', 'link', 'meta', 'source', 'track', 'wbr',
+]);
+
+function normalizeSelfClosingTag(tag: string): string {
+  if (!tag.endsWith('/>')) {
+    return tag;
+  }
+  const tagName = getTagName(tag);
+  if (!tagName || VOID_ELEMENTS.has(tagName)) {
+    return tag;
+  }
+  return tag.slice(0, -2).trimEnd() + '></' + tagName + '>';
 }
 
 function findRawTextElementEnd(html: string, startIndex: number, tagName: string): number {

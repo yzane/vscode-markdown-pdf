@@ -1491,6 +1491,37 @@ describe('utils', function () {
       assert.ok(result.indexOf('<p>after</p>') >= 0);
       assert.ok(result.indexOf('file://') >= 0);
     });
+
+    it('should normalize self-closing div to open/close pair', function () {
+      const result = utils.transformHtmlBlockImages('<div class="page" />', '/doc/test.md');
+      assert.strictEqual(result, '<div class="page"></div>');
+    });
+
+    it('should normalize self-closing div without space before slash', function () {
+      const result = utils.transformHtmlBlockImages('<div class="page"/>', '/doc/test.md');
+      assert.strictEqual(result, '<div class="page"></div>');
+    });
+
+    it('should normalize self-closing span', function () {
+      const result = utils.transformHtmlBlockImages('<span/>', '/doc/test.md');
+      assert.strictEqual(result, '<span></span>');
+    });
+
+    it('should normalize self-closing p with attributes', function () {
+      const result = utils.transformHtmlBlockImages('<p class="note" />', '/doc/test.md');
+      assert.strictEqual(result, '<p class="note"></p>');
+    });
+
+    it('should not normalize self-closing void elements', function () {
+      assert.strictEqual(utils.transformHtmlBlockImages('<hr class="page"/>', '/doc/test.md'), '<hr class="page"/>');
+      assert.strictEqual(utils.transformHtmlBlockImages('<br/>', '/doc/test.md'), '<br/>');
+      assert.strictEqual(utils.transformHtmlBlockImages('<input type="text" />', '/doc/test.md'), '<input type="text" />');
+    });
+
+    it('should not modify non-self-closing tags', function () {
+      const result = utils.transformHtmlBlockImages('<div class="page"></div>', '/doc/test.md');
+      assert.strictEqual(result, '<div class="page"></div>');
+    });
   });
 
   describe('buildEmojiTag', function () {
