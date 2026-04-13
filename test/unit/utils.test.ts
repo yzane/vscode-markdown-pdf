@@ -798,6 +798,45 @@ describe('utils', function () {
       assert.ok(result.indexOf('file:///resolved/style.css') === -1, 'Expected no link tag for string markdownStyles');
     });
 
+    it('should embed markdownPdfStyles as inline style tags when stylesInline is true', function () {
+      const fs = require('fs');
+      const path = require('path');
+      const tmpCss = path.join(baseDir, 'test', 'unit', '_tmp_inline_test.css');
+      fs.writeFileSync(tmpCss, 'body { color: red; }');
+      try {
+        const result = utils.buildStyleTags({
+          includeDefaultStyles: false,
+          highlight: false,
+          highlightStyle: '',
+          markdownStyles: [],
+          markdownPdfStyles: [tmpCss],
+          stylesInline: true,
+          baseDir: baseDir,
+          resolveHrefFn: function (href: string) { return 'file:///resolved/' + href; },
+        });
+        assert.ok(result.indexOf('<style>') !== -1, 'Expected <style> tag');
+        assert.ok(result.indexOf('body { color: red; }') !== -1, 'Expected inline CSS content');
+        assert.ok(result.indexOf('<link') === -1, 'Expected no <link> tag');
+      } finally {
+        fs.unlinkSync(tmpCss);
+      }
+    });
+
+    it('should use link tags for markdownPdfStyles when stylesInline is false', function () {
+      const result = utils.buildStyleTags({
+        includeDefaultStyles: false,
+        highlight: false,
+        highlightStyle: '',
+        markdownStyles: [],
+        markdownPdfStyles: ['custom.css'],
+        stylesInline: false,
+        baseDir: baseDir,
+        resolveHrefFn: function (href: string) { return 'file:///resolved/' + href; },
+      });
+      assert.ok(result.indexOf('<link rel="stylesheet"') !== -1, 'Expected <link> tag');
+      assert.ok(result.indexOf('file:///resolved/custom.css') !== -1, 'Expected resolved href');
+    });
+
     it('should skip markdownPdfStyles when value is a string instead of array', function () {
       const result = utils.buildStyleTags({
         includeDefaultStyles: false,

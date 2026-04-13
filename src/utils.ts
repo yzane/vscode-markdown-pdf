@@ -248,6 +248,7 @@ interface BuildStyleTagsOptions {
   highlightStyle: string;
   markdownStyles: string[] | string;
   markdownPdfStyles: string[] | string;
+  stylesInline?: boolean;
   baseDir: string;
   onMissingHighlightStyle?: (requestedStyle: string, resolvedStyle: string) => void;
   resolveHrefFn: (href: string) => string;
@@ -293,8 +294,12 @@ export function buildStyleTags(options: BuildStyleTagsOptions): string {
 
   if (options.markdownPdfStyles && Array.isArray(options.markdownPdfStyles) && options.markdownPdfStyles.length > 0) {
     for (let i = 0; i < options.markdownPdfStyles.length; i++) {
-      const markdownPdfHref = options.resolveHrefFn(options.markdownPdfStyles[i]);
-      style += '<link rel="stylesheet" href="' + markdownPdfHref + '" type="text/css">';
+      if (options.stylesInline) {
+        style += makeCss(options.markdownPdfStyles[i]);
+      } else {
+        const markdownPdfHref = options.resolveHrefFn(options.markdownPdfStyles[i]);
+        style += '<link rel="stylesheet" href="' + markdownPdfHref + '" type="text/css">';
+      }
     }
   }
 
