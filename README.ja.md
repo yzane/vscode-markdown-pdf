@@ -12,8 +12,7 @@
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [X.Y.Z の仕様変更](#xyz-の仕様変更)
-- [2.0.0 の仕様変更](#200-の仕様変更)
+- [仕様変更](#仕様変更)
 - [機能](#機能)
 - [Chromium](#chromium)
 - [使い方](#使い方)
@@ -29,15 +28,15 @@
 
 <div class="page"/>
 
-## X.Y.Z の仕様変更
+## 仕様変更
 
-バージョン X.Y.Z では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+
+### X.Y.Z
 
 - Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい `markdown-pdf.sanitize` 設定で制御できます。詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
 
-## 2.0.0 の仕様変更
-
-バージョン 2.0.0 では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+### 2.0.0
 
 - 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
 - highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)

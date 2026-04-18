@@ -14,8 +14,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [Breaking Changes in X.Y.Z](#breaking-changes-in-xyz)
-- [Breaking Changes in 2.0.0](#breaking-changes-in-200)
+- [Breaking Changes](#breaking-changes)
 - [Features](#features)
 - [Chromium](#chromium)
 - [Usage](#usage)
@@ -31,15 +30,15 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 
 <div class="page"/>
 
-## Breaking Changes in X.Y.Z
+## Breaking Changes
 
-Version X.Y.Z introduces changes that may affect existing behavior. See the [FAQ](#faq) section for details.
+Some changes may affect existing behavior. See the [FAQ](#faq) section for details.
+
+### X.Y.Z
 
 - Raw HTML in Markdown is now sanitized by default following the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Tags such as `<script>`, `<iframe>`, `<style>`, and `on*` / `javascript:` attributes are stripped from Markdown body content. The behavior is controlled by the new `markdown-pdf.sanitize` setting. See [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed).
 
-## Breaking Changes in 2.0.0
-
-Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ](#faq) section for details.
+### 2.0.0
 
 - Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change. See [Why did my heading anchors change?](#why-did-my-heading-anchors-change).
 - Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed. See [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working).
