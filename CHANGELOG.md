@@ -16,6 +16,7 @@
 * Add `markdown-pdf.sanitize` setting for raw HTML sanitization (see Breaking Changes above)
 * Add support for `` ```plantuml `` fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab) [#92](https://github.com/yzane/vscode-markdown-pdf/issues/92) [#162](https://github.com/yzane/vscode-markdown-pdf/issues/162) [#389](https://github.com/yzane/vscode-markdown-pdf/issues/389)
 * Deprecate the `@startuml` / `@enduml` block syntax and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now shows them as deprecated.
+* Automatically download the latest Chrome Stable build when Chromium is needed, instead of using only the build id pinned by `puppeteer-core`. If the Chrome for Testing API is unreachable, the extension falls back to the latest cached build, and finally to the `puppeteer-core` bundled build id. Add the new `markdown-pdf.chromium.autoDownload` setting (default `true`); set it to `false` to opt out of the automatic download and rely on an installed system browser (Chrome / Chromium / Edge) or `markdown-pdf.executablePath`.
 
 ## 2.0.1 (2026/04/14)
 
