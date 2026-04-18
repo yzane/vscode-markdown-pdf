@@ -1,15 +1,15 @@
-# 生 HTML サニタイズ — 設計仕様
+# Raw HTML サニタイズ — 設計仕様
 
 ## 背景
 
-現在、この拡張機能は Markdown 内の生 HTML タグを検証なしですべて通過させている。
+現在、この拡張機能は Markdown 内のRaw HTML タグを検証なしですべて通過させている。
 markdown-it のオプションで `html: true` を指定しているため、`<script>`, `<iframe>` などの危険な HTML 構造が PDF レンダリングやプレビュー時に注入・実行される可能性がある。
 
 参考: [GitHub Issue #411](https://github.com/yzane/vscode-markdown-pdf/issues/411)
 
 ### 関連仕様
 
-- John Gruber の元来の Markdown 仕様では任意の生 HTML を許容していた
+- John Gruber の元来の Markdown 仕様では任意のRaw HTML を許容していた
 - GitHub Flavored Markdown (GFM) は危険な HTML を明示的に制限している:
   [GFM Spec - 6.11 Disallowed Raw HTML (extension)](https://github.github.com/gfm/#disallowed-raw-html-extension-)
 
@@ -23,14 +23,14 @@ markdown-it のオプションで `html: true` を指定しているため、`<s
 
 GFM の Disallowed Raw HTML Extension に準拠したサニタイズ層を、`markdown-it` の `html_block` / `html_inline` レンダラで適用する。
 
-- サニタイズ対象は **ユーザー由来の生 HTML のみ**（`html_block` / `html_inline` トークン）
+- サニタイズ対象は **ユーザー由来のRaw HTML のみ**（`html_block` / `html_inline` トークン）
 - 拡張側が自動生成する HTML（`<div class="mermaid">`、`<pre class="hljs">`、emoji/PlantUML の `<img>`、テンプレートの `<script>` 等）はレンダラを通らないため **射程外**
 - 挙動はユーザー設定 `markdown-pdf.sanitize` で切替可能
 - **front matter によるファイル単位のオーバーライドは提供しない**（悪意ある Markdown が自身でサニタイズを無効化できてしまうため）
 
 ### サニタイズ対象の境界
 
-サニタイズは **Markdown 本文内のユーザー由来生 HTML のみ** を対象とする。以下はサニタイズ対象外:
+サニタイズは **Markdown 本文内のユーザー由来Raw HTML のみ** を対象とする。以下はサニタイズ対象外:
 
 | 対象 | 理由 |
 |---|---|
@@ -43,9 +43,9 @@ GFM の Disallowed Raw HTML Extension に準拠したサニタイズ層を、`ma
 
 ### インクルードされたファイルの扱い
 
-Include 機能（`:[alt](path.md)`）でインクルードされたファイルの内容も、**インクルード展開後に markdown-it の通常パースを通るため、生 HTML は `html_block` / `html_inline` トークンとなり、同じサニタイザが適用される**。
+Include 機能（`:[alt](path.md)`）でインクルードされたファイルの内容も、**インクルード展開後に markdown-it の通常パースを通るため、Raw HTML は `html_block` / `html_inline` トークンとなり、同じサニタイザが適用される**。
 
-実装上の根拠: 内製 include プラグイン（`src/markdown-it-include.ts`）は `md.core.ruler.before('normalize', 'include', ...)` で `state.src` レベルの置換を行う。置換後の結合ソースが markdown-it の通常パースに入るため、インクルード先の生 HTML も親ファイルと区別なく `html_block` / `html_inline` トークン化される。
+実装上の根拠: 内製 include プラグイン（`src/markdown-it-include.ts`）は `md.core.ruler.before('normalize', 'include', ...)` で `state.src` レベルの置換を行う。置換後の結合ソースが markdown-it の通常パースに入るため、インクルード先のRaw HTML も親ファイルと区別なく `html_block` / `html_inline` トークン化される。
 
 この保証は「レンダラ層でサニタイズする」本設計によって自動的に成立し、追加実装は不要。サニタイズを markdown-it の入力ソース段階で行う設計にするとインクルード未展開分が素通しになるため、**レンダラ層選択の根拠の一つ** でもある。
 
@@ -139,7 +139,7 @@ md.renderer.rules.html_inline = function (tokens, idx) {
 
 - 新設定 `markdown-pdf.sanitize` のセクション追加
 - **サニタイズを導入した理由を簡潔に記載**:
-  - 従来は Markdown 内の生 HTML をすべて素通しにしており、`<script>` や `<iframe>` 等が PDF レンダリング／プレビュー時に実行される XSS 様のリスクがあった（Issue #411）
+  - 従来は Markdown 内のRaw HTML をすべて素通しにしており、`<script>` や `<iframe>` 等が PDF レンダリング／プレビュー時に実行される XSS 様のリスクがあった（Issue #411）
   - GFM (GitHub Flavored Markdown) の Disallowed Raw HTML Extension に準拠して危険タグ・属性を既定で除去する
 - `"gfm"` モードで禁止される具体タグ一覧を記載（[GFM Spec 6.11](https://github.github.com/gfm/#disallowed-raw-html-extension-) 準拠）
 - 各モードの想定利用シーン:

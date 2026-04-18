@@ -1,10 +1,10 @@
-# 生 HTML サニタイズ 実装計画
+# Raw HTML サニタイズ 実装計画
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **作業ブランチ:** `feature/sanitize-raw-html`（worktree: `.worktrees/sanitize-raw-html/`）。他のブランチに切り替えないこと。
 
-**Goal:** Markdown 本文内の生 HTML に対し GFM 準拠のサニタイズを適用し、`<script>` / `<iframe>` 等による XSS 様リスクを既定で緩和する。
+**Goal:** Markdown 本文内のRaw HTML に対し GFM 準拠のサニタイズを適用し、`<script>` / `<iframe>` 等による XSS 様リスクを既定で緩和する。
 
 **Architecture:** `markdown-it` の `html_block` / `html_inline` レンダラを差し替え、ユーザー設定 `markdown-pdf.sanitize`（`"gfm"` / `"gfm-allow-style"` / `"none"`、既定 `"gfm"`）に応じて危険タグの `<` を `&lt;` に置換、`on*` 属性と `javascript:` URL を含む属性を削除する。サニタイズ対象はユーザー由来 HTML のみで、`markdown-pdf.styles` の外部 CSS・拡張の自動生成 HTML・テンプレートは射程外。
 
@@ -700,7 +700,7 @@ git commit -m "docs(sanitize): document markdown-pdf.sanitize in README"
 `README.ja.md` の設定項目テーブルに `markdown-pdf.sanitize` を追加する。
 
 ```markdown
-| markdown-pdf.sanitize | Markdown 内の生 HTML のサニタイズモード: `"gfm"` (既定、GFM 準拠)、`"gfm-allow-style"` (`<style>` を許可)、`"none"` (無効化、後方互換) | "gfm" |
+| markdown-pdf.sanitize | Markdown 内のRaw HTML のサニタイズモード: `"gfm"` (既定、GFM 準拠)、`"gfm-allow-style"` (`<style>` を許可)、`"none"` (無効化、後方互換) | "gfm" |
 ```
 
 - [ ] **Step 2: 日本語の Raw HTML サニタイズセクション追加**
@@ -708,11 +708,11 @@ git commit -m "docs(sanitize): document markdown-pdf.sanitize in README"
 Task 7.1 の英語セクションに対応する日本語版を追加する。
 
 ````markdown
-## 生 HTML のサニタイズ
+## Raw HTML のサニタイズ
 
 ### 導入の背景
 
-以前のバージョンでは Markdown 内の生 HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+以前のバージョンでは Markdown 内のRaw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
 
 本リリースから、既定で [GitHub Flavored Markdown の Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズを適用します。
 
@@ -737,7 +737,7 @@ Task 7.1 の英語セクションに対応する日本語版を追加する。
 
 ### 本文内 `<style>` からの移行
 
-PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の生 HTML とは異なりサニタイズの影響を受けません。
+PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文のRaw HTML とは異なりサニタイズの影響を受けません。
 
 **外部 CSS の注意点:**
 - CSS は `@import url(...)`, `background: url(...)`, 属性セレクタ + `url(...)` 等によって外部送信が可能です。信頼できる CSS ファイルのみを指定してください。
@@ -746,7 +746,7 @@ PDF レイアウト調整のために Markdown 本文内で `<style>` を使っ�
 ### サニタイズの適用範囲
 
 **サニタイズ対象:**
-- Markdown 本文内に書かれた生 HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
+- Markdown 本文内に書かれたRaw HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
 - Include 機能（`:[label](path.md)`）でインクルードされたファイルの内容（同じレンダラを通るため自動的に適用されます）
 
 **サニタイズ対象外:**
@@ -809,7 +809,7 @@ git commit -m "docs(sanitize): add breaking change entry to CHANGELOG"
 Run: `npm test`
 Expected: ユニット・統合とも全パス。差分ゼロ（既存スナップショットへの回帰がないこと）。
 
-ただし `"gfm"` が既定になるため、もし既存の統合テストに `<script>` や `<style>` 等の生 HTML を含むサンプルがあれば出力差分が出る。その場合:
+ただし `"gfm"` が既定になるため、もし既存の統合テストに `<script>` や `<style>` 等のRaw HTML を含むサンプルがあれば出力差分が出る。その場合:
 
 1. 差分が「サニタイズ結果として期待通り」であれば、サンプルまたはスナップショットを更新して再コミットする
 2. 差分が想定外（拡張自動生成 HTML が壊れる等）であれば、実装を見直す

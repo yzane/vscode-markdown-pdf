@@ -607,7 +607,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### サニタイズオプション
 
 #### `markdown-pdf.sanitize`
-  - Markdown 内の生 HTML のサニタイズモード
+  - Markdown 内の Raw HTML のサニタイズモード
   - `"gfm"`: GFM の禁止タグおよび危険な属性を除去（既定）
   - `"gfm-allow-style"`: `"gfm"` と同様、ただし `<style>` 要素は残す
   - `"none"`: サニタイズ無効（従来の動作、非推奨）
@@ -619,11 +619,11 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 <div class="page"/>
 
-## 生 HTML のサニタイズ
+## Raw HTML のサニタイズ
 
 ### 導入の背景
 
-以前のバージョンでは Markdown 内の生 HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
 
 本リリースから、既定で [GitHub Flavored Markdown の Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズを適用します。
 
@@ -648,7 +648,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 ### 本文内 `<style>` からの移行
 
-PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の生 HTML とは異なりサニタイズの影響を受けません。
+PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の Raw HTML とは異なりサニタイズの影響を受けません。
 
 **外部 CSS の注意点:**
 - CSS は `@import url(...)`, `background: url(...)`, 属性セレクタ + `url(...)` 等によって外部送信が可能です。信頼できる CSS ファイルのみを指定してください。
@@ -657,7 +657,7 @@ PDF レイアウト調整のために Markdown 本文内で `<style>` を使っ�
 ### サニタイズの適用範囲
 
 **サニタイズ対象:**
-- Markdown 本文内に書かれた生 HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
+- Markdown 本文内に書かれた Raw HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
 - Include 機能（`:[label](path.md)`）でインクルードされたファイルの内容（同じレンダラを通るため自動的に適用されます）
 
 **サニタイズ対象外:**
