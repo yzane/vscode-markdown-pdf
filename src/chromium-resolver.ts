@@ -169,6 +169,42 @@ export async function cleanupOldChromium(cacheDir: string, keepBuildId: string):
   }
 }
 
+/** Compares two version strings of the form "MAJOR.MINOR.BUILD.PATCH"; returns negative/zero/positive like Array.sort. */
+function compareBuildIds(a: string, b: string): number {
+  const partsA = a.split('.').map(function (s) { return parseInt(s, 10) || 0; });
+  const partsB = b.split('.').map(function (s) { return parseInt(s, 10) || 0; });
+  const len = Math.max(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const diff = (partsA[i] || 0) - (partsB[i] || 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+}
+
+/** Returns the executable path of the newest Chrome build cached under cacheDir, or null if none. */
+export async function findLatestCachedChromium(cacheDir: string): Promise<string | null> {
+  try {
+    const installedBrowsers = await PB.getInstalledBrowsers({ cacheDir: cacheDir });
+    const chromeBuilds = installedBrowsers.filter(function (b) {
+      return b.browser === PB.Browser.CHROME;
+    });
+
+    if (chromeBuilds.length === 0) {
+      return null;
+    }
+
+    chromeBuilds.sort(function (a, b) {
+      return compareBuildIds(b.buildId, a.buildId);
+    });
+
+    return chromeBuilds[0].executablePath;
+  } catch (error) {
+    return null;
+  }
+}
+
 /** Resolves a usable Chromium path by trying user setting, system install, and managed download in order. */
 export async function resolveChromiumPath(
   userExecutablePath: string,

@@ -100,4 +100,73 @@ describe('chromium-resolver', function () {
       ]);
     });
   });
+
+  describe('findLatestCachedChromium', function () {
+    it('should return the executable path of the highest-version Chrome build', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () {
+          return [
+            { browser: PB.Browser.CHROME, buildId: '130.0.6723.91', platform: 'linux', executablePath: '/cache/chrome/130' },
+            { browser: PB.Browser.CHROME, buildId: '131.0.6778.85', platform: 'linux', executablePath: '/cache/chrome/131' },
+            { browser: PB.Browser.FIREFOX, buildId: '999.0.0.0', platform: 'linux', executablePath: '/cache/firefox/999' }
+          ];
+        }
+      });
+
+      try {
+        const result = await chromiumResolver.findLatestCachedChromium('/cache');
+        assert.strictEqual(result, '/cache/chrome/131');
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        if (originalComputeExecutablePath) {
+          Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath);
+        }
+      }
+    });
+
+    it('should return null when no Chrome builds exist', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () {
+          return [
+            { browser: PB.Browser.FIREFOX, buildId: '1.0.0.0', platform: 'linux', executablePath: '/cache/firefox' }
+          ];
+        }
+      });
+
+      try {
+        const result = await chromiumResolver.findLatestCachedChromium('/cache');
+        assert.strictEqual(result, null);
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+      }
+    });
+
+    it('should return null when getInstalledBrowsers throws (missing cache dir)', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () {
+          throw new Error('ENOENT');
+        }
+      });
+
+      try {
+        const result = await chromiumResolver.findLatestCachedChromium('/nonexistent');
+        assert.strictEqual(result, null);
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+      }
+    });
+  });
 });
