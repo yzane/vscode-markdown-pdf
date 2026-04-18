@@ -561,26 +561,12 @@ function checkPuppeteerBinary(): boolean | undefined {
       if (!cacheDir) {
         return false;
       }
-      return hasAnyCachedChromiumSync(cacheDir);
+      return chromiumResolver.hasAnyCachedChromiumSync(cacheDir);
     }
 
     return false;
   } catch (error) {
     showErrorMessage('checkPuppeteerBinary()', error);
-  }
-}
-
-/** Sync best-effort check: does the cache directory contain any Chrome build? */
-function hasAnyCachedChromiumSync(cacheDir: string): boolean {
-  try {
-    const chromeDir = path.join(cacheDir, 'chrome');
-    if (!fs.existsSync(chromeDir)) {
-      return false;
-    }
-    const entries = fs.readdirSync(chromeDir);
-    return entries.length > 0;
-  } catch (error) {
-    return false;
   }
 }
 

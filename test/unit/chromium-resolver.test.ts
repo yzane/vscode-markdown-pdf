@@ -170,6 +170,42 @@ describe('chromium-resolver', function () {
     });
   });
 
+  describe('hasAnyCachedChromiumSync', function () {
+    let cacheTmp: string;
+
+    before(function () {
+      cacheTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-has-cached-'));
+    });
+
+    after(function () {
+      fs.rmSync(cacheTmp, { recursive: true, force: true });
+    });
+
+    it('should return false when cache dir does not exist', function () {
+      const missingCache = path.join(cacheTmp, 'does-not-exist');
+      assert.strictEqual(chromiumResolver.hasAnyCachedChromiumSync(missingCache), false);
+    });
+
+    it('should return false when <cacheDir>/chrome exists but is empty', function () {
+      const cacheDir = path.join(cacheTmp, 'empty-chrome');
+      fs.mkdirSync(path.join(cacheDir, 'chrome'), { recursive: true });
+      assert.strictEqual(chromiumResolver.hasAnyCachedChromiumSync(cacheDir), false);
+    });
+
+    it('should return false when <cacheDir>/chrome contains only a dotfile', function () {
+      const cacheDir = path.join(cacheTmp, 'dotfile-chrome');
+      fs.mkdirSync(path.join(cacheDir, 'chrome'), { recursive: true });
+      fs.writeFileSync(path.join(cacheDir, 'chrome', '.DS_Store'), '');
+      assert.strictEqual(chromiumResolver.hasAnyCachedChromiumSync(cacheDir), false);
+    });
+
+    it('should return true when <cacheDir>/chrome contains a real subdirectory', function () {
+      const cacheDir = path.join(cacheTmp, 'real-chrome');
+      fs.mkdirSync(path.join(cacheDir, 'chrome', 'linux-130.0.6723.116'), { recursive: true });
+      assert.strictEqual(chromiumResolver.hasAnyCachedChromiumSync(cacheDir), true);
+    });
+  });
+
   describe('fetchLatestStableBuildId', function () {
     afterEach(function () {
       chromiumResolver.resetLatestBuildIdCache();

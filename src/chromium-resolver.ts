@@ -263,6 +263,28 @@ function compareBuildIds(a: string, b: string): number {
   return 0;
 }
 
+/**
+ * Sync best-effort check: does the cache directory contain any Chrome build subdirectory?
+ * Only counts real subdirectories (ignoring dotfiles and non-directory entries) so that
+ * partial downloads, stray files, or interrupted uninstalls do not falsely report that a
+ * Chromium build is installed. Returns false on any I/O error (fail-closed).
+ */
+export function hasAnyCachedChromiumSync(cacheDir: string): boolean {
+  try {
+    const chromeDir = path.join(cacheDir, PB.Browser.CHROME);
+    const entries = fs.readdirSync(chromeDir, { withFileTypes: true });
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+        return true;
+      }
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
 /** Returns the executable path of the newest Chrome build cached under cacheDir, or null if none. */
 export async function findLatestCachedChromium(cacheDir: string): Promise<string | null> {
   try {
