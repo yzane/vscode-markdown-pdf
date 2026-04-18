@@ -728,6 +728,11 @@
           "default": "",
           "description": "Path to a Chromium or Chrome executable to run instead of the bundled Chromium."
         },
+        "markdown-pdf.chromium.autoDownload": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically download the latest Chrome Stable when no system Chromium/Edge is found and no executable path is specified. Disable to prevent any Chromium download (system or user-specified Chromium must be available)."
+        },
         "markdown-pdf.scale": {
           "type": "number",
           "default": 1,
