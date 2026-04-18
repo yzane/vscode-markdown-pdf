@@ -1871,5 +1871,42 @@ describe('utils', function () {
         assert.strictEqual(result, '<div one="1" only="2">x</div>');
       });
     });
+
+    describe('javascript: URLs', function () {
+      it('should strip href="javascript:..." on <a>', function () {
+        const result = utils.sanitizeRawHtml('<a href="javascript:alert(1)">x</a>', 'gfm');
+        assert.strictEqual(result, '<a>x</a>');
+      });
+
+      it('should strip src="javascript:..." on <img>', function () {
+        const result = utils.sanitizeRawHtml('<img src="javascript:alert(1)">', 'gfm');
+        assert.strictEqual(result, '<img>');
+      });
+
+      it('should tolerate leading whitespace before javascript:', function () {
+        const result = utils.sanitizeRawHtml('<a href=" javascript:x">y</a>', 'gfm');
+        assert.strictEqual(result, '<a>y</a>');
+      });
+
+      it('should be case-insensitive for javascript: scheme', function () {
+        const result = utils.sanitizeRawHtml('<a href="JavaScript:x">y</a>', 'gfm');
+        assert.strictEqual(result, '<a>y</a>');
+      });
+
+      it('should preserve normal href', function () {
+        const input = '<a href="https://example.com">x</a>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should preserve mailto and relative URLs', function () {
+        const input = '<a href="mailto:a@b.c">x</a><a href="./page">y</a>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should not strip javascript: on non-href/src attributes', function () {
+        const input = '<div data-note="javascript:foo">x</div>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+    });
   });
 });
