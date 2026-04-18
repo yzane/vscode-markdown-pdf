@@ -167,6 +167,12 @@
           "default": false,
           "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.outputDirectory is interpreted as relative from the file"
         },
+        "markdown-pdf.sanitize": {
+          "type": "string",
+          "enum": ["gfm", "gfm-allow-style", "none"],
+          "default": "gfm",
+          "description": "Sanitize raw HTML in Markdown to mitigate XSS-like risks. 'gfm' removes dangerous tags (script, iframe, style, etc.) per GitHub Flavored Markdown. 'gfm-allow-style' keeps <style> for PDF layout customization (CSS can still exfiltrate data via url()/@import — use only with trusted content). 'none' disables sanitization (legacy behavior, not recommended)."
+        },
         "markdown-pdf.styles": {
           "type": "array",
           "default": [],

@@ -1,5 +1,20 @@
 # Change Log
 
+## X.Y.Z (YYYY/MM/DD)
+
+### Breaking Changes
+
+* Raw HTML in Markdown is now sanitized by default according to the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). The following are removed from Markdown body content:
+  * Tags: `<script>`, `<iframe>`, `<style>`, `<textarea>`, `<title>`, `<xmp>`, `<noembed>`, `<noframes>`, `<plaintext>` (opening `<` is escaped to `&lt;`, content is preserved as visible text)
+  * `on*` event handler attributes (`onclick`, `onload`, etc.)
+  * `href` / `src` attributes whose value begins with `javascript:`
+* The behavior is controlled by the new `markdown-pdf.sanitize` setting (`"gfm"` / `"gfm-allow-style"` / `"none"`, default `"gfm"`). See README for details and migration notes.
+* To preserve pre-change behavior, set `markdown-pdf.sanitize` to `"none"`. To keep inline `<style>` only, use `"gfm-allow-style"`. Existing layout CSS can also be migrated to external files via `markdown-pdf.styles`.
+
+### Changes
+
+* Add `markdown-pdf.sanitize` setting for raw HTML sanitization (see Breaking Changes above)
+
 ## 2.0.1 (2026/04/14)
 
 ### Fixes

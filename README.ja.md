@@ -30,12 +30,23 @@
 
 ## 仕様変更
 
-バージョン 2.0.0 では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
 
-- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
-- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
-- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
-- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+### X.Y.Z
+
+- XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい [markdown-pdf.sanitize](#markdown-pdfsanitize) 設定で制御できます。
+    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
+
+### 2.0.0
+
+- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。
+    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
+- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。
+    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
+- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。
+    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
+- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
+    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ## 機能
 
@@ -272,6 +283,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
 
@@ -603,7 +615,18 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
-<div class="page"/>
+### Sanitize options
+
+#### `markdown-pdf.sanitize`
+  - Markdown 内の Raw HTML のサニタイズモード
+  - `"gfm"`: GFM の禁止タグおよび危険な属性を除去（既定）
+  - `"gfm-allow-style"`: `"gfm"` と同様、ただし `<style>` 要素は残す
+  - `"none"`: サニタイズ無効（従来の動作、非推奨）
+  - Default: `"gfm"`
+
+```javascript
+"markdown-pdf.sanitize": "gfm",
+```
 
 ## FAQ
 
@@ -685,6 +708,49 @@ title: My Document
 ```
 
 BOM 付きファイルは引き続きサポートされます。
+
+<a id="why-is-my-raw-html-being-escaped-or-removed"></a>
+
+### Raw HTML がエスケープ／除去されるのはなぜ？
+
+以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+
+バージョン X.Y.Z から、Markdown 本文内の Raw HTML は既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズが適用されます。挙動は `markdown-pdf.sanitize` で制御します:
+
+| モード | 挙動 |
+| --- | --- |
+| `"gfm"` (既定) | GFM の禁止タグおよび危険な属性を除去。他者が作成した Markdown を開く可能性がある通常利用に推奨。 |
+| `"gfm-allow-style"` | `"gfm"` と同様、ただし `<style>` は残す。自身で書いた Markdown に CSS を同梱して 1 ファイル完結の PDF を作成したい場合向け。**信頼できるコンテンツに限って使用してください** — CSS 自体でもデータ送信は可能です。 |
+| `"none"` | サニタイズ無効。従来互換。基本的に非推奨。 |
+
+**`"gfm"` で除去される対象**
+
+タグ（開きタグ・閉じタグとも `<` が `&lt;` にエスケープされ、可視テキストとして残ります）:
+`<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+属性:
+- `on*` イベントハンドラ（`onclick`, `onload` 等）
+- `href` / `src` の値が `javascript:` で始まるもの
+
+**本文内 `<style>` からの移行**
+
+PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の Raw HTML とは異なりサニタイズの影響を受けません。
+
+外部 CSS の注意点:
+
+- CSS は `@import url(...)`, `background: url(...)`, 属性セレクタ + `url(...)` 等によって外部送信が可能です。信頼できる CSS ファイルのみを指定してください。
+- `markdown-pdf.stylesRelativePathFile: true` の場合、スタイルシートのパスは開いた Markdown ファイルからの相対として解決されます。信頼できない場所にある Markdown を開くと、隣接する悪意ある `.css` を読み込む可能性があります。
+
+**サニタイズの適用範囲**
+
+サニタイズ対象:
+- Markdown 本文内に書かれた Raw HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
+- Include 機能（`:[label](path.md)`）でインクルードされたファイルの内容（同じレンダラを通るため自動的に適用されます）
+
+サニタイズ対象外:
+- `markdown-pdf.styles` で指定された外部 CSS（意図的に対象外。ユーザー設定による明示指定が信頼境界）
+- 拡張内蔵の CSS およびテンプレート HTML
+- 拡張自身が生成する HTML（mermaid、highlight.js、emoji、PlantUML の出力）
 
 <a id="how-is-the-chromium-browser-selected"></a>
 

@@ -194,11 +194,16 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
         return defaultRender!(tokens, idx, options, env, self);
       };
 
-      if (type !== 'html') {
-        md.renderer.rules.html_block = function (tokens, idx) {
-          return utils.transformHtmlBlock(tokens[idx].content, filename);
-        };
-      }
+      const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
+
+      md.renderer.rules.html_block = function (tokens, idx) {
+        const sanitized = utils.sanitizeRawHtml(tokens[idx].content, sanitizeMode);
+        return type !== 'html' ? utils.transformHtmlBlock(sanitized, filename) : sanitized;
+      };
+
+      md.renderer.rules.html_inline = function (tokens, idx) {
+        return utils.sanitizeRawHtml(tokens[idx].content, sanitizeMode);
+      };
 
       // checkbox
       md.use(markdownItCheckbox);

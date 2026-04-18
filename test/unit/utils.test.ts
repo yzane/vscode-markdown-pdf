@@ -1746,4 +1746,177 @@ describe('utils', function () {
       assert.strictEqual(result.content, '');
     });
   });
+
+  describe('getDisallowedTags', function () {
+    it('should return GFM disallowed tag set for "gfm" mode', function () {
+      const tags = utils.getDisallowedTags('gfm');
+      const expected = ['title', 'textarea', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'script', 'plaintext'];
+      for (const tag of expected) {
+        assert.ok(tags.has(tag), `expected tag "${tag}" to be disallowed in gfm mode`);
+      }
+      assert.strictEqual(tags.size, expected.length);
+    });
+
+    it('should exclude <style> in "gfm-allow-style" mode', function () {
+      const tags = utils.getDisallowedTags('gfm-allow-style');
+      assert.strictEqual(tags.has('style'), false);
+      assert.ok(tags.has('script'));
+      assert.ok(tags.has('iframe'));
+    });
+
+    it('should return empty set for "none" mode', function () {
+      const tags = utils.getDisallowedTags('none');
+      assert.strictEqual(tags.size, 0);
+    });
+  });
+
+  describe('sanitizeRawHtml', function () {
+    describe('disallowed tags (gfm mode)', function () {
+      it('should escape opening < of <script> tag', function () {
+        const result = utils.sanitizeRawHtml('<script>alert(1)</script>', 'gfm');
+        assert.strictEqual(result, '&lt;script>alert(1)&lt;/script>');
+      });
+
+      it('should escape <iframe>', function () {
+        const result = utils.sanitizeRawHtml('<iframe src="a"></iframe>', 'gfm');
+        assert.strictEqual(result, '&lt;iframe src="a">&lt;/iframe>');
+      });
+
+      it('should escape <style> in gfm mode', function () {
+        const result = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm');
+        assert.strictEqual(result, '&lt;style>body{}&lt;/style>');
+      });
+
+      it('should keep <style> in gfm-allow-style mode', function () {
+        const result = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm-allow-style');
+        assert.strictEqual(result, '<style>body{}</style>');
+      });
+
+      it('should escape <textarea>, <title>, <xmp>, <noembed>, <noframes>, <plaintext>', function () {
+        const tags = ['textarea', 'title', 'xmp', 'noembed', 'noframes', 'plaintext'];
+        for (const tag of tags) {
+          const input = `<${tag}>x</${tag}>`;
+          const expected = `&lt;${tag}>x&lt;/${tag}>`;
+          assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), expected, `tag: ${tag}`);
+        }
+      });
+
+      it('should be case-insensitive', function () {
+        const result = utils.sanitizeRawHtml('<SCRIPT>x</SCRIPT>', 'gfm');
+        assert.strictEqual(result, '&lt;SCRIPT>x&lt;/SCRIPT>');
+      });
+
+      it('should leave normal tags untouched', function () {
+        const result = utils.sanitizeRawHtml('<div class="note">text</div>', 'gfm');
+        assert.strictEqual(result, '<div class="note">text</div>');
+      });
+
+      it('should leave <b>, <i>, <a> etc untouched', function () {
+        const result = utils.sanitizeRawHtml('<b>bold</b> <i>italic</i> <a href="x">link</a>', 'gfm');
+        assert.strictEqual(result, '<b>bold</b> <i>italic</i> <a href="x">link</a>');
+      });
+
+      it('should pass through everything in none mode', function () {
+        const input = '<script>alert(1)</script><div onclick="x">y</div>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'none'), input);
+      });
+
+      it('should handle empty string', function () {
+        assert.strictEqual(utils.sanitizeRawHtml('', 'gfm'), '');
+      });
+
+      it('should preserve HTML comments', function () {
+        const input = '<!-- <script>not a tag</script> -->';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should handle text without any tags', function () {
+        assert.strictEqual(utils.sanitizeRawHtml('plain text', 'gfm'), 'plain text');
+      });
+
+      it('should preserve whitespace before self-closing tag slash', function () {
+        const input = '<div class="page" />';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should escape <plaintext> together with a nested <script>', function () {
+        const result = utils.sanitizeRawHtml('<plaintext><script>x</script>', 'gfm');
+        assert.strictEqual(result, '&lt;plaintext>&lt;script>x&lt;/script>');
+      });
+    });
+
+    describe('on* event attributes', function () {
+      it('should strip onclick attribute (double-quoted)', function () {
+        const result = utils.sanitizeRawHtml('<div onclick="alert(1)">x</div>', 'gfm');
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should strip onload attribute (single-quoted)', function () {
+        const result = utils.sanitizeRawHtml("<body onload='x()'>y</body>", 'gfm');
+        assert.strictEqual(result, '<body>y</body>');
+      });
+
+      it('should strip unquoted on* attribute', function () {
+        const result = utils.sanitizeRawHtml('<div onclick=foo()>x</div>', 'gfm');
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should strip on* without value', function () {
+        const result = utils.sanitizeRawHtml('<div onclick>x</div>', 'gfm');
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should preserve other attributes when stripping on*', function () {
+        const result = utils.sanitizeRawHtml('<a href="x" onclick="y" class="z">t</a>', 'gfm');
+        assert.strictEqual(result, '<a href="x" class="z">t</a>');
+      });
+
+      it('should be case-insensitive for attribute name', function () {
+        const result = utils.sanitizeRawHtml('<div ONCLICK="x">y</div>', 'gfm');
+        assert.strictEqual(result, '<div>y</div>');
+      });
+
+      it('should not treat "one" or "only" as on* attribute', function () {
+        const result = utils.sanitizeRawHtml('<div one="1" only="2">x</div>', 'gfm');
+        assert.strictEqual(result, '<div one="1" only="2">x</div>');
+      });
+    });
+
+    describe('javascript: URLs', function () {
+      it('should strip href="javascript:..." on <a>', function () {
+        const result = utils.sanitizeRawHtml('<a href="javascript:alert(1)">x</a>', 'gfm');
+        assert.strictEqual(result, '<a>x</a>');
+      });
+
+      it('should strip src="javascript:..." on <img>', function () {
+        const result = utils.sanitizeRawHtml('<img src="javascript:alert(1)">', 'gfm');
+        assert.strictEqual(result, '<img>');
+      });
+
+      it('should tolerate leading whitespace before javascript:', function () {
+        const result = utils.sanitizeRawHtml('<a href=" javascript:x">y</a>', 'gfm');
+        assert.strictEqual(result, '<a>y</a>');
+      });
+
+      it('should be case-insensitive for javascript: scheme', function () {
+        const result = utils.sanitizeRawHtml('<a href="JavaScript:x">y</a>', 'gfm');
+        assert.strictEqual(result, '<a>y</a>');
+      });
+
+      it('should preserve normal href', function () {
+        const input = '<a href="https://example.com">x</a>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should preserve mailto and relative URLs', function () {
+        const input = '<a href="mailto:a@b.c">x</a><a href="./page">y</a>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should not strip javascript: on non-href/src attributes', function () {
+        const input = '<div data-note="javascript:foo">x</div>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+    });
+  });
 });
