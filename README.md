@@ -274,6 +274,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
 
@@ -606,7 +607,66 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
+### Sanitize options
+
+#### `markdown-pdf.sanitize`
+  - Sanitization mode for raw HTML in Markdown
+  - `"gfm"`: Strip GFM's disallowed tags and dangerous attributes (default)
+  - `"gfm-allow-style"`: Same as `"gfm"` but keeps `<style>` elements
+  - `"none"`: Disable sanitization (legacy behavior, not recommended)
+  - Default: `"gfm"`
+
+```javascript
+"markdown-pdf.sanitize": "gfm",
+```
+
 <div class="page"/>
+
+## Raw HTML Sanitization
+
+### Why sanitization?
+
+Earlier versions of this extension passed all raw HTML in Markdown through to the renderer without validation. Tags such as `<script>` and `<iframe>` could therefore execute during preview or PDF rendering, creating XSS-like risk when opening untrusted Markdown files ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)).
+
+Starting from this release, raw HTML is sanitized by default per the [GitHub Flavored Markdown Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-).
+
+### Modes
+
+Controlled by `markdown-pdf.sanitize`:
+
+| Mode | Behavior |
+| --- | --- |
+| `"gfm"` (default) | Strip GFM's disallowed tags and dangerous attributes. Recommended for everyone, including users who may open Markdown files authored by others. |
+| `"gfm-allow-style"` | Same as `"gfm"` but keeps `<style>` so you can embed CSS directly in a Markdown file to produce a self-contained PDF. **Use only with content you trust** — CSS itself can still exfiltrate data (see below). |
+| `"none"` | Disable sanitization. Legacy behavior. Not recommended. |
+
+### What `"gfm"` removes
+
+Tags (opening and closing forms are both escaped to visible text):
+`<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+Attributes:
+- `on*` event handlers (`onclick`, `onload`, …)
+- `href` / `src` whose value starts with `javascript:`
+
+### Migrating from inline `<style>`
+
+If you used to customize PDF layout by writing `<style>` directly inside a Markdown file, move that CSS into a `.css` file and reference it via `markdown-pdf.styles`. External stylesheets are loaded from your VS Code settings, not from the Markdown body, so they are not affected by sanitization.
+
+**Caveats for external CSS:**
+- CSS can still make outbound network requests through `@import url(...)`, `background: url(...)`, attribute selectors with `url(...)`, etc. Only reference stylesheet files you trust.
+- When `markdown-pdf.stylesRelativePathFile` is `true`, the stylesheet path is resolved relative to the opened Markdown file. Be cautious about opening Markdown from untrusted locations that may ship a malicious sibling `.css`.
+
+### Sanitization scope
+
+**Sanitized:**
+- Raw HTML written inside the Markdown body (rendered via markdown-it's `html_block` / `html_inline`)
+- Content pulled in by the Include feature (`:[label](path.md)`) — it goes through the same renderer
+
+**Not sanitized:**
+- External CSS loaded via `markdown-pdf.styles` (by design — user-configured trust boundary)
+- The extension's built-in stylesheets and HTML template
+- HTML emitted by the extension itself (mermaid, highlight.js, emoji, PlantUML)
 
 ## FAQ
 
