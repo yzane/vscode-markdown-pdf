@@ -1,5 +1,12 @@
 # Markdown PDF
 
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.svg">
+    <img src="images/banner.svg" alt="Markdown PDF" width="400">
+  </picture>
+</p>
+
 This extension converts Markdown files to pdf, html, png or jpeg files.
 
 [Japanese README](README.ja.md)
