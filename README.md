@@ -119,17 +119,30 @@ OUTPUT
 
 Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
 
+The recommended syntax is the ```` ```plantuml ```` fenced code block, which is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.
+
 INPUT
-```
-@startuml
+
+````
+```plantuml
 Bob -[#red]> Alice : hello
 Alice -[#0000FF]->Bob : ok
-@enduml
 ```
+````
 
 OUTPUT
 
 ![PlantUML](images/PlantUML.png)
+
+> **Backward compatibility (generally not recommended for new content):**
+> The legacy `@startuml` / `@enduml` block syntax is also still supported.
+>
+> ```
+> @startuml
+> Bob -[#red]> Alice : hello
+> Alice -[#0000FF]->Bob : ok
+> @enduml
+> ```
 
 ### Include
 
@@ -590,10 +603,12 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
+  - **Deprecated.** Use the ```` ```plantuml ```` fenced code block syntax shown in the [PlantUML](#plantuml) section instead. This setting is kept only for backward compatibility with the `@startuml` / `@enduml` block syntax.
   - Opening delimiter used for the plantuml parser.
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
+  - **Deprecated.** Use the ```` ```plantuml ```` fenced code block syntax shown in the [PlantUML](#plantuml) section instead. This setting is kept only for backward compatibility with the `@startuml` / `@enduml` block syntax.
   - Closing delimiter used for the plantuml parser.
   - Default: @enduml
 
