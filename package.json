@@ -169,7 +169,11 @@
         },
         "markdown-pdf.sanitize": {
           "type": "string",
-          "enum": ["gfm", "gfm-allow-style", "none"],
+          "enum": [
+            "gfm",
+            "gfm-allow-style",
+            "none"
+          ],
           "default": "gfm",
           "description": "Sanitize raw HTML in Markdown to mitigate XSS-like risks. 'gfm' removes dangerous tags (script, iframe, style, etc.) per GitHub Flavored Markdown. 'gfm-allow-style' keeps <style> for PDF layout customization (CSS can still exfiltrate data via url()/@import — use only with trusted content). 'none' disables sanitization (legacy behavior, not recommended)."
         },
@@ -943,6 +947,7 @@
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-plantuml": "^1.4.1",
+    "plantuml-encoder": "^1.4.0",
     "puppeteer-core": "^24.40.0"
   }
 }
