@@ -12,8 +12,8 @@
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [仕様変更](#仕様変更)
 - [What's New](#whats-new)
+- [仕様変更](#仕様変更)
 - [機能](#機能)
 - [Chromium](#chromium)
 - [使い方](#使い方)
@@ -28,6 +28,29 @@
 <!-- /TOC -->
 
 <div class="page"/>
+
+## What's New
+
+ユーザに見える追加・改善点です。ユーザ対応が必要な変更については [仕様変更](#仕様変更) を参照してください。
+
+### X.Y.Z
+
+- PlantUML の推奨記法として ```` ```plantuml ```` フェンスドコードブロックをサポートしました（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。従来の `@startuml` / `@enduml` ブロック記法も後方互換のため引き続き利用可能です。
+    - 詳細: [PlantUML](#plantuml)
+- Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
+    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- `@startuml` / `@enduml` ブロック記法および `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` 設定を非推奨化しました。後方互換のため動作は維持されますが、VS Code の設定 UI 上では非推奨として表示されます。
+    - 詳細: [PlantUML](#plantuml)
+
+### 2.0.1
+
+- 自己閉じタグ `<div class="page" />` で改ページが正しく動作するようになりました（[#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)）。
+
+### 2.0.0
+
+- Include 機能（`:[label](path.md)`）で読み込みに失敗した場合にエクスポート全体を中断せず、該当箇所にエラーを表示するようになりました。一部のフラグメントが欠けていてもドキュメントの残りは出力されます。
+- 画像 `src` の書き換えで、引用符付き属性・可変長の空白・raw-text コンテキスト等の取り扱いが改善されました。
+- フロントマターの解析が BOM 付きファイルに対応しました。
 
 ## 仕様変更
 
@@ -48,19 +71,6 @@
     - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
 - Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
     - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-
-## What's New
-
-後方互換を維持したまま追加・変更された内容です。ユーザ対応が必要な変更については [仕様変更](#仕様変更) を参照してください。
-
-### X.Y.Z
-
-- PlantUML の推奨記法として ```` ```plantuml ```` フェンスドコードブロックをサポートしました（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。従来の `@startuml` / `@enduml` ブロック記法も後方互換のため引き続き利用可能です。
-    - 詳細: [PlantUML](#plantuml)
-- Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
-    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-- `@startuml` / `@enduml` ブロック記法および `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` 設定を非推奨化しました。後方互換のため動作は維持されますが、VS Code の設定 UI 上では非推奨として表示されます。
-    - 詳細: [PlantUML](#plantuml)
 
 ## 機能
 

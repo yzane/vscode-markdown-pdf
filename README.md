@@ -14,8 +14,8 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [Breaking Changes](#breaking-changes)
 - [What's New](#whats-new)
+- [Breaking Changes](#breaking-changes)
 - [Features](#features)
 - [Chromium](#chromium)
 - [Usage](#usage)
@@ -30,6 +30,29 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 <!-- /TOC -->
 
 <div class="page"/>
+
+## What's New
+
+User-visible additions and improvements. For changes that may require action on your side, see [Breaking Changes](#breaking-changes).
+
+### X.Y.Z
+
+- Added support for ` ```plantuml ` fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy `@startuml` / `@enduml` block syntax still works for backward compatibility.
+    - Details: [PlantUML](#plantuml)
+- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
+    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- Deprecated the `@startuml` / `@enduml` block markers and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
+    - Details: [PlantUML](#plantuml)
+
+### 2.0.1
+
+- Self-closing `<div class="page" />` now correctly triggers a page break ([#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)).
+
+### 2.0.0
+
+- Include (`:[label](path.md)`) now reports errors inline instead of aborting the whole export, so a missing or unreadable fragment no longer breaks the rest of the document.
+- Image `src` rewriting now correctly handles quoted attributes, flexible whitespace, and raw-text contexts.
+- Front matter parsing now supports BOM-prefixed files.
 
 ## Breaking Changes
 
@@ -50,19 +73,6 @@ Some changes may affect existing behavior. See the [FAQ](#faq) section for detai
     - Details: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
 - Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use.
     - Details: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-
-## What's New
-
-Non-breaking additions and changes. For breaking changes, see [Breaking Changes](#breaking-changes).
-
-### X.Y.Z
-
-- Added support for ` ```plantuml ` fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy `@startuml` / `@enduml` block syntax still works for backward compatibility.
-    - Details: [PlantUML](#plantuml)
-- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
-    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-- Deprecated the `@startuml` / `@enduml` block markers and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
-    - Details: [PlantUML](#plantuml)
 
 ## Features
 
