@@ -1919,4 +1919,35 @@ describe('utils', function () {
       });
     });
   });
+
+  describe('buildPlantumlImgTag', function () {
+    it('should produce an <img> tag whose src points to the encoded plantuml URL', function () {
+      const source = 'Bob -> Alice : hello\n';
+      const server = 'http://www.plantuml.com/plantuml';
+
+      const result = utils.buildPlantumlImgTag(source, server);
+
+      assert.match(result, /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]+" alt="uml diagram">$/);
+    });
+
+    it('should not throw on empty input and still return an <img> tag', function () {
+      const result = utils.buildPlantumlImgTag('', 'http://www.plantuml.com/plantuml');
+      assert.match(result, /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]*" alt="uml diagram">$/);
+    });
+
+    it('should produce the same <img> tag as markdown-it-plantuml plugin for the same source', async function () {
+      const MarkdownIt = (await import('markdown-it')).default;
+      const markdownItPlantuml = (await import('markdown-it-plantuml')).default;
+      const server = 'http://www.plantuml.com/plantuml';
+      const source = 'Bob -> Alice : hello\nAlice -> Bob : ok\n';
+
+      const md = new MarkdownIt();
+      md.use(markdownItPlantuml, { openMarker: '@startuml', closeMarker: '@enduml', server });
+      const pluginRendered = md.render('@startuml\n' + source + '@enduml\n').trim();
+
+      const helperRendered = utils.buildPlantumlImgTag(source, server);
+
+      assert.strictEqual(helperRendered, pluginRendered);
+    });
+  });
 });

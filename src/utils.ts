@@ -6,6 +6,7 @@ import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
+import plantumlDeflate from 'markdown-it-plantuml/lib/deflate.js';
 import { githubSlugify } from './markdown-it-named-headers';
 
 /** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
@@ -746,6 +747,27 @@ export function buildContainerRenderer(): { validate: (name: string) => number; 
 export function generateTmpHtmlFilename(filename: string): string {
   const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
+}
+
+/**
+ * Builds an <img> tag for a PlantUML source string. The output matches the
+ * <img> tag produced by markdown-it-plantuml so that both the @startuml/@enduml
+ * path and the ```plantuml fence path render identically.
+ *
+ * The plugin strips trailing newlines from the captured block contents before
+ * wrapping with @startuml/@enduml, so we replicate that here. The plugin also
+ * uses its own pure-JS deflate (not zlib) for encoding, so we import it
+ * directly to guarantee byte-for-byte parity.
+ */
+export function buildPlantumlImgTag(source: string, server: string): string {
+  // Strip trailing newline to match what markdown-it-plantuml captures via its
+  // line-based parser (join('\n') on the sliced lines produces no trailing '\n').
+  const content = source.replace(/\n$/, '');
+  const toEncode = '@startuml\n' + content + '\n@enduml';
+  const encoded = plantumlDeflate.encode64(
+    plantumlDeflate.zip_deflate(unescape(encodeURIComponent(toEncode)), 9)
+  );
+  return '<img src="' + server + '/svg/' + encoded + '" alt="uml diagram">';
 }
 
 // Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per
