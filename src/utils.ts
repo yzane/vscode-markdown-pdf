@@ -839,8 +839,12 @@ function stripDangerousAttributes(tag: string): string {
     }
 
     const lowerName = attrName.toLowerCase();
-    // Event handler attributes start with 'on' followed by at least three
-    // letters (the shortest real event names are three characters: e.g. 'cut').
+    // Strip inline event handler attributes (onclick, onload, onmouseover, ...).
+    // The regex requires 'on' + at least 3 more letters because every real HTML
+    // event handler name has at least three characters after 'on' (the shortest
+    // being oncut/oncopy/ondrag). This intentionally excludes short non-handler
+    // names that also start with 'on', such as 'one' or 'only' used in custom
+    // data-like attributes, so they pass through unchanged.
     const dangerous =
       /^on[a-z]{3}/i.test(lowerName) ||
       ((lowerName === 'href' || lowerName === 'src') &&

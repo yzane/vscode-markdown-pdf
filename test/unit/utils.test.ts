@@ -1838,6 +1838,11 @@ describe('utils', function () {
         const input = '<div class="page" />';
         assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
       });
+
+      it('should escape <plaintext> together with a nested <script>', function () {
+        const result = utils.sanitizeRawHtml('<plaintext><script>x</script>', 'gfm');
+        assert.strictEqual(result, '&lt;plaintext>&lt;script>x&lt;/script>');
+      });
     });
 
     describe('on* event attributes', function () {
