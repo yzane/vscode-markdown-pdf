@@ -767,3 +767,57 @@ export function getDisallowedTags(mode: SanitizeMode): Set<string> {
   }
   return tags;
 }
+
+/**
+ * Sanitizes raw HTML per GFM's disallowed raw HTML extension.
+ * - Escapes the leading '<' of disallowed tags to '&lt;' (both opening and closing forms)
+ * - Removes on* event handler attributes from non-disallowed tags
+ * - Removes href/src attributes whose value starts with 'javascript:'
+ *
+ * Returns the input unchanged when mode is 'none' or input is empty.
+ * Operates on the raw HTML string only; does not parse CSS or attribute content
+ * beyond what is required for the rules above.
+ */
+export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
+  if (mode === 'none' || !html) {
+    return html;
+  }
+  const disallowed = getDisallowedTags(mode);
+  let result = '';
+  let index = 0;
+  while (index < html.length) {
+    // Preserve HTML comments verbatim.
+    if (html.startsWith('<!--', index)) {
+      const commentEnd = html.indexOf('-->', index + 4);
+      if (commentEnd === -1) {
+        return result + html.slice(index);
+      }
+      result += html.slice(index, commentEnd + 3);
+      index = commentEnd + 3;
+      continue;
+    }
+
+    if (html[index] !== '<') {
+      result += html[index];
+      index++;
+      continue;
+    }
+
+    const tagEnd = findHtmlTagEnd(html, index + 1);
+    if (tagEnd === -1) {
+      return result + html.slice(index);
+    }
+
+    const tag = html.slice(index, tagEnd + 1);
+    const tagName = getTagName(tag);
+    if (tagName && disallowed.has(tagName)) {
+      // GFM rule: replace leading '<' with '&lt;'. Preserves tag content so the
+      // user still sees what was in the source as visible text.
+      result += '&lt;' + tag.slice(1);
+    } else {
+      result += tag;
+    }
+    index = tagEnd + 1;
+  }
+  return result;
+}

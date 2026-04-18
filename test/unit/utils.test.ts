@@ -1769,4 +1769,70 @@ describe('utils', function () {
       assert.strictEqual(tags.size, 0);
     });
   });
+
+  describe('sanitizeRawHtml', function () {
+    describe('disallowed tags (gfm mode)', function () {
+      it('should escape opening < of <script> tag', function () {
+        const result = utils.sanitizeRawHtml('<script>alert(1)</script>', 'gfm');
+        assert.strictEqual(result, '&lt;script>alert(1)&lt;/script>');
+      });
+
+      it('should escape <iframe>', function () {
+        const result = utils.sanitizeRawHtml('<iframe src="a"></iframe>', 'gfm');
+        assert.strictEqual(result, '&lt;iframe src="a">&lt;/iframe>');
+      });
+
+      it('should escape <style> in gfm mode', function () {
+        const result = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm');
+        assert.strictEqual(result, '&lt;style>body{}&lt;/style>');
+      });
+
+      it('should keep <style> in gfm-allow-style mode', function () {
+        const result = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm-allow-style');
+        assert.strictEqual(result, '<style>body{}</style>');
+      });
+
+      it('should escape <textarea>, <title>, <xmp>, <noembed>, <noframes>, <plaintext>', function () {
+        const tags = ['textarea', 'title', 'xmp', 'noembed', 'noframes', 'plaintext'];
+        for (const tag of tags) {
+          const input = `<${tag}>x</${tag}>`;
+          const expected = `&lt;${tag}>x&lt;/${tag}>`;
+          assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), expected, `tag: ${tag}`);
+        }
+      });
+
+      it('should be case-insensitive', function () {
+        const result = utils.sanitizeRawHtml('<SCRIPT>x</SCRIPT>', 'gfm');
+        assert.strictEqual(result, '&lt;SCRIPT>x&lt;/SCRIPT>');
+      });
+
+      it('should leave normal tags untouched', function () {
+        const result = utils.sanitizeRawHtml('<div class="note">text</div>', 'gfm');
+        assert.strictEqual(result, '<div class="note">text</div>');
+      });
+
+      it('should leave <b>, <i>, <a> etc untouched', function () {
+        const result = utils.sanitizeRawHtml('<b>bold</b> <i>italic</i> <a href="x">link</a>', 'gfm');
+        assert.strictEqual(result, '<b>bold</b> <i>italic</i> <a href="x">link</a>');
+      });
+
+      it('should pass through everything in none mode', function () {
+        const input = '<script>alert(1)</script><div onclick="x">y</div>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'none'), input);
+      });
+
+      it('should handle empty string', function () {
+        assert.strictEqual(utils.sanitizeRawHtml('', 'gfm'), '');
+      });
+
+      it('should preserve HTML comments', function () {
+        const input = '<!-- <script>not a tag</script> -->';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
+
+      it('should handle text without any tags', function () {
+        assert.strictEqual(utils.sanitizeRawHtml('plain text', 'gfm'), 'plain text');
+      });
+    });
+  });
 });
