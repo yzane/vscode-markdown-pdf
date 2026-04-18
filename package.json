@@ -879,12 +879,14 @@
         "markdown-pdf.plantumlOpenMarker": {
           "type": "string",
           "default": "@startuml",
-          "description": "Oppening delimiter used for the plantuml parser."
+          "description": "Oppening delimiter used for the plantuml parser.",
+          "deprecationMessage": "Deprecated. Use ```plantuml fenced code blocks instead. This setting is kept only for backward compatibility with the @startuml/@enduml block syntax."
         },
         "markdown-pdf.plantumlCloseMarker": {
           "type": "string",
           "default": "@enduml",
-          "description": "Closing delimiter used for the plantuml parser."
+          "description": "Closing delimiter used for the plantuml parser.",
+          "deprecationMessage": "Deprecated. Use ```plantuml fenced code blocks instead. This setting is kept only for backward compatibility with the @startuml/@enduml block syntax."
         },
         "markdown-pdf.plantumlServer": {
           "type": "string",
