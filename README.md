@@ -39,10 +39,10 @@ User-visible additions and improvements. For changes that may require action on 
 
 - Added support for ` ```plantuml ` fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy `@startuml` / `@enduml` block syntax still works for backward compatibility.
     - Details: [PlantUML](#plantuml)
-- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
-    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 - Deprecated the `@startuml` / `@enduml` block markers and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
     - Details: [PlantUML](#plantuml)
+- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
+    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ### 2.0.1
 
