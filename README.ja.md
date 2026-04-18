@@ -272,7 +272,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
-|[サニタイズオプション](#サニタイズオプション)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
+|[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
 
@@ -604,7 +604,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
-### サニタイズオプション
+### Sanitize options
 
 #### `markdown-pdf.sanitize`
   - Markdown 内の Raw HTML のサニタイズモード
