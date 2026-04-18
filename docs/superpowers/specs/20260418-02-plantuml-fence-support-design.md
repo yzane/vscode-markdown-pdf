@@ -22,8 +22,12 @@ PR [#104](https://github.com/yzane/vscode-markdown-pdf/pull/104) で追加され
 
 ## 目的
 
-`@startuml` / `@enduml` 形式の **後方互換を完全に維持** したまま、
-` ```plantuml ... ``` ` フェンス記法でも図にレンダリングされるようにする。
+` ```plantuml ... ``` ` フェンス記法を **新たな推奨記法** としてサポートする
+（VS Code 標準プレビュー・GitHub・GitLab と書式が一致するため）。既存の
+`@startuml` / `@enduml` 形式は **後方互換目的** で引き続き動作させるが、新規
+利用には推奨しない位置づけとする。同等に、`@startuml` 系マーカーをカスタマイズ
+する設定 (`plantumlOpenMarker` / `plantumlCloseMarker`) も後方互換目的のみに
+位置づけ、ドキュメントと VS Code 設定 UI 上で非推奨であることを明示する。
 
 ## スコープ
 
@@ -31,6 +35,8 @@ PR [#104](https://github.com/yzane/vscode-markdown-pdf/pull/104) で追加され
 
 - `` ```plantuml `` フェンスを `@startuml` / `@enduml` と並行サポートする
 - 両経路で同じ `markdown-pdf.plantumlServer` 設定を共有する
+- `@startuml` / `@enduml` 記法を「後方互換目的・新規利用は非推奨」とドキュメントに明示する
+- `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` 設定を非推奨マーキングする（`package.json` の VS Code 設定スキーマに `deprecationMessage` を付与し、README にも非推奨注記を入れる）
 - 単体テスト・統合テスト・README / CHANGELOG の更新
 
 含まないもの:
@@ -39,7 +45,7 @@ PR [#104](https://github.com/yzane/vscode-markdown-pdf/pull/104) で追加され
 - フェンス言語名 (`plantuml`) を設定で変更可能にする機能
 - フロントマターでの `plantumlServer` 上書きサポート（既存コードに無いため踏襲）
 - Mermaid など他のフェンス言語への波及（Mermaid はブラウザ側スクリプトが既に処理しており、サーバ側介在不要）
-- `plantumlOpenMarker` / `plantumlCloseMarker` 設定の deprecation や削除（加算的拡張のため引き続き有効）
+- `@startuml` / `@enduml` 経路および `plantumlOpenMarker` / `plantumlCloseMarker` 設定の **削除や機能停止**（非推奨マーキングは行うが、動作は維持する）
 
 ## アーキテクチャ概要
 
@@ -127,8 +133,13 @@ md.renderer.rules.fence = (tokens, idx, opts, env, self) => {
 | `markdown-pdf.plantumlCloseMarker` | `@enduml` | 既存通り使用 | 影響なし |
 | フロントマター `plantumlOpenMarker` / `plantumlCloseMarker` | なし | 既存通り設定を上書き | 影響なし |
 
-`plantumlOpenMarker` / `plantumlCloseMarker` は経路 A 専用の設定として
-位置づけを保ち、deprecation はしない（後方互換重視）。
+`markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` は
+経路 A 専用設定として動作は維持するが、**非推奨**として扱う。具体的には
+`package.json` の VS Code 設定スキーマに `deprecationMessage`
+（例: "Deprecated. Use ` ```plantuml ` fenced code blocks instead."）を付与し、
+README の対応セクションにも非推奨注記を加える。フロントマター上書きについても
+README で同様に注記する。`markdown-pdf.plantumlServer` は両経路で共有される
+現役設定として維持し、非推奨にはしない。
 
 ## テスト戦略
 
@@ -166,13 +177,14 @@ md.renderer.rules.fence = (tokens, idx, opts, env, self) => {
 
 | ファイル | 変更内容 |
 |---|---|
-| `README.md` / `README.ja.md` | PlantUML セクションに「`` ```plantuml `` フェンス記法も使用可能（VS Code プレビューと同じ書式）」を追記。`@startuml`/`@enduml` も従来通り使用可能であることを明示 |
-| `CHANGELOG.md` | 適切な節に "Add support for ```plantuml fenced code blocks (in addition to the existing `@startuml`/`@enduml` syntax)" を追加 |
+| `README.md` / `README.ja.md` | PlantUML セクションを「`` ```plantuml `` フェンス記法（推奨、VS Code プレビューと同じ書式）」中心に書き換える。`@startuml`/`@enduml` は **後方互換目的・基本的に非推奨** として併記する。PlantUML options セクションの `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` にも **Deprecated** 注記を加える |
+| `CHANGELOG.md` | 適切な節に "Add support for ```plantuml fenced code blocks as the recommended syntax. The existing `@startuml`/`@enduml` block syntax (and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings) remain functional but are now deprecated." を追加 |
+| `package.json` | `contributes.configuration` の `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` に `deprecationMessage` を追加（VS Code 設定 UI で取り消し線＋警告として表示される） |
 
 書かないこと:
 
-- `plantumlOpenMarker` / `plantumlCloseMarker` 設定の deprecation 案内（加算的拡張のため設定は引き続き有効）
 - フロントマター `plantumlServer` 上書きへの言及（スコープ外）
+- `@startuml` 経路の機能停止や削除（後方互換のため動作は維持）
 
 ## 依存関係
 
@@ -183,6 +195,9 @@ md.renderer.rules.fence = (tokens, idx, opts, env, self) => {
 - ` ```plantuml ... ``` ` フェンスを含む markdown を PDF / HTML 出力したとき、対応する PlantUML 図が `<img>` として表示される
 - 同一文書内に `@startuml ... @enduml` ブロックがあれば、それも引き続き図として表示される
 - `plantumlServer` を独自サーバに設定しても両経路の `<img>` URL がそのサーバを指す
-- `plantumlOpenMarker` / `plantumlCloseMarker` を設定しているユーザの既存挙動が変わらない
+- `plantumlOpenMarker` / `plantumlCloseMarker` を設定しているユーザの既存挙動が変わらない（動作レベルの後方互換）
+- VS Code 設定 UI で `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` が非推奨表示される
+- README / README.ja の PlantUML セクションが `` ```plantuml `` フェンスを推奨記法として案内し、`@startuml` を後方互換として記載している
+- CHANGELOG に新機能と非推奨化が記録されている
 - 既存の統合テスト 18 件が引き続き通る
 - 新規追加した単体テスト・統合テストが通る

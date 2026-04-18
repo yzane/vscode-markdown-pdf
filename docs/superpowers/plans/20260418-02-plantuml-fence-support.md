@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** ` ```plantuml ... ``` ` フェンス記法でも PlantUML 図にレンダリングされるようにする（既存の `@startuml`/`@enduml` ブロックは無改造で維持）。
+**Goal:** ` ```plantuml ... ``` ` フェンス記法を **新たな推奨記法** として PlantUML 図にレンダリングできるようにする。`@startuml`/`@enduml` ブロックは **後方互換目的** で動作を維持しつつ、ドキュメントと VS Code 設定 UI 上で「基本的に非推奨」と明示する。
 
-**Architecture:** `markdown-it-plantuml` プラグインは `@startuml`/`@enduml` 経路のためそのまま残し、`md.renderer.rules.fence` を上書きして `info==='plantuml'` の場合だけ自前のヘルパで `<img>` を生成する。両経路で `markdown-pdf.plantumlServer` 設定を共有する。
+**Architecture:** `markdown-it-plantuml` プラグインは `@startuml`/`@enduml` 経路のためそのまま残し、`md.renderer.rules.fence` を上書きして `info==='plantuml'` の場合だけ自前のヘルパで `<img>` を生成する。両経路で `markdown-pdf.plantumlServer` 設定を共有する。`markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` は `package.json` の VS Code 設定スキーマに `deprecationMessage` を加え、README にも非推奨注記を入れる。
 
 **Tech Stack:** TypeScript, markdown-it, markdown-it-plantuml (既存), plantuml-encoder (新規追加), Mocha (統合テスト), node:test + assert (単体テスト), VS Code 拡張 API。
 
@@ -314,14 +314,81 @@ git commit -m "test(integration): add fixture for plantuml fence rendering"
 
 ---
 
-## Task 5: README.md を更新する
+## Task 5: `package.json` で `plantumlOpenMarker` / `plantumlCloseMarker` を非推奨マーキングする
 
-PlantUML セクションに `` ```plantuml `` フェンス記法のサポートを追記する。`@startuml`/`@enduml` も従来通り使用可能であることを明示する。
+VS Code 設定 UI で取り消し線＋警告として表示されるよう、`contributes.configuration` の該当エントリに `deprecationMessage` を追加する。
+
+**Files:**
+- Modify: `package.json:879-887`（`markdown-pdf.plantumlOpenMarker` と `markdown-pdf.plantumlCloseMarker`）
+
+- [ ] **Step 1: 該当箇所を確認**
+
+実行: `sed -n '878,888p' package.json`
+
+期待:
+
+```json
+        "markdown-pdf.plantumlOpenMarker": {
+          "type": "string",
+          "default": "@startuml",
+          "description": "Oppening delimiter used for the plantuml parser."
+        },
+        "markdown-pdf.plantumlCloseMarker": {
+          "type": "string",
+          "default": "@enduml",
+          "description": "Closing delimiter used for the plantuml parser."
+        },
+```
+
+- [ ] **Step 2: `deprecationMessage` を追加**
+
+両エントリに `"deprecationMessage"` を追加し、以下のような形にする（カンマ位置に注意）。
+
+```json
+        "markdown-pdf.plantumlOpenMarker": {
+          "type": "string",
+          "default": "@startuml",
+          "description": "Oppening delimiter used for the plantuml parser.",
+          "deprecationMessage": "Deprecated. Use ```plantuml fenced code blocks instead. This setting is kept only for backward compatibility with the @startuml/@enduml block syntax."
+        },
+        "markdown-pdf.plantumlCloseMarker": {
+          "type": "string",
+          "default": "@enduml",
+          "description": "Closing delimiter used for the plantuml parser.",
+          "deprecationMessage": "Deprecated. Use ```plantuml fenced code blocks instead. This setting is kept only for backward compatibility with the @startuml/@enduml block syntax."
+        },
+```
+
+- [ ] **Step 3: JSON 構文の確認**
+
+実行: `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('OK')"`
+
+期待: `OK` が出力される（構文エラーが無い）。
+
+- [ ] **Step 4: 既存テストが壊れていないことを確認**
+
+実行: `npm test`
+
+期待: 22 passing（Task 4 までで追加したものを含む）。`deprecationMessage` の追加だけでは挙動は変わらない。
+
+- [ ] **Step 5: コミット**
+
+```bash
+git add package.json
+git commit -m "feat(settings): mark plantumlOpenMarker/CloseMarker as deprecated"
+```
+
+---
+
+## Task 6: README.md を更新する
+
+PlantUML セクションを `` ```plantuml `` フェンス推奨に書き換える。`@startuml` 系は後方互換目的・基本的に非推奨として併記する。さらに PlantUML options セクションの `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` にも **Deprecated** 注記を加える。
 
 **Files:**
 - Modify: `README.md` の `### PlantUML` セクション（118 行目付近）
+- Modify: `README.md` の `#### markdown-pdf.plantumlOpenMarker` / `#### markdown-pdf.plantumlCloseMarker`（592-598 行目付近）
 
-- [ ] **Step 1: 該当セクションを差し替える**
+- [ ] **Step 1: PlantUML セクションを差し替える**
 
 `README.md:118-132` を以下の内容に置き換える。
 
@@ -330,17 +397,9 @@ PlantUML セクションに `` ```plantuml `` フェンス記法のサポート�
 
 Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
 
-Both the `@startuml` / `@enduml` block syntax and the ```` ```plantuml ```` fenced code block syntax (the same form used by VS Code's built-in Markdown preview) are supported.
+The recommended syntax is the ```` ```plantuml ```` fenced code block, which is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.
 
 INPUT
-```
-@startuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-@enduml
-```
-
-or
 
 ````
 ```plantuml
@@ -352,33 +411,60 @@ Alice -[#0000FF]->Bob : ok
 OUTPUT
 
 ![PlantUML](images/PlantUML.png)
+
+> **Backward compatibility (generally not recommended for new content):**
+> The legacy `@startuml` / `@enduml` block syntax is also still supported.
+>
+> ```
+> @startuml
+> Bob -[#red]> Alice : hello
+> Alice -[#0000FF]->Bob : ok
+> @enduml
+> ```
 `````
 
-注意: 上記の **外側の 5 連バッククォートはこのプラン上の表示用** であり、実際の README.md には内側の `### PlantUML` から `![PlantUML](images/PlantUML.png)` までの内容をそのまま書く。`@startuml` 例の周囲は 3 連バッククォート、`` ```plantuml `` 例の周囲は 4 連バッククォートを保つこと。
+注意: 上記の **外側の 5 連バッククォートはこのプラン上の表示用** であり、実際の README.md には内側の `### PlantUML` から `> @enduml` および直後の `> ``` ` までの内容をそのまま書く。`@startuml` 例は引用 (`> `) 内の 3 連バッククォート、`` ```plantuml `` 例は 4 連バッククォートを保つこと。
 
-- [ ] **Step 2: 表示の整合を目視確認**
+- [ ] **Step 2: PlantUML options セクションに deprecation 注記を追加**
 
-実行: `cat README.md | sed -n '118,150p'`
+`README.md:592-598` あたりの 2 つの `####` 節を以下に置き換える。
+
+`````markdown
+#### `markdown-pdf.plantumlOpenMarker`
+  - **Deprecated.** Use the ```` ```plantuml ```` fenced code block syntax shown in the [PlantUML](#plantuml) section instead. This setting is kept only for backward compatibility with the `@startuml` / `@enduml` block syntax.
+  - Opening delimiter used for the plantuml parser.
+  - Default: @startuml
+
+#### `markdown-pdf.plantumlCloseMarker`
+  - **Deprecated.** Use the ```` ```plantuml ```` fenced code block syntax shown in the [PlantUML](#plantuml) section instead. This setting is kept only for backward compatibility with the `@startuml` / `@enduml` block syntax.
+  - Closing delimiter used for the plantuml parser.
+  - Default: @enduml
+`````
+
+- [ ] **Step 3: 表示の整合を目視確認**
+
+実行: `cat README.md | sed -n '118,160p'`、`cat README.md | sed -n '588,610p'`
 
 期待: マークダウンの整形が崩れていないこと。
 
-- [ ] **Step 3: コミット**
+- [ ] **Step 4: コミット**
 
 ```bash
 git add README.md
-git commit -m "docs(plantuml-fence): document \`\`\`plantuml fence syntax in README"
+git commit -m "docs(plantuml-fence): recommend \`\`\`plantuml; mark legacy syntax as deprecated"
 ```
 
 ---
 
-## Task 6: README.ja.md を更新する
+## Task 7: README.ja.md を更新する
 
-`README.md` と同じ内容を日本語で追記する。
+`README.md` と同じ内容を日本語で更新する。
 
 **Files:**
 - Modify: `README.ja.md` の `### PlantUML` セクション（116 行目付近）
+- Modify: `README.ja.md` の `#### markdown-pdf.plantumlOpenMarker` / `#### markdown-pdf.plantumlCloseMarker`（589-595 行目付近）
 
-- [ ] **Step 1: 該当セクションを差し替える**
+- [ ] **Step 1: PlantUML セクションを差し替える**
 
 `README.ja.md:116-130` を以下の内容に置き換える。
 
@@ -387,17 +473,9 @@ git commit -m "docs(plantuml-fence): document \`\`\`plantuml fence syntax in REA
 
 [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
 
-`@startuml` / `@enduml` 形式に加えて、 ```` ```plantuml ```` フェンス記法（VS Code 標準の Markdown プレビューと同じ書式）にも対応しています。
+推奨記法は ```` ```plantuml ```` フェンス記法です（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。
 
 INPUT
-```
-@startuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-@enduml
-```
-
-または
 
 ````
 ```plantuml
@@ -409,28 +487,54 @@ Alice -[#0000FF]->Bob : ok
 OUTPUT
 
 ![PlantUML](images/PlantUML.png)
+
+> **後方互換（新規利用は基本的に非推奨）:**
+> 従来の `@startuml` / `@enduml` 形式も引き続き利用できます。
+>
+> ```
+> @startuml
+> Bob -[#red]> Alice : hello
+> Alice -[#0000FF]->Bob : ok
+> @enduml
+> ```
 `````
 
-注意: 上記の **外側の 5 連バッククォートはこのプラン上の表示用** であり、実際の README.ja.md には内側の `### PlantUML` から `![PlantUML](images/PlantUML.png)` までの内容をそのまま書く。`@startuml` 例の周囲は 3 連バッククォート、`` ```plantuml `` 例の周囲は 4 連バッククォートを保つこと。
+注意: 上記の **外側の 5 連バッククォートはこのプラン上の表示用** であり、実際の README.ja.md には内側の `### PlantUML` から `> @enduml` および直後の `> ``` ` までの内容をそのまま書く。
 
-- [ ] **Step 2: 表示の整合を目視確認**
+- [ ] **Step 2: PlantUML options セクションに非推奨注記を追加**
 
-実行: `cat README.ja.md | sed -n '116,148p'`
+`README.ja.md:589-595` あたりの 2 つの `####` 節を以下に置き換える。
+
+`````markdown
+#### `markdown-pdf.plantumlOpenMarker`
+  - **非推奨。** [PlantUML](#plantuml) セクションに記載の ```` ```plantuml ```` フェンス記法を使ってください。この設定は `@startuml` / `@enduml` ブロック記法との後方互換のためにのみ残しています。
+  - plantuml パーサーの開始区切り文字
+  - Default: @startuml
+
+#### `markdown-pdf.plantumlCloseMarker`
+  - **非推奨。** [PlantUML](#plantuml) セクションに記載の ```` ```plantuml ```` フェンス記法を使ってください。この設定は `@startuml` / `@enduml` ブロック記法との後方互換のためにのみ残しています。
+  - plantuml パーサーの終了区切り文字
+  - Default: @enduml
+`````
+
+- [ ] **Step 3: 表示の整合を目視確認**
+
+実行: `cat README.ja.md | sed -n '116,158p'`、`cat README.ja.md | sed -n '585,605p'`
 
 期待: マークダウンの整形が崩れていないこと。
 
-- [ ] **Step 3: コミット**
+- [ ] **Step 4: コミット**
 
 ```bash
 git add README.ja.md
-git commit -m "docs(plantuml-fence): document \`\`\`plantuml fence syntax in README.ja"
+git commit -m "docs(plantuml-fence): recommend \`\`\`plantuml; mark legacy syntax as deprecated (ja)"
 ```
 
 ---
 
-## Task 7: CHANGELOG.md にエントリを追加する
+## Task 8: CHANGELOG.md にエントリを追加する
 
-`X.Y.Z` の `### Changes` 節に新機能を追記する。
+`X.Y.Z` の `### Changes` 節に新機能と非推奨化を追記する。
 
 **Files:**
 - Modify: `CHANGELOG.md`（先頭の `## X.Y.Z` セクション）
@@ -454,22 +558,23 @@ git commit -m "docs(plantuml-fence): document \`\`\`plantuml fence syntax in REA
 
 - [ ] **Step 2: エントリを追加**
 
-`### Changes` セクションの最後の項目の **下** に、以下を追加する。
+`### Changes` セクションの最後の項目の **下** に、以下 2 行を追加する。
 
 ```markdown
-* Add support for ```plantuml fenced code blocks (in addition to the existing `@startuml`/`@enduml` syntax) [#92](https://github.com/yzane/vscode-markdown-pdf/issues/92) [#162](https://github.com/yzane/vscode-markdown-pdf/issues/162) [#389](https://github.com/yzane/vscode-markdown-pdf/issues/389)
+* Add support for ```plantuml fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab) [#92](https://github.com/yzane/vscode-markdown-pdf/issues/92) [#162](https://github.com/yzane/vscode-markdown-pdf/issues/162) [#389](https://github.com/yzane/vscode-markdown-pdf/issues/389)
+* Deprecate the `@startuml` / `@enduml` block syntax and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now shows them as deprecated.
 ```
 
 - [ ] **Step 3: コミット**
 
 ```bash
 git add CHANGELOG.md
-git commit -m "docs(changelog): note \`\`\`plantuml fence support"
+git commit -m "docs(changelog): note \`\`\`plantuml fence support and legacy deprecation"
 ```
 
 ---
 
-## Task 8: 最終検証
+## Task 9: 最終検証
 
 すべての変更がまとまった状態で、最終確認を行う。
 
@@ -485,18 +590,22 @@ git commit -m "docs(changelog): note \`\`\`plantuml fence support"
 
 期待: エラーなし。
 
-- [ ] **Step 3: 手動の煙テスト（オプションだが推奨）**
+- [ ] **Step 3: VS Code 設定 UI で非推奨表示を確認（手動）**
 
-VS Code でこの worktree を開き、`test/integration/fixtures/plantuml-fence.md` を開いて `Markdown PDF: Export (html)` を実行し、生成された HTML をブラウザで開いて図が表示されることを目視確認する。
+VS Code でこの worktree を開き、`Cmd/Ctrl + ,` で設定 UI を開いて `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` を検索する。両者が **取り消し線付き** で表示され、ホバーすると Task 5 で設定した `deprecationMessage` が表示されることを確認する。
+
+- [ ] **Step 4: 手動の煙テスト（オプションだが推奨）**
+
+VS Code で `test/integration/fixtures/plantuml-fence.md` を開いて `Markdown PDF: Export (html)` を実行し、生成された HTML をブラウザで開いて図が表示されることを目視確認する。
 （ヘッドレス CI 環境では Step 1 の統合テストで担保されるため、手動確認はあくまで補助）
 
-- [ ] **Step 4: コミット履歴を確認**
+- [ ] **Step 5: コミット履歴を確認**
 
 実行: `git log --oneline feature/plantuml-fence-support ^develop`
 
-期待: Task 1〜7 のコミットが順に並んでいること（追加で「最終検証で見つかった微修正」のコミットがあれば含む）。
+期待: Task 1〜8 のコミットが順に並んでいること（追加で「最終検証で見つかった微修正」のコミットがあれば含む）。
 
-- [ ] **Step 5: 完了報告**
+- [ ] **Step 6: 完了報告**
 
 ユーザに「実装完了。`feature/plantuml-fence-support` を `develop` へマージしてよいか」と確認を仰ぐ。マージは AGENTS.md ルールにより、ユーザの明示的な承認なしに実行しない。
 
@@ -507,15 +616,15 @@ VS Code でこの worktree を開き、`test/integration/fixtures/plantuml-fence
 スペックの各セクションがプランのタスクで実装されているか:
 
 - [x] 背景 / 目的 → 不要（プランは実装手順）
-- [x] スコープ「含むもの」: フェンス経路 → Task 2-4、`plantumlServer` 共有 → Task 3、テスト → Task 2/4、README/CHANGELOG → Task 5-7
+- [x] スコープ「含むもの」: フェンス経路 → Task 2-4、`plantumlServer` 共有 → Task 3、`@startuml` 系の非推奨マーキング → Task 5（package.json）+ Task 6/7（README）+ Task 8（CHANGELOG）、テスト → Task 2/4、README/CHANGELOG → Task 6-8
 - [x] スコープ「含まないもの」: 該当タスクを設けないことで担保
 - [x] アーキテクチャ概要（経路 A/B 並行） → Task 3
-- [x] コンポーネントとファイル構成 → Task 1-3
+- [x] コンポーネントとファイル構成 → Task 1-3, 5
 - [x] データフロー（経路 B） → Task 3 の挿入コード
 - [x] 経路 A との競合 / ワークアラウンド利用者への影響 → Task 4 の既存テスト回帰確認
 - [x] エラー処理とエッジケース（空入力等） → Task 2 の Step 1 テスト
-- [x] 設定との関係 → Task 3 の `plantumlOptions.server` 共有
+- [x] 設定との関係（非推奨マーキング含む） → Task 3 の `plantumlOptions.server` 共有 + Task 5 の `deprecationMessage` + Task 6/7 の README 注記
 - [x] テスト戦略（単体・統合・回帰） → Task 2, 4
-- [x] ドキュメント更新 → Task 5, 6, 7
+- [x] ドキュメント更新 → Task 6, 7, 8
 - [x] 依存関係 → Task 1
-- [x] 受け入れ基準 → Task 8
+- [x] 受け入れ基準 → Task 9
