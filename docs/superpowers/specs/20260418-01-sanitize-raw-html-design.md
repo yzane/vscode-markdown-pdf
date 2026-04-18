@@ -139,7 +139,7 @@ md.renderer.rules.html_inline = function (tokens, idx) {
 
 - 新設定 `markdown-pdf.sanitize` のセクション追加
 - **サニタイズを導入した理由を簡潔に記載**:
-  - 従来は Markdown 内のRaw HTML をすべて素通しにしており、`<script>` や `<iframe>` 等が PDF レンダリング／プレビュー時に実行される XSS 様のリスクがあった（Issue #411）
+  - 従来は Markdown 内のRaw HTML をすべて素通しにしており、`<script>` や `<iframe>` 等が PDF レンダリング／プレビュー時に実行される XSS のリスクがあった（Issue #411）
   - GFM (GitHub Flavored Markdown) の Disallowed Raw HTML Extension に準拠して危険タグ・属性を既定で除去する
 - `"gfm"` モードで禁止される具体タグ一覧を記載（[GFM Spec 6.11](https://github.github.com/gfm/#disallowed-raw-html-extension-) 準拠）
 - 各モードの想定利用シーン:

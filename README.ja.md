@@ -34,7 +34,7 @@
 
 ### X.Y.Z
 
-- XSS 様のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい `markdown-pdf.sanitize` 設定で制御できます。
+- XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい `markdown-pdf.sanitize` 設定で制御できます。
     - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
 
 ### 2.0.0
@@ -713,7 +713,7 @@ BOM 付きファイルは引き続きサポートされます。
 
 ### Raw HTML がエスケープ／除去されるのはなぜ？
 
-以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
 
 バージョン X.Y.Z から、Markdown 本文内の Raw HTML は既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズが適用されます。挙動は `markdown-pdf.sanitize` で制御します:
 

@@ -4,7 +4,7 @@
 >
 > **作業ブランチ:** `feature/sanitize-raw-html`（worktree: `.worktrees/sanitize-raw-html/`）。他のブランチに切り替えないこと。
 
-**Goal:** Markdown 本文内のRaw HTML に対し GFM 準拠のサニタイズを適用し、`<script>` / `<iframe>` 等による XSS 様リスクを既定で緩和する。
+**Goal:** Markdown 本文内のRaw HTML に対し GFM 準拠のサニタイズを適用し、`<script>` / `<iframe>` 等による XSS リスクを既定で緩和する。
 
 **Architecture:** `markdown-it` の `html_block` / `html_inline` レンダラを差し替え、ユーザー設定 `markdown-pdf.sanitize`（`"gfm"` / `"gfm-allow-style"` / `"none"`、既定 `"gfm"`）に応じて危険タグの `<` を `&lt;` に置換、`on*` 属性と `javascript:` URL を含む属性を削除する。サニタイズ対象はユーザー由来 HTML のみで、`markdown-pdf.styles` の外部 CSS・拡張の自動生成 HTML・テンプレートは射程外。
 
@@ -712,7 +712,7 @@ Task 7.1 の英語セクションに対応する日本語版を追加する。
 
 ### 導入の背景
 
-以前のバージョンでは Markdown 内のRaw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+以前のバージョンでは Markdown 内のRaw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
 
 本リリースから、既定で [GitHub Flavored Markdown の Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズを適用します。
 
