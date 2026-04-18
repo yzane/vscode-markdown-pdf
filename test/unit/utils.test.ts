@@ -1833,6 +1833,11 @@ describe('utils', function () {
       it('should handle text without any tags', function () {
         assert.strictEqual(utils.sanitizeRawHtml('plain text', 'gfm'), 'plain text');
       });
+
+      it('should preserve whitespace before self-closing tag slash', function () {
+        const input = '<div class="page" />';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm'), input);
+      });
     });
 
     describe('on* event attributes', function () {

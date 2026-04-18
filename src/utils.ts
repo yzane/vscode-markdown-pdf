@@ -766,7 +766,7 @@ function stripDangerousAttributes(tag: string): string {
     return tag;
   }
 
-  // Find where the tag name ends (first whitespace or '>' / '/').
+  // Find where the tag name ends.
   let nameEnd = 1;
   while (nameEnd < tag.length && /[a-z0-9-]/i.test(tag[nameEnd])) {
     nameEnd++;
@@ -774,22 +774,22 @@ function stripDangerousAttributes(tag: string): string {
 
   let result = tag.slice(0, nameEnd);
   let i = nameEnd;
-  // Pending whitespace: buffered between attributes, emitted only when a safe
-  // attribute follows (to avoid leaving a trailing space after stripping the
-  // last attribute).
-  let pendingWs = '';
   while (i < tag.length) {
-    // Buffer whitespace; emit it only when we know a safe token follows.
-    if (/\s/.test(tag[i])) {
-      pendingWs += tag[i];
+    // Capture any whitespace leading to the next token.
+    const wsStart = i;
+    while (i < tag.length && /\s/.test(tag[i])) {
       i++;
-      continue;
+    }
+    const ws = tag.slice(wsStart, i);
+
+    if (i >= tag.length) {
+      result += ws;
+      break;
     }
 
-    // Emit '/' or '>' directly (end of tag), flushing any pending whitespace.
+    // Tag-closing delimiters ('/' or '>'): preserve the leading whitespace.
     if (tag[i] === '/' || tag[i] === '>') {
-      // For '>' or '/>' we want no trailing space before the closing delimiter.
-      // Drop pendingWs here — it was only inter-attribute padding.
+      result += ws;
       result += tag[i];
       i++;
       continue;
@@ -802,7 +802,7 @@ function stripDangerousAttributes(tag: string): string {
     }
     const attrName = tag.slice(attrStart, i);
 
-    // Skip whitespace after attribute name.
+    // Skip whitespace between attribute name and optional '='.
     let afterName = i;
     while (afterName < tag.length && /\s/.test(tag[afterName])) {
       afterName++;
@@ -848,16 +848,15 @@ function stripDangerousAttributes(tag: string): string {
         /^\s*javascript:/i.test(attrValue));
 
     if (!dangerous) {
-      // Flush the buffered whitespace before this safe attribute.
-      result += pendingWs;
+      // Emit the leading whitespace and this safe attribute verbatim.
+      result += ws;
       result += attrName;
       if (attrEnd > afterName) {
         // Include the '=' and value section verbatim.
         result += tag.slice(i, attrEnd);
       }
     }
-    // Discard pendingWs regardless (it was the separator before this attribute).
-    pendingWs = '';
+    // If dangerous: drop both ws AND the attribute span (emit nothing).
     i = attrEnd;
   }
   return result;
