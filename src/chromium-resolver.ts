@@ -182,12 +182,12 @@ function extractStableVersion(json: unknown): string | null {
   return typeof version === 'string' ? version : null;
 }
 
-/** Ensures a managed Chromium matching the expected build id exists in cacheDir, downloading it if necessary. */
+/** Downloads the specified Chrome build into cacheDir if not already present, and returns its executable path. */
 export async function ensureChromiumDownloaded(
   cacheDir: string,
+  buildId: string,
   onProgress?: (downloadedBytes: number, totalBytes: number) => void
 ): Promise<string> {
-  const buildId = getExpectedBuildId();
   const platform = PB.detectBrowserPlatform();
   let executablePath: string;
 
@@ -302,7 +302,7 @@ export async function resolveChromiumPath(
   }
 
   try {
-    return await ensureChromiumDownloaded(cacheDir, onProgress);
+    return await ensureChromiumDownloaded(cacheDir, getExpectedBuildId(), onProgress);
   } catch (error) {
     console.error('[Markdown PDF] Failed to download Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
     return null;

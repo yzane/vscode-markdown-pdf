@@ -247,4 +247,46 @@ describe('chromium-resolver', function () {
       assert.strictEqual(calls, 2);
     });
   });
+
+  describe('ensureChromiumDownloaded', function () {
+    it('should call PB.install with the given buildId', async function () {
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const installCalls: unknown[] = [];
+
+      Object.defineProperty(PB, 'computeExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () {
+          // Return a path that does not exist so accessSync throws and we fall through to install
+          return path.join(tmpDir, 'chrome-missing');
+        }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function (opts: unknown) {
+          installCalls.push(opts);
+          return { executablePath: path.join(tmpDir, 'chrome-installed') };
+        }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { return []; }
+      });
+
+      try {
+        const result = await chromiumResolver.ensureChromiumDownloaded(tmpDir, '131.0.6778.85');
+        assert.strictEqual(result, path.join(tmpDir, 'chrome-installed'));
+        assert.strictEqual(installCalls.length, 1);
+        assert.strictEqual((installCalls[0] as { buildId: string }).buildId, '131.0.6778.85');
+      } finally {
+        Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath!);
+        Object.defineProperty(PB, 'install', originalInstall!);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+      }
+    });
+  });
 });

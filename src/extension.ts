@@ -579,7 +579,7 @@ async function installChromium(): Promise<void> {
     if (!cacheDir) {
       throw new Error('Extension storage path is unavailable.');
     }
-    const executablePath = await chromiumResolver.ensureChromiumDownloaded(cacheDir, onProgress);
+    const executablePath = await chromiumResolver.ensureChromiumDownloaded(cacheDir, chromiumResolver.getExpectedBuildId(), onProgress);
 
     if (executablePath && checkPuppeteerBinary()) {
       INSTALL_CHECK = true;
