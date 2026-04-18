@@ -56,9 +56,12 @@ PlantUML を 2 経路で並行サポートする。
 | A. ブロック検出 | 既存 `markdown-it-plantuml` プラグイン（無改造） | `@startuml`/`@enduml`（`plantumlOpenMarker`/`plantumlCloseMarker` で上書き可） | `<img>` タグ（`src` は `${server}/svg/${encoded}`） |
 | B. フェンス検出（新規） | カスタム `fence` レンダラ | `` ```plantuml ... ``` `` | `<img>` タグ（`src` は `${server}/svg/${encoded}`） |
 
-両経路は同じ `plantumlServer` 設定と同じ画像 URL 生成ヘルパを共有する。
-出力 `<img>` タグの `src` URL は同一ソースに対してバイト一致する（属性セット
-の細部は実装段階で経路 A の挙動に揃える）。
+両経路は同じ `plantumlServer` 設定を共有する。出力 `<img>` タグは構造的に同等
+（同じサーバ、`/svg/` エンドポイント、同じ属性セット）とする。エンコード後
+の `src` ペイロードは両経路で異なる場合がある（`plantuml-encoder` と
+`markdown-it-plantuml` 内部 deflate は実装が異なるため、同じ PlantUML ソース
+に対して別々のバイト列を生成しうる — いずれも PlantUML サーバは等価に復号
+する）。属性セットの細部は実装段階で経路 A の挙動に揃える。
 
 ## コンポーネントとファイル構成
 
@@ -149,7 +152,7 @@ README で同様に注記する。`markdown-pdf.plantumlServer` は両経路で�
   - 既知の入力に対して `src` 属性が `${server}/svg/${expectedEncoded}` となる `<img>` を返すこと
   - サーバ URL が末尾スラッシュ有無のいずれでも経路 A と同じ結合挙動になること
   - 空文字列入力でも例外を投げず `<img>` を返すこと
-  - 出力 `<img>` タグが、`markdown-it-plantuml` プラグインに同じソースを通したときの `<img>` タグと **バイト一致** すること（両経路の同等性をロック）
+  - 出力 `<img>` タグが、`markdown-it-plantuml` プラグインに同じソースを通したときの `<img>` タグと **構造的に同等** であること（どちらも `<img src="${server}/svg/<encoded>" alt="uml diagram">` の形に一致することをシェイプ正規表現でロックする。エンコード済みペイロード自体は両経路で実装依存のため、バイト厳密比較はしない）
 
 ### 統合テスト (`test/integration/`)
 
