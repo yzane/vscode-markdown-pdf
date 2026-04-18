@@ -753,6 +753,117 @@ export function generateTmpHtmlFilename(filename: string): string {
 export type SanitizeMode = 'gfm' | 'gfm-allow-style' | 'none';
 
 /**
+ * Removes dangerous attributes from a single HTML opening/closing tag string.
+ * - on* event handlers (onclick, onload, etc.), case-insensitive
+ * - href/src whose value begins with 'javascript:' (ignoring leading whitespace), case-insensitive
+ *
+ * The input `tag` must be the full tag including '<' and '>'. Closing tags
+ * ('</tagname>') are returned unchanged. Comments are not handled here.
+ */
+function stripDangerousAttributes(tag: string): string {
+  // Skip closing tags and bail out cheaply on malformed input.
+  if (tag.length < 2 || tag[1] === '/') {
+    return tag;
+  }
+
+  // Find where the tag name ends (first whitespace or '>' / '/').
+  let nameEnd = 1;
+  while (nameEnd < tag.length && /[a-z0-9-]/i.test(tag[nameEnd])) {
+    nameEnd++;
+  }
+
+  let result = tag.slice(0, nameEnd);
+  let i = nameEnd;
+  // Pending whitespace: buffered between attributes, emitted only when a safe
+  // attribute follows (to avoid leaving a trailing space after stripping the
+  // last attribute).
+  let pendingWs = '';
+  while (i < tag.length) {
+    // Buffer whitespace; emit it only when we know a safe token follows.
+    if (/\s/.test(tag[i])) {
+      pendingWs += tag[i];
+      i++;
+      continue;
+    }
+
+    // Emit '/' or '>' directly (end of tag), flushing any pending whitespace.
+    if (tag[i] === '/' || tag[i] === '>') {
+      // For '>' or '/>' we want no trailing space before the closing delimiter.
+      // Drop pendingWs here — it was only inter-attribute padding.
+      result += tag[i];
+      i++;
+      continue;
+    }
+
+    // Parse attribute name.
+    const attrStart = i;
+    while (i < tag.length && !/[\s=/>]/.test(tag[i])) {
+      i++;
+    }
+    const attrName = tag.slice(attrStart, i);
+
+    // Skip whitespace after attribute name.
+    let afterName = i;
+    while (afterName < tag.length && /\s/.test(tag[afterName])) {
+      afterName++;
+    }
+
+    // Parse optional value.
+    let attrEnd = afterName;
+    let attrValue: string | null = null;
+    if (afterName < tag.length && tag[afterName] === '=') {
+      let valueStart = afterName + 1;
+      while (valueStart < tag.length && /\s/.test(tag[valueStart])) {
+        valueStart++;
+      }
+      if (valueStart < tag.length && (tag[valueStart] === '"' || tag[valueStart] === "'")) {
+        const quote = tag[valueStart];
+        const close = tag.indexOf(quote, valueStart + 1);
+        if (close === -1) {
+          // Malformed: consume rest of tag.
+          attrValue = tag.slice(valueStart + 1);
+          attrEnd = tag.length;
+        } else {
+          attrValue = tag.slice(valueStart + 1, close);
+          attrEnd = close + 1;
+        }
+      } else {
+        // Unquoted value: read until whitespace, '/', or '>'.
+        let valueEnd = valueStart;
+        while (valueEnd < tag.length && !/[\s/>]/.test(tag[valueEnd])) {
+          valueEnd++;
+        }
+        attrValue = tag.slice(valueStart, valueEnd);
+        attrEnd = valueEnd;
+      }
+    }
+
+    const lowerName = attrName.toLowerCase();
+    // Event handler attributes start with 'on' followed by at least three
+    // letters (the shortest real event names are three characters: e.g. 'cut').
+    const dangerous =
+      /^on[a-z]{3}/i.test(lowerName) ||
+      ((lowerName === 'href' || lowerName === 'src') &&
+        attrValue !== null &&
+        /^\s*javascript:/i.test(attrValue));
+
+    if (!dangerous) {
+      // Flush the buffered whitespace before this safe attribute.
+      result += pendingWs;
+      result += attrName;
+      if (attrEnd > afterName) {
+        // Include the '=' and value section verbatim.
+        result += tag.slice(i, attrEnd);
+      }
+    }
+    // Discard pendingWs regardless (it was the separator before this attribute).
+    pendingWs = '';
+    i = attrEnd;
+  }
+  return result;
+}
+
+/**
  * Returns the set of lowercase tag names to strip for the given sanitize mode.
  * See GFM 6.11 Disallowed Raw HTML extension:
  * https://github.github.com/gfm/#disallowed-raw-html-extension-
@@ -815,7 +926,7 @@ export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
       // user still sees what was in the source as visible text.
       result += '&lt;' + tag.slice(1);
     } else {
-      result += tag;
+      result += stripDangerousAttributes(tag);
     }
     index = tagEnd + 1;
   }

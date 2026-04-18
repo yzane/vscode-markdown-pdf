@@ -1834,5 +1834,42 @@ describe('utils', function () {
         assert.strictEqual(utils.sanitizeRawHtml('plain text', 'gfm'), 'plain text');
       });
     });
+
+    describe('on* event attributes', function () {
+      it('should strip onclick attribute (double-quoted)', function () {
+        const result = utils.sanitizeRawHtml('<div onclick="alert(1)">x</div>', 'gfm');
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should strip onload attribute (single-quoted)', function () {
+        const result = utils.sanitizeRawHtml("<body onload='x()'>y</body>", 'gfm');
+        assert.strictEqual(result, '<body>y</body>');
+      });
+
+      it('should strip unquoted on* attribute', function () {
+        const result = utils.sanitizeRawHtml('<div onclick=foo()>x</div>', 'gfm');
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should strip on* without value', function () {
+        const result = utils.sanitizeRawHtml('<div onclick>x</div>', 'gfm');
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should preserve other attributes when stripping on*', function () {
+        const result = utils.sanitizeRawHtml('<a href="x" onclick="y" class="z">t</a>', 'gfm');
+        assert.strictEqual(result, '<a href="x" class="z">t</a>');
+      });
+
+      it('should be case-insensitive for attribute name', function () {
+        const result = utils.sanitizeRawHtml('<div ONCLICK="x">y</div>', 'gfm');
+        assert.strictEqual(result, '<div>y</div>');
+      });
+
+      it('should not treat "one" or "only" as on* attribute', function () {
+        const result = utils.sanitizeRawHtml('<div one="1" only="2">x</div>', 'gfm');
+        assert.strictEqual(result, '<div one="1" only="2">x</div>');
+      });
+    });
   });
 });
