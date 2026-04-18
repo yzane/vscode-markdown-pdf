@@ -12,7 +12,8 @@
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [仕様変更](#仕様変更)
+- [X.Y.Z の仕様変更](#xyz-の仕様変更)
+- [2.0.0 の仕様変更](#200-の仕様変更)
 - [機能](#機能)
 - [Chromium](#chromium)
 - [使い方](#使い方)
@@ -28,7 +29,13 @@
 
 <div class="page"/>
 
-## 仕様変更
+## X.Y.Z の仕様変更
+
+バージョン X.Y.Z では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+
+- Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい `markdown-pdf.sanitize` 設定で制御できます。詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
+
+## 2.0.0 の仕様変更
 
 バージョン 2.0.0 では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
 
@@ -617,54 +624,6 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 "markdown-pdf.sanitize": "gfm",
 ```
 
-<div class="page"/>
-
-## Raw HTML のサニタイズ
-
-### 導入の背景
-
-以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
-
-本リリースから、既定で [GitHub Flavored Markdown の Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズを適用します。
-
-### モード
-
-`markdown-pdf.sanitize` で制御します。
-
-| モード | 挙動 |
-| --- | --- |
-| `"gfm"` (既定) | GFM の禁止タグおよび危険な属性を除去。他者が作成した Markdown を開く可能性がある通常利用に推奨。 |
-| `"gfm-allow-style"` | `"gfm"` と同様、ただし `<style>` は残す。自身で書いた Markdown に CSS を同梱して 1 ファイル完結の PDF を作成したい場合向け。**信頼できるコンテンツに限って使用してください** — CSS 自体でもデータ送信は可能です（下記参照）。 |
-| `"none"` | サニタイズ無効。従来互換。基本的に非推奨。 |
-
-### `"gfm"` で除去される対象
-
-タグ（開きタグ・閉じタグとも `<` が `&lt;` にエスケープされ、可視テキストとして残ります）:
-`<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
-
-属性:
-- `on*` イベントハンドラ（`onclick`, `onload` 等）
-- `href` / `src` の値が `javascript:` で始まるもの
-
-### 本文内 `<style>` からの移行
-
-PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の Raw HTML とは異なりサニタイズの影響を受けません。
-
-**外部 CSS の注意点:**
-- CSS は `@import url(...)`, `background: url(...)`, 属性セレクタ + `url(...)` 等によって外部送信が可能です。信頼できる CSS ファイルのみを指定してください。
-- `markdown-pdf.stylesRelativePathFile: true` の場合、スタイルシートのパスは開いた Markdown ファイルからの相対として解決されます。信頼できない場所にある Markdown を開くと、隣接する悪意ある `.css` を読み込む可能性があります。
-
-### サニタイズの適用範囲
-
-**サニタイズ対象:**
-- Markdown 本文内に書かれた Raw HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
-- Include 機能（`:[label](path.md)`）でインクルードされたファイルの内容（同じレンダラを通るため自動的に適用されます）
-
-**サニタイズ対象外:**
-- `markdown-pdf.styles` で指定された外部 CSS（意図的に対象外。ユーザー設定による明示指定が信頼境界）
-- 拡張内蔵の CSS およびテンプレート HTML
-- 拡張自身が生成する HTML（mermaid、highlight.js、emoji、PlantUML の出力）
-
 ## FAQ
 
 ### 絵文字 サイズの変更方法は？
@@ -745,6 +704,49 @@ title: My Document
 ```
 
 BOM 付きファイルは引き続きサポートされます。
+
+<a id="why-is-my-raw-html-being-escaped-or-removed"></a>
+
+### Raw HTML がエスケープ／除去されるのはなぜ？
+
+以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS 様のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+
+バージョン X.Y.Z から、Markdown 本文内の Raw HTML は既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズが適用されます。挙動は `markdown-pdf.sanitize` で制御します:
+
+| モード | 挙動 |
+| --- | --- |
+| `"gfm"` (既定) | GFM の禁止タグおよび危険な属性を除去。他者が作成した Markdown を開く可能性がある通常利用に推奨。 |
+| `"gfm-allow-style"` | `"gfm"` と同様、ただし `<style>` は残す。自身で書いた Markdown に CSS を同梱して 1 ファイル完結の PDF を作成したい場合向け。**信頼できるコンテンツに限って使用してください** — CSS 自体でもデータ送信は可能です。 |
+| `"none"` | サニタイズ無効。従来互換。基本的に非推奨。 |
+
+**`"gfm"` で除去される対象**
+
+タグ（開きタグ・閉じタグとも `<` が `&lt;` にエスケープされ、可視テキストとして残ります）:
+`<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+属性:
+- `on*` イベントハンドラ（`onclick`, `onload` 等）
+- `href` / `src` の値が `javascript:` で始まるもの
+
+**本文内 `<style>` からの移行**
+
+PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の Raw HTML とは異なりサニタイズの影響を受けません。
+
+外部 CSS の注意点:
+
+- CSS は `@import url(...)`, `background: url(...)`, 属性セレクタ + `url(...)` 等によって外部送信が可能です。信頼できる CSS ファイルのみを指定してください。
+- `markdown-pdf.stylesRelativePathFile: true` の場合、スタイルシートのパスは開いた Markdown ファイルからの相対として解決されます。信頼できない場所にある Markdown を開くと、隣接する悪意ある `.css` を読み込む可能性があります。
+
+**サニタイズの適用範囲**
+
+サニタイズ対象:
+- Markdown 本文内に書かれた Raw HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
+- Include 機能（`:[label](path.md)`）でインクルードされたファイルの内容（同じレンダラを通るため自動的に適用されます）
+
+サニタイズ対象外:
+- `markdown-pdf.styles` で指定された外部 CSS（意図的に対象外。ユーザー設定による明示指定が信頼境界）
+- 拡張内蔵の CSS およびテンプレート HTML
+- 拡張自身が生成する HTML（mermaid、highlight.js、emoji、PlantUML の出力）
 
 <a id="how-is-the-chromium-browser-selected"></a>
 
