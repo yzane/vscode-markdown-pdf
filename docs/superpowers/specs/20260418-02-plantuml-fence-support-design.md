@@ -10,13 +10,13 @@
 
 関連 issue / PR:
 
-- #389 ` ```plantuml ` ヘッダ付きでも `@startuml` 同様にレンダリングしてほしい
-- #162 三重バッククォートで囲んだ PlantUML が PDF に出力されない（20 件のコメント）
-- #92  GitLab/VS Code プレビューと同じ ` ```plantuml ` 記法を求める原典 issue
-- PR #294 既定マーカーを ` ```plantuml ` / ``` ``` に **置き換える** 提案（OPEN、両立しない）
-- PR #104 (MERGED) `plantumlOpenMarker` / `plantumlCloseMarker` 設定を追加した過去のワークアラウンド（片方しか有効化できない）
+- [#389](https://github.com/yzane/vscode-markdown-pdf/issues/389) ` ```plantuml ` ヘッダ付きでも `@startuml` 同様にレンダリングしてほしい
+- [#162](https://github.com/yzane/vscode-markdown-pdf/issues/162) 三重バッククォートで囲んだ PlantUML が PDF に出力されない（20 件のコメント）
+- [#92](https://github.com/yzane/vscode-markdown-pdf/issues/92)  GitLab/VS Code プレビューと同じ ` ```plantuml ` 記法を求める原典 issue
+- PR [#294](https://github.com/yzane/vscode-markdown-pdf/pull/294) 既定マーカーを ` ```plantuml ` / ``` ``` に **置き換える** 提案（OPEN、両立しない）
+- PR [#104](https://github.com/yzane/vscode-markdown-pdf/pull/104) (MERGED) `plantumlOpenMarker` / `plantumlCloseMarker` 設定を追加した過去のワークアラウンド（片方しか有効化できない）
 
-PR #104 で追加された設定は、ユーザが `plantumlOpenMarker` を ` ```plantuml ` に
+PR [#104](https://github.com/yzane/vscode-markdown-pdf/pull/104) で追加された設定は、ユーザが `plantumlOpenMarker` を ` ```plantuml ` に
 書き換えることで部分的に対処できるが、その瞬間 `@startuml` は使えなくなる。
 両表記の同時利用ができないことが本質的な不便さである。
 
