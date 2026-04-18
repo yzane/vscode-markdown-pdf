@@ -67,6 +67,7 @@ const HTML_FEATURES: HtmlFeature[] = [
   { name: 'include' },
   { name: 'mermaid' },
   { name: 'plantuml-custom-marker' },
+  { name: 'plantuml-fence' },
   { name: 'frontmatter-breaks' },
   { name: 'frontmatter-no-emoji' },
   { name: 'breaks' },
