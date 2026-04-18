@@ -248,6 +248,20 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       });
       md.use(markdownItPlantuml, plantumlOptions);
 
+      // ```plantuml fenced code blocks render as PlantUML diagrams alongside the
+      // @startuml/@enduml block syntax handled by markdown-it-plantuml above.
+      const defaultFenceRenderer = md.renderer.rules.fence;
+      md.renderer.rules.fence = function (tokens, idx, options, env, self) {
+        const token = tokens[idx];
+        if (token.info.trim().toLowerCase() === 'plantuml') {
+          return utils.buildPlantumlImgTag(token.content, plantumlOptions.server);
+        }
+        if (defaultFenceRenderer) {
+          return defaultFenceRenderer(tokens, idx, options, env, self);
+        }
+        return self.renderToken(tokens, idx, options);
+      };
+
       // Include markdown fragment files with :[alt-text](relative-path-to-file.md) syntax
       // https://talk.commonmark.org/t/transclusion-or-including-sub-documents-for-reuse/270/13
       if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {

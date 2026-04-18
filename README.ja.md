@@ -117,17 +117,30 @@ OUTPUT
 
 [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
 
+推奨記法は ```` ```plantuml ```` フェンス記法です（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。
+
 INPUT
-```
-@startuml
+
+````
+```plantuml
 Bob -[#red]> Alice : hello
 Alice -[#0000FF]->Bob : ok
-@enduml
 ```
+````
 
 OUTPUT
 
 ![PlantUML](images/PlantUML.png)
+
+> **後方互換（新規利用は基本的に非推奨）:**
+> 従来の `@startuml` / `@enduml` 形式も引き続き利用できます。
+>
+> ```
+> @startuml
+> Bob -[#red]> Alice : hello
+> Alice -[#0000FF]->Bob : ok
+> @enduml
+> ```
 
 ### Include
 
@@ -587,10 +600,12 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
+  - **非推奨。** [PlantUML](#plantuml) セクションに記載の ```` ```plantuml ```` フェンス記法を使ってください。この設定は `@startuml` / `@enduml` ブロック記法との後方互換のためにのみ残しています。
   - plantuml パーサーの開始区切り文字
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
+  - **非推奨。** [PlantUML](#plantuml) セクションに記載の ```` ```plantuml ```` フェンス記法を使ってください。この設定は `@startuml` / `@enduml` ブロック記法との後方互換のためにのみ残しています。
   - plantuml パーサーの終了区切り文字
   - Default: @enduml
 

@@ -6,6 +6,7 @@ import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
+import plantumlEncoder from 'plantuml-encoder';
 import { githubSlugify } from './markdown-it-named-headers';
 
 /** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
@@ -746,6 +747,17 @@ export function buildContainerRenderer(): { validate: (name: string) => number; 
 export function generateTmpHtmlFilename(filename: string): string {
   const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
+}
+
+/**
+ * Builds an <img> tag for a PlantUML source string. Produces the same
+ * structural <img> format as markdown-it-plantuml (same server, /svg/
+ * endpoint, alt="uml diagram") so that both the @startuml/@enduml path
+ * and the ```plantuml fence path render equivalent diagrams.
+ */
+export function buildPlantumlImgTag(source: string, server: string): string {
+  const encoded = plantumlEncoder.encode(source);
+  return '<img src="' + server + '/svg/' + encoded + '" alt="uml diagram">';
 }
 
 // Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per
