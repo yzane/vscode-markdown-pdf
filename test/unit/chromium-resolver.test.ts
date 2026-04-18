@@ -1,4 +1,4 @@
-import { describe, it, before, after } from 'node:test';
+import { describe, it, before, after, afterEach } from 'node:test';
 import assert from 'assert';
 import fs from 'fs';
 import os from 'os';
@@ -167,6 +167,84 @@ describe('chromium-resolver', function () {
       } finally {
         Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
       }
+    });
+  });
+
+  describe('fetchLatestStableBuildId', function () {
+    afterEach(function () {
+      chromiumResolver.resetLatestBuildIdCache();
+    });
+
+    it('should return the version from channels.Stable.version', async function () {
+      let calls = 0;
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        calls++;
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      const result = await chromiumResolver.fetchLatestStableBuildId();
+      assert.strictEqual(result, '131.0.6778.85');
+      assert.strictEqual(calls, 1);
+    });
+
+    it('should memoize successful results across calls in the same session', async function () {
+      let calls = 0;
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        calls++;
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      const a = await chromiumResolver.fetchLatestStableBuildId();
+      const b = await chromiumResolver.fetchLatestStableBuildId();
+      assert.strictEqual(a, '131.0.6778.85');
+      assert.strictEqual(b, '131.0.6778.85');
+      assert.strictEqual(calls, 1);
+    });
+
+    it('should return null on network error and not retry within the same session', async function () {
+      let calls = 0;
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        calls++;
+        throw new Error('ECONNREFUSED');
+      });
+
+      const a = await chromiumResolver.fetchLatestStableBuildId();
+      const b = await chromiumResolver.fetchLatestStableBuildId();
+      assert.strictEqual(a, null);
+      assert.strictEqual(b, null);
+      assert.strictEqual(calls, 1);
+    });
+
+    it('should return null on schema mismatch', async function () {
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        return { unexpected: 'shape' };
+      });
+      assert.strictEqual(await chromiumResolver.fetchLatestStableBuildId(), null);
+    });
+
+    it('should return null on malformed version string', async function () {
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        return { channels: { Stable: { version: 'not-a-version' } } };
+      });
+      assert.strictEqual(await chromiumResolver.fetchLatestStableBuildId(), null);
+    });
+
+    it('should fetch again after resetLatestBuildIdCache()', async function () {
+      let calls = 0;
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        calls++;
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      await chromiumResolver.fetchLatestStableBuildId();
+      chromiumResolver.resetLatestBuildIdCache();
+      // After reset, fetcher returns to default, so re-install our test fetcher
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        calls++;
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+      await chromiumResolver.fetchLatestStableBuildId();
+      assert.strictEqual(calls, 2);
     });
   });
 });

@@ -102,6 +102,86 @@ export function getExpectedBuildId(): string {
   return puppeteerModule.PUPPETEER_REVISIONS.chrome;
 }
 
+const CHROME_FOR_TESTING_LATEST_URL =
+  'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json';
+const FETCH_TIMEOUT_MS = 10_000;
+const BUILD_ID_PATTERN = /^\d+\.\d+\.\d+\.\d+$/;
+
+type JsonFetcher = (url: string) => Promise<unknown>;
+
+const defaultJsonFetcher: JsonFetcher = async function (url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error('HTTP ' + response.status);
+    }
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+let jsonFetcher: JsonFetcher = defaultJsonFetcher;
+let cachedLatestBuildId: string | null = null;
+let cachedLatestFetchFailed: boolean = false;
+
+/** Replaces the JSON fetcher used by fetchLatestStableBuildId; intended for unit tests. */
+export function setJsonFetcherForTesting(fetcher: JsonFetcher): void {
+  jsonFetcher = fetcher;
+}
+
+/** Clears the in-memory cache of the latest stable build id; intended for unit tests and module reload. */
+export function resetLatestBuildIdCache(): void {
+  cachedLatestBuildId = null;
+  cachedLatestFetchFailed = false;
+  jsonFetcher = defaultJsonFetcher;
+}
+
+/** Fetches the latest Chrome Stable build id from Chrome for Testing API. Memoizes per session. */
+export async function fetchLatestStableBuildId(): Promise<string | null> {
+  if (cachedLatestBuildId) {
+    return cachedLatestBuildId;
+  }
+  if (cachedLatestFetchFailed) {
+    return null;
+  }
+
+  try {
+    const json = await jsonFetcher(CHROME_FOR_TESTING_LATEST_URL);
+    const version = extractStableVersion(json);
+    if (!version || !BUILD_ID_PATTERN.test(version)) {
+      cachedLatestFetchFailed = true;
+      console.warn('[Markdown PDF] Latest Chromium version response had unexpected shape');
+      return null;
+    }
+    cachedLatestBuildId = version;
+    return version;
+  } catch (error) {
+    cachedLatestFetchFailed = true;
+    const msg = error && (error as Error).message ? (error as Error).message : String(error);
+    console.warn('[Markdown PDF] Failed to fetch latest Chromium version: ' + msg);
+    return null;
+  }
+}
+
+function extractStableVersion(json: unknown): string | null {
+  if (!json || typeof json !== 'object') {
+    return null;
+  }
+  const channels = (json as { channels?: unknown }).channels;
+  if (!channels || typeof channels !== 'object') {
+    return null;
+  }
+  const stable = (channels as { Stable?: unknown }).Stable;
+  if (!stable || typeof stable !== 'object') {
+    return null;
+  }
+  const version = (stable as { version?: unknown }).version;
+  return typeof version === 'string' ? version : null;
+}
+
 /** Ensures a managed Chromium matching the expected build id exists in cacheDir, downloading it if necessary. */
 export async function ensureChromiumDownloaded(
   cacheDir: string,
