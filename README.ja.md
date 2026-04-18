@@ -34,14 +34,19 @@
 
 ### X.Y.Z
 
-- Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい `markdown-pdf.sanitize` 設定で制御できます。詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
+- Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい `markdown-pdf.sanitize` 設定で制御できます。
+    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
 
 ### 2.0.0
 
-- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
-- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
-- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
-- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。
+    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
+- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。
+    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
+- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。
+    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
+- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
+    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ## 機能
 
