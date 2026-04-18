@@ -1130,46 +1130,19 @@ git commit -m "feat(extension): wire up markdown-pdf.chromium.autoDownload setti
 
 ## Task 7: 手動検証チェックリスト
 
-仕様書 7.3 の項目を実環境で確認する。CI には組み込まないが、リリース前の最終チェックとしてこのワークツリーで実施する。
+仕様書 7.3 の 5 シナリオを実環境で確認する。CI には組み込まないが、リリース前の最終チェックとして実施する。
 
-- [ ] **Step 1: クリーン環境シナリオ**
+具体手順は以下の 2 文書を参照する（本プラン記述時の macOS/Linux 前提と実際の Remote-WSL 環境で経路が異なったため、手順本体は別ファイルに切り出した）:
 
-  1. `~/.vscode/extensions/` 内の本拡張、および `~/.config/Code/User/globalStorage/yzane.markdown-pdf` を退避
-  2. VS Code を起動 → アクティベート
-  3. ステータスバーに `Installing Chromium NN%` が表示され、`Chromium installation succeeded` で完了することを確認
-  4. `~/.config/Code/User/globalStorage/yzane.markdown-pdf/chrome/` 配下に最新 Stable のディレクトリが作成されていることを確認
+- **再利用可能な手順書:** `docs/chromium-auto-download-manual-verification.md` — 将来のリリースでも使える 5 シナリオのランブック
+- **本リリースの実施記録:** `docs/superpowers/plans/20260418-01-chromium-auto-download-task7-record.md` — 2026-04-19 Remote-WSL 環境での実測ログと判定
 
-- [ ] **Step 2: キャッシュ済みシナリオ**
+- [x] **Step 1: 手順書に従い 5 シナリオを実施**
+- [x] **Step 2: 実施記録を作成し本プランからリンク**
 
-  1. 上記 Step 1 完了後の状態で VS Code を再起動
-  2. ダウンロード進捗が出ないことを確認（最新 buildId がキャッシュにヒット）
-  3. ネットワークログ（macOS なら Little Snitch、Linux なら `tcpdump`）で `googlechromelabs.github.io` への JSON GET が 1 回だけ発生することを確認
+すべて成功していれば本 Task を完了とする。失敗があれば該当 Task に戻って修正後、再実施する。
 
-- [ ] **Step 3: オフラインシナリオ**
-
-  1. ネットワークを切断
-  2. VS Code 再起動 → 既存キャッシュで Markdown PDF 変換が成功することを確認
-  3. 出力ログに `Falling back to cached Chromium build` が出ていることを確認
-
-- [ ] **Step 4: `autoDownload=false` + キャッシュなしシナリオ**
-
-  1. `~/.config/Code/User/globalStorage/yzane.markdown-pdf/chrome/` を削除
-  2. 設定 `markdown-pdf.chromium.autoDownload = false`
-  3. システムに Chrome / Chromium / Edge がない状態を作る（または PATH を絞る）
-  4. `markdown-pdf.executablePath` 未設定で PDF 変換コマンドを実行
-  5. エラーメッセージ "Chromium not found. Automatic download is disabled..." が表示されることを確認
-
-- [ ] **Step 5: `autoDownload=false` + システムブラウザありシナリオ**
-
-  1. システムに Chrome がある状態
-  2. 設定 `markdown-pdf.chromium.autoDownload = false`
-  3. PDF 変換が正常に成功することを確認
-
-- [ ] **Step 6: 検証完了をプランにメモする**
-
-すべて成功したら本 Task を `[x]` にチェックして完了。失敗があれば該当 Task に戻って修正後、本 Step を再実行する。
-
-> **Note:** 本タスクは実環境依存のため、CI 自動化対象外。手動検証完了後、別 PR でリリース版バンプ作業へ進む。
+> **Note:** 本タスクは実環境依存のため、CI 自動化対象外。手動検証完了後、`develop` へ `--no-ff` マージする。
 
 ---
 
