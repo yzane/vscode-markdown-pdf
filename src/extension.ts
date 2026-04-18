@@ -15,7 +15,6 @@ import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
 import { markdownItInclude } from './markdown-it-include';
 import puppeteer from 'puppeteer-core';
-import * as PB from '@puppeteer/browsers';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
 let INSTALL_CHECK = false;
@@ -35,6 +34,15 @@ function getExtensionCacheDir(): string {
   }
 
   return '';
+}
+
+/** Reads markdown-pdf.chromium.autoDownload (default: true). */
+function getAutoDownload(): boolean {
+  const chromium = vscode.workspace.getConfiguration('markdown-pdf')['chromium'];
+  if (chromium && typeof chromium === 'object' && typeof chromium.autoDownload === 'boolean') {
+    return chromium.autoDownload;
+  }
+  return true;
 }
 
 /** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
@@ -364,13 +372,23 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
         exportHtml(data as string, tmpfilename);
         const cacheDir = getExtensionCacheDir();
         const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
-        const resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir);
+        const resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
+          autoDownload: getAutoDownload()
+        });
         if (!resolvedExecPath) {
           if (utils.isExistsPath(tmpfilename)) {
             deleteFile(tmpfilename);
           }
-          showErrorMessage('Chromium or Chrome does not exist! \
-      See https://github.com/yzane/vscode-markdown-pdf#install');
+          if (!getAutoDownload()) {
+            showErrorMessage(
+              'Chromium not found. Automatic download is disabled (markdown-pdf.chromium.autoDownload = false). ' +
+              'Install Google Chrome / Chromium / Microsoft Edge, set markdown-pdf.executablePath, ' +
+              'or enable markdown-pdf.chromium.autoDownload. ' +
+              'See https://github.com/yzane/vscode-markdown-pdf#install'
+            );
+          } else {
+            showErrorMessage('Chromium or Chrome does not exist! See https://github.com/yzane/vscode-markdown-pdf#install');
+          }
           return;
         }
         const launchOptions = {
@@ -562,17 +580,7 @@ function checkPuppeteerBinary(): boolean | undefined {
       if (!cacheDir) {
         return false;
       }
-      const cachedPath = PB.computeExecutablePath({
-        browser: PB.Browser.CHROME,
-        buildId: chromiumResolver.getExpectedBuildId(),
-        cacheDir: cacheDir,
-        platform: PB.detectBrowserPlatform()
-      });
-      try {
-        fs.accessSync(cachedPath);
-        return true;
-      } catch (accessError) {
-      }
+      return chromiumResolver.hasAnyCachedChromiumSync(cacheDir);
     }
 
     return false;
@@ -588,6 +596,11 @@ function checkPuppeteerBinary(): boolean | undefined {
 async function installChromium(): Promise<void> {
   let statusbarmessage: vscode.Disposable | undefined;
   try {
+    if (!getAutoDownload()) {
+      // autoDownload disabled: defer error to actual export attempt.
+      return;
+    }
+
     vscode.window.showInformationMessage('[Markdown PDF] Installing Chromium ...');
     statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ...');
 
@@ -598,13 +611,19 @@ async function installChromium(): Promise<void> {
     if (!cacheDir) {
       throw new Error('Extension storage path is unavailable.');
     }
-    const executablePath = await chromiumResolver.ensureChromiumDownloaded(cacheDir, onProgress);
 
-    if (executablePath && checkPuppeteerBinary()) {
+    const executablePath = await chromiumResolver.resolveChromiumPath('', cacheDir, {
+      autoDownload: true,
+      onProgress: onProgress
+    });
+
+    if (executablePath) {
       INSTALL_CHECK = true;
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
       vscode.window.showInformationMessage('[Markdown PDF] Chromium installation succeeded.');
+    } else {
+      throw new Error('resolveChromiumPath returned null');
     }
   } catch (error) {
     try {
