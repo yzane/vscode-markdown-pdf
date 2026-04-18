@@ -1,5 +1,12 @@
 # Markdown PDF
 
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.svg">
+    <img src="images/banner.svg" alt="Markdown PDF" width="400">
+  </picture>
+</p>
+
 この拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
 
 ## 目次

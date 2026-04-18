@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 60 480 140" role="img" aria-labelledby="banner-title">
+  <title id="banner-title">Markdown PDF</title>
+  <style>
+    .doc-bg { fill: #ffffff; }
+    .doc-stroke { stroke: #cbd5e1; stroke-width: 1.5; fill: none; stroke-linejoin: round; }
+    .doc-fold { fill: #e2e8f0; }
+    .label { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 8px; }
+    .hash { fill: #475569; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-weight: 700; font-size: 15px; }
+    .bar { fill: #cbd5e1; }
+    .bullet { fill: #475569; }
+    .arrow { stroke: #94a3b8; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .pdf-label { fill: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.5px; }
+    .md-mark { fill: #475569; }
+  </style>
+
+  <g transform="translate(32, 80)">
+    <path d="M0 0 H60 L80 20 V100 H0 Z" class="doc-bg"/>
+    <path d="M60 0 V20 H80 Z" class="doc-fold"/>
+    <path d="M0 0 H60 L80 20 V100 H0 Z" class="doc-stroke"/>
+    <path d="M60 0 V20 H80" class="doc-stroke"/>
+    <text x="7" y="32" class="hash">#</text>
+    <rect x="22" y="22" width="48" height="2.5" class="bar"/>
+    <rect x="22" y="30" width="34" height="2.5" class="bar"/>
+    <circle cx="10" cy="52" r="1.8" class="bullet"/>
+    <text x="16" y="55" class="label">Heading</text>
+    <circle cx="10" cy="67" r="1.8" class="bullet"/>
+    <text x="16" y="70" class="label">Bullet points</text>
+    <circle cx="10" cy="82" r="1.8" class="bullet"/>
+    <text x="16" y="85" class="label">Code</text>
+    <g transform="translate(50, 83) scale(0.125)" class="md-mark">
+      <path clip-rule="evenodd" fill-rule="evenodd" d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"/>
+      <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z"/>
+    </g>
+  </g>
+
+  <path d="M128 130 L165 130 M157 123 L165 130 L157 137" class="arrow"/>
+
+  <g transform="translate(188, 85) scale(0.9)">
+    <mask id="vsc-mask" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M70.9119 99.3171C72.4869 99.9307 74.2828 99.8914 75.8725 99.1264L96.4608 89.2197C98.6242 88.1787 100 85.9892 100 83.5872V16.4133C100 14.0113 98.6243 11.8218 96.4609 10.7808L75.8725 0.873756C73.7862 -0.130129 71.3446 0.11576 69.5135 1.44695C69.252 1.63711 69.0028 1.84943 68.769 2.08341L29.3551 38.0415L12.1872 25.0096C10.589 23.7965 8.35363 23.8959 6.86933 25.2461L1.36303 30.2549C-0.452552 31.9064 -0.454633 34.7627 1.35853 36.417L16.2471 50.0001L1.35853 63.5832C-0.454633 65.2374 -0.452552 68.0938 1.36303 69.7453L6.86933 74.7541C8.35363 76.1043 10.589 76.2037 12.1872 74.9905L29.3551 61.9587L68.769 97.9167C69.3925 98.5406 70.1246 99.0104 70.9119 99.3171ZM75.0152 27.2989L45.1091 50.0001L75.0152 72.7012V27.2989Z" fill="white"/>
+    </mask>
+    <g mask="url(#vsc-mask)">
+      <path d="M96.4614 10.7962L75.8569 0.875542C73.4719 -0.272773 70.6217 0.211611 68.75 2.08333L1.29858 63.5832C-0.515693 65.2373 -0.513607 68.0937 1.30308 69.7452L6.81272 74.754C8.29793 76.1042 10.5347 76.2036 12.1338 74.9905L93.3609 13.3699C96.086 11.3026 100 13.2462 100 16.6667V16.4275C100 14.0265 98.6246 11.8378 96.4614 10.7962Z" fill="#0065A9"/>
+      <path d="M96.4614 89.2038L75.8569 99.1245C73.4719 100.273 70.6217 99.7884 68.75 97.9167L1.29858 36.4169C-0.515693 34.7627 -0.513607 31.9063 1.30308 30.2548L6.81272 25.246C8.29793 23.8958 10.5347 23.7964 12.1338 25.0095L93.3609 86.6301C96.086 88.6974 100 86.7538 100 83.3334V83.5726C100 85.9735 98.6246 88.1622 96.4614 89.2038Z" fill="#007ACC"/>
+      <path d="M75.8578 99.1263C73.4721 100.274 70.6219 99.7885 68.75 97.9166C71.0564 100.223 75 98.5895 75 95.3278V4.67213C75 1.41039 71.0564 -0.223106 68.75 2.08329C70.6219 0.211402 73.4721 -0.273666 75.8578 0.873633L96.4587 10.7807C98.6234 11.8217 100 14.0112 100 16.4132V83.5871C100 85.9891 98.6234 88.1786 96.4586 89.2196L75.8578 99.1263Z" fill="#1F9CF0"/>
+    </g>
+  </g>
+
+  <path d="M295 130 L332 130 M324 123 L332 130 L324 137" class="arrow"/>
+
+  <g transform="translate(353, 80)">
+    <path d="M6 0 H56 L80 24 V94 Q80 100 74 100 H6 Q0 100 0 94 V6 Q0 0 6 0 Z" fill="#E53935"/>
+    <path d="M6 0 H56 L80 24 V94 Q80 100 74 100 H6 Q0 100 0 94 V6 Q0 0 6 0 Z" fill="url(#pdf-shine)" opacity="0.25"/>
+    <path d="M56 0 L80 24 L56 24 Z" fill="#B71C1C"/>
+    <path d="M56 0 L56 24 L80 24" stroke="#7F1818" stroke-width="0.5" fill="none" stroke-linejoin="round" opacity="0.6"/>
+    <text x="40" y="72" text-anchor="middle" class="pdf-label">PDF</text>
+  </g>
+
+  <defs>
+    <linearGradient id="pdf-shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
