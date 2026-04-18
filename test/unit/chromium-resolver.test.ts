@@ -289,4 +289,263 @@ describe('chromium-resolver', function () {
       }
     });
   });
+
+  describe('resolveChromiumPath', function () {
+    let originalPlatform: PropertyDescriptor | undefined;
+
+    before(function () {
+      // Force getEdgeAndChromiumCandidates() to return [] so the system-detection
+      // fallback never accidentally hits a real binary on the dev machine.
+      originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+      Object.defineProperty(process, 'platform', { configurable: true, value: 'aix' });
+    });
+
+    after(function () {
+      if (originalPlatform) {
+        Object.defineProperty(process, 'platform', originalPlatform);
+      }
+    });
+
+    afterEach(function () {
+      chromiumResolver.resetLatestBuildIdCache();
+    });
+
+    it('should return user setting path immediately when valid', async function () {
+      let installCalled = false;
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { installCalled = true; return { executablePath: 'x' }; }
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath(existingExecutablePath, '/cache', { autoDownload: true });
+        assert.strictEqual(result, existingExecutablePath);
+        assert.strictEqual(installCalled, false);
+      } finally {
+        Object.defineProperty(PB, 'install', originalInstall!);
+      }
+    });
+
+    it('should download latest build id when autoDownload=true and cache misses', async function () {
+      const installCalls: unknown[] = [];
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'computeExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { return '/cache/chrome/missing'; }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { return []; }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function (opts: unknown) {
+          installCalls.push(opts);
+          return { executablePath: '/cache/chrome/installed-latest' };
+        }
+      });
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
+        assert.strictEqual(result, '/cache/chrome/installed-latest');
+        assert.strictEqual(installCalls.length, 1);
+        assert.strictEqual((installCalls[0] as { buildId: string }).buildId, '131.0.6778.85');
+      } finally {
+        Object.defineProperty(PB, 'install', originalInstall!);
+        Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath!);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+
+    it('should return cached path when autoDownload=true and JSON fetch fails but cache has builds', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+      let installCalled = false;
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () {
+          return [
+            { browser: PB.Browser.CHROME, buildId: '130.0.6723.91', platform: 'linux', executablePath: '/cache/chrome/130' }
+          ];
+        }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { installCalled = true; return { executablePath: 'x' }; }
+      });
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        throw new Error('ECONNREFUSED');
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: true });
+        assert.strictEqual(result, '/cache/chrome/130');
+        assert.strictEqual(installCalled, false);
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        Object.defineProperty(PB, 'install', originalInstall!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+
+    it('should fall back to bundled puppeteer-core build when JSON fetch fails and cache is empty', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+      const installCalls: unknown[] = [];
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { return []; }
+      });
+      Object.defineProperty(PB, 'computeExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { return '/cache/chrome/missing'; }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function (opts: unknown) {
+          installCalls.push(opts);
+          return { executablePath: '/cache/chrome/bundled' };
+        }
+      });
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        throw new Error('ECONNREFUSED');
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
+        assert.strictEqual(result, '/cache/chrome/bundled');
+        assert.strictEqual(installCalls.length, 1);
+        assert.strictEqual((installCalls[0] as { buildId: string }).buildId, chromiumResolver.getExpectedBuildId());
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        Object.defineProperty(PB, 'install', originalInstall!);
+        Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+
+    it('should return cached path when autoDownload=false and cache has builds', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+      let installCalled = false;
+      let fetchCalled = false;
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () {
+          return [
+            { browser: PB.Browser.CHROME, buildId: '130.0.6723.91', platform: 'linux', executablePath: '/cache/chrome/130' }
+          ];
+        }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { installCalled = true; return { executablePath: 'x' }; }
+      });
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        fetchCalled = true;
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: false });
+        assert.strictEqual(result, '/cache/chrome/130');
+        assert.strictEqual(installCalled, false);
+        assert.strictEqual(fetchCalled, false);
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        Object.defineProperty(PB, 'install', originalInstall!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+
+    it('should return null when autoDownload=false and nothing is available', async function () {
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+      let installCalled = false;
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true,
+        enumerable: true,
+        value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { return []; }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true,
+        enumerable: true,
+        value: async function () { installCalled = true; return { executablePath: 'x' }; }
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: false });
+        assert.strictEqual(result, null);
+        assert.strictEqual(installCalled, false);
+      } finally {
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        Object.defineProperty(PB, 'install', originalInstall!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+  });
 });

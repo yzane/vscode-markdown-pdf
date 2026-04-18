@@ -285,12 +285,20 @@ export async function findLatestCachedChromium(cacheDir: string): Promise<string
   }
 }
 
-/** Resolves a usable Chromium path by trying user setting, system install, and managed download in order. */
+export interface ResolveChromiumPathOptions {
+  autoDownload?: boolean;
+  onProgress?: (downloadedBytes: number, totalBytes: number) => void;
+}
+
+/** Resolves a usable Chromium path: user setting → system → (auto)download or cached. */
 export async function resolveChromiumPath(
   userExecutablePath: string,
   cacheDir: string,
-  onProgress?: (downloadedBytes: number, totalBytes: number) => void
+  options?: ResolveChromiumPathOptions
 ): Promise<string | null> {
+  const autoDownload = options?.autoDownload !== false;
+  const onProgress = options?.onProgress;
+
   let executablePath: string | null = findChromiumFromUserSetting(userExecutablePath);
   if (executablePath) {
     return executablePath;
@@ -301,10 +309,33 @@ export async function resolveChromiumPath(
     return executablePath;
   }
 
+  if (!autoDownload) {
+    return await findLatestCachedChromium(cacheDir);
+  }
+
+  const latestBuildId = await fetchLatestStableBuildId();
+  if (latestBuildId) {
+    try {
+      return await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+    } catch (error) {
+      console.error('[Markdown PDF] Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+      return null;
+    }
+  }
+
+  // JSON fetch failed: prefer existing cache, then fall back to bundled puppeteer-core build id.
+  const cachedPath = await findLatestCachedChromium(cacheDir);
+  if (cachedPath) {
+    console.warn('[Markdown PDF] Falling back to cached Chromium build');
+    return cachedPath;
+  }
+
+  const fallbackBuildId = getExpectedBuildId();
+  console.warn('[Markdown PDF] Falling back to bundled Chromium build: ' + fallbackBuildId);
   try {
-    return await ensureChromiumDownloaded(cacheDir, getExpectedBuildId(), onProgress);
+    return await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
   } catch (error) {
-    console.error('[Markdown PDF] Failed to download Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+    console.error('[Markdown PDF] All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
     return null;
   }
 }
