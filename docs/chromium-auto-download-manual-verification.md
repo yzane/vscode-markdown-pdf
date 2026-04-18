@@ -50,6 +50,19 @@ code --extensionDevelopmentPath="$(pwd)" --disable-extensions README.md
 
 起動後、**Help > Toggle Developer Tools** → Console タブを常時監視。Filter に `[Markdown PDF]` を入れると関連ログだけが見えます。
 
+**デフォルトで Console に流れるログ（本文書ではこれらを期待値として参照する）:**
+
+- `[Markdown PDF] Configured executablePath not found: ...` — `markdown-pdf.executablePath` 設定のパスが無効なとき
+- `[Markdown PDF] Latest Chromium version response had unexpected shape` — API レスポンスが期待形式でないとき
+- `[Markdown PDF] Failed to fetch latest Chromium version: ...` — API 通信失敗
+- `[Markdown PDF] Removed old Chromium: <buildId>` — 古いキャッシュ削除時
+- `[Markdown PDF] Failed to download latest Chromium: ...` — DL 失敗
+- `[Markdown PDF] Falling back to cached Chromium build` — fetch 失敗時にキャッシュへフォールバック
+- `[Markdown PDF] Falling back to bundled Chromium build: <buildId>` — キャッシュもない時に puppeteer-core バンドル版へ
+- `[Markdown PDF] All Chromium acquisition attempts failed: ...` — すべて失敗
+
+成功経路（シナリオ 1, 2, 5）は警告が出ない設計のため、Console には本拡張のログが出ません。以下の**行動観察**（通知・ファイルシステム・プロセス）で判定してください。
+
 ### 共通診断
 
 ```bash
@@ -65,7 +78,14 @@ ps auxww | grep -iE 'chrom|puppeteer' | grep -v grep
 
 ### （任意）分岐トレース用の一時ログ
 
-`src/chromium-resolver.ts` に `[Markdown PDF][resolve] <branch> → <path>` のような分岐ログを一時的に埋め込むと、どのフォールバック分岐が選ばれたかが Console で追えて便利です。検証が終わったら必ず revert してください。コードの該当箇所は `resolveChromiumPath` / `ensureChromiumDownloaded` / `fetchLatestStableBuildId` / `defaultJsonFetcher`。
+成功経路の分岐を追跡したい場合は、`src/chromium-resolver.ts` の以下の関数内に一時的な `console.log('[Markdown PDF][resolve] <branch> → <path>')` 形式の分岐ログを埋め込むと、どのフォールバック分岐に入ったかが直接確認できます。
+
+- `resolveChromiumPath` の各分岐（`user-setting` / `system` / `autoDownload=false, cached` / `downloaded latest` / `cached fallback`）
+- `defaultJsonFetcher`（fetch URL / status）
+- `fetchLatestStableBuildId`（memoized 判定）
+- `ensureChromiumDownloaded`（cache hit / installing）
+
+**注意:** 一時ログは検証終了後に必ず revert してください（`git checkout -- src/chromium-resolver.ts`）。本ランブックの「期待」欄はこれらの一時ログ**なしで**成立するように書いています。
 
 ---
 
@@ -80,12 +100,12 @@ rm -rf "$MDPDF_STORAGE"
 
 **実行:** EDH 起動 → `Markdown PDF: Export (pdf)`
 
-**期待:**
-- 「Installing Chromium ...」通知が表示される
-- Console に JSON fetch ログ → install ログ → resolve downloaded latest の順に出る
+**期待（行動観察）:**
+- VS Code に「Installing Chromium ...」プログレス通知が表示される
 - `ls "$MDPDF_CACHE"/linux-*/chrome-linux64/chrome` に実行ファイルが作成される
-- バンドル版 (`puppeteer-core` が持っている buildId) より新しい buildId になっていること（＝最新 Stable を取得している証拠）
-- 変換は成功
+- 作成された buildId（ディレクトリ名の `linux-X.Y.Z.W` 部分）がバンドル版 puppeteer-core の持つ buildId よりも新しい（＝最新 Stable を取得している証拠）。バンドル版 buildId は `node_modules/puppeteer-core/lib/cjs/puppeteer/revisions.js` などで確認可能
+- 変換は成功し PDF が生成される
+- Console に `[Markdown PDF] Falling back to ...` 等の警告が出ていない（成功経路では本拡張のログは無音）
 
 ### シナリオ 2: キャッシュあり → JSON のみ取得、DL なし
 
@@ -93,11 +113,13 @@ rm -rf "$MDPDF_STORAGE"
 
 **実行:** EDH はそのまま（同一セッションでも再起動後でも可）→ `Markdown PDF: Export (pdf)`
 
-**期待:**
-- 同一 EDH セッションなら fetch は memoized で 0 回、EDH 再起動後なら `googlechromelabs.github.io/.../last-known-good-versions.json` への GET が 1 回だけ
-- `storage.googleapis.com` への Chrome バイナリ GET は発生しない（＝ DL なし）
-- `ls "$MDPDF_CACHE"` の内容が変わらない
+**期待（行動観察）:**
+- 「Installing Chromium ...」通知は**出ない**
+- `ls "$MDPDF_CACHE"` の内容が変わらない（新しい `linux-<buildId>/` が増えない）
 - 変換は成功
+- Console に警告系の `[Markdown PDF] ...` ログが出ていない
+
+> **Note:** Dev Tools の Network タブには Extension Host（Node.js）からの fetch は表示されません（Network タブは renderer プロセスのみ）。JSON fetch 有無をログで直接観察したい場合は「分岐トレース用の一時ログ」セクションを参照してください。
 
 ### シナリオ 3: オフライン → 既存キャッシュで動作
 
