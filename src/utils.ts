@@ -747,3 +747,23 @@ export function generateTmpHtmlFilename(filename: string): string {
   const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
 }
+
+// Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per
+// GitHub Flavored Markdown; 'gfm-allow-style' keeps <style>; 'none' disables.
+export type SanitizeMode = 'gfm' | 'gfm-allow-style' | 'none';
+
+/**
+ * Returns the set of lowercase tag names to strip for the given sanitize mode.
+ * See GFM 6.11 Disallowed Raw HTML extension:
+ * https://github.github.com/gfm/#disallowed-raw-html-extension-
+ */
+export function getDisallowedTags(mode: SanitizeMode): Set<string> {
+  if (mode === 'none') {
+    return new Set();
+  }
+  const tags = new Set(['title', 'textarea', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'script', 'plaintext']);
+  if (mode === 'gfm-allow-style') {
+    tags.delete('style');
+  }
+  return tags;
+}

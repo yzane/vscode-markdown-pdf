@@ -1746,4 +1746,27 @@ describe('utils', function () {
       assert.strictEqual(result.content, '');
     });
   });
+
+  describe('getDisallowedTags', function () {
+    it('should return GFM disallowed tag set for "gfm" mode', function () {
+      const tags = utils.getDisallowedTags('gfm');
+      const expected = ['title', 'textarea', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'script', 'plaintext'];
+      for (const tag of expected) {
+        assert.ok(tags.has(tag), `expected tag "${tag}" to be disallowed in gfm mode`);
+      }
+      assert.strictEqual(tags.size, expected.length);
+    });
+
+    it('should exclude <style> in "gfm-allow-style" mode', function () {
+      const tags = utils.getDisallowedTags('gfm-allow-style');
+      assert.strictEqual(tags.has('style'), false);
+      assert.ok(tags.has('script'));
+      assert.ok(tags.has('iframe'));
+    });
+
+    it('should return empty set for "none" mode', function () {
+      const tags = utils.getDisallowedTags('none');
+      assert.strictEqual(tags.size, 0);
+    });
+  });
 });
