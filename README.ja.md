@@ -13,6 +13,7 @@
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
 - [仕様変更](#仕様変更)
+- [What's New](#whats-new)
 - [機能](#機能)
 - [Chromium](#chromium)
 - [使い方](#使い方)
@@ -47,6 +48,19 @@
     - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
 - Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
     - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+
+## What's New
+
+後方互換を維持したまま追加・変更された内容です。ユーザ対応が必要な変更については [仕様変更](#仕様変更) を参照してください。
+
+### X.Y.Z
+
+- PlantUML の推奨記法として ```` ```plantuml ```` フェンスドコードブロックをサポートしました（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。従来の `@startuml` / `@enduml` ブロック記法も後方互換のため引き続き利用可能です。
+    - 詳細: [PlantUML](#plantuml)
+- Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
+    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- `@startuml` / `@enduml` ブロック記法および `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` 設定を非推奨化しました。後方互換のため動作は維持されますが、VS Code の設定 UI 上では非推奨として表示されます。
+    - 詳細: [PlantUML](#plantuml)
 
 ## 機能
 
@@ -197,7 +211,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 1. [markdown-pdf.executablePath](#markdown-pdfexecutablepath) で指定されたパス
 2. システムにインストール済みの Google Chrome / Microsoft Edge / Chromium
-3. 初回使用時に自動ダウンロードされる管理済み Chromium
+3. 初回使用時に自動ダウンロードされる管理済み Chromium（最新の Chrome Stable。[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) で無効化可能）
 
 詳細は FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) および [Where is Chromium downloaded?](#where-is-chromium-downloaded) を参照してください。
 
@@ -271,6 +285,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 |[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)| |
 |[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)| |
 |[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)| |
+||[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)| |
 |[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)| |
 |[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|resource|
 ||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|resource|
@@ -454,6 +469,16 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+```
+
+#### `markdown-pdf.chromium.autoDownload`
+  - インストール済みブラウザが見つからないとき、管理済み Chromium を自動ダウンロードするかを指定します
+  - boolean. Default: true
+  - `false` の場合、Markdown PDF は Chromium を自動ダウンロードせず、[markdown-pdf.executablePath](#markdown-pdfexecutablepath) または インストール済みの Google Chrome / Microsoft Edge / Chromium のみを使用します。どれも見つからない場合、エクスポートはエラーになります。
+  - 完全な解決順序は FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) を参照してください
+
+```javascript
+"markdown-pdf.chromium.autoDownload": true
 ```
 
 ### Common Options
@@ -818,6 +843,17 @@ Markdown PDF は以下の順番で Chromium ベースのブラウザを解決し
 VS Code Insiders や VSCodium を使用している場合は、ベースパスが `Code - Insiders` や `VSCodium` などに変わります。
 
 ダウンロード中はステータスバーに `Installing Chromium` が表示されます。
+
+**ダウンロードされる Chromium のビルド**
+
+Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable の build id を取得しようとします。API に到達できない場合は、以下の順にフォールバックします:
+
+1. 上表のグローバルストレージディレクトリに残る最新のキャッシュ済みビルド
+2. バンドルされた `puppeteer-core` に固定された build id（最終フォールバック）
+
+**自動ダウンロードの無効化**
+
+[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) を `false` に設定すると、自動ダウンロードを完全にスキップします。その場合、Markdown PDF は [markdown-pdf.executablePath](#markdown-pdfexecutablepath) または インストール済みの Google Chrome / Microsoft Edge / Chromium のみに依存し、どれも見つからないとエクスポートはエラーになります。
 
 <div class="page"/>
 

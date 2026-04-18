@@ -15,6 +15,7 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
 - [Breaking Changes](#breaking-changes)
+- [What's New](#whats-new)
 - [Features](#features)
 - [Chromium](#chromium)
 - [Usage](#usage)
@@ -49,6 +50,19 @@ Some changes may affect existing behavior. See the [FAQ](#faq) section for detai
     - Details: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
 - Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use.
     - Details: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+
+## What's New
+
+Non-breaking additions and changes. For breaking changes, see [Breaking Changes](#breaking-changes).
+
+### X.Y.Z
+
+- Added support for ` ```plantuml ` fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy `@startuml` / `@enduml` block syntax still works for backward compatibility.
+    - Details: [PlantUML](#plantuml)
+- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
+    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- Deprecated the `@startuml` / `@enduml` block markers and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
+    - Details: [PlantUML](#plantuml)
 
 ## Features
 
@@ -199,7 +213,7 @@ Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the
 
 1. The path specified in [markdown-pdf.executablePath](#markdown-pdfexecutablepath)
 2. An installed Google Chrome, Microsoft Edge, or Chromium on your system
-3. A managed Chromium automatically downloaded on first use
+3. A managed Chromium automatically downloaded on first use (latest Chrome Stable; can be disabled with [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload))
 
 See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) and [Where is Chromium downloaded?](#where-is-chromium-downloaded) in the FAQ for details.
 
@@ -273,6 +287,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 |[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)| |
 |[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)| |
 |[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)| |
+||[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)| |
 |[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)| |
 |[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|resource|
 ||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|resource|
@@ -457,6 +472,16 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 
 ```javascript
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+```
+
+#### `markdown-pdf.chromium.autoDownload`
+  - Automatically download a managed Chromium when no installed browser is found
+  - boolean. Default: true
+  - When `false`, Markdown PDF does not download Chromium and relies only on [markdown-pdf.executablePath](#markdown-pdfexecutablepath) or an installed Google Chrome / Microsoft Edge / Chromium. Export fails if none is available.
+  - See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) in the FAQ for the full resolution order
+
+```javascript
+"markdown-pdf.chromium.autoDownload": true
 ```
 
 ### Common Options
@@ -809,6 +834,17 @@ If no installed browser is found, Markdown PDF downloads a managed Chromium on f
 If you use VS Code Insiders or VSCodium, the base path changes accordingly (for example `Code - Insiders` or `VSCodium` instead of `Code`).
 
 During the download, `Installing Chromium` is shown in the status bar.
+
+**Which Chromium build is downloaded?**
+
+Markdown PDF tries to fetch the latest Chrome Stable build id from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json). If the API is unreachable, it falls back in this order:
+
+1. The most recently cached build under the global storage directory shown above
+2. The build id pinned by the bundled `puppeteer-core` (last-resort fallback)
+
+**Disabling the auto-download**
+
+Set [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) to `false` to skip the download entirely. Markdown PDF will then rely only on [markdown-pdf.executablePath](#markdown-pdfexecutablepath) or an installed Google Chrome / Microsoft Edge / Chromium, and export will fail with an error if none is available.
 
 <div class="page"/>
 
