@@ -1,17 +1,10 @@
-declare module 'markdown-it-plantuml/lib/deflate.js' {
+declare module 'plantuml-encoder' {
   /**
-   * Compress a string using the pure-JS DEFLATE implementation bundled with
-   * markdown-it-plantuml (Masanao Izumo, 1999). Returns a binary string.
-   * The second argument is the compression level (0–9).
+   * Deflate + base64-encode a PlantUML source string into the URL-safe form
+   * expected by PlantUML servers (e.g. http://www.plantuml.com/plantuml/svg/<encoded>).
    */
-  export function zip_deflate(data: string, level: number): string;
+  export function encode(source: string): string;
 
-  /**
-   * Encode a binary string using PlantUML's URL-safe base64 variant
-   * (described at http://plantuml.sourceforge.net/codejavascript2.html).
-   */
-  export function encode64(data: string): string;
-
-  const _default: { zip_deflate: typeof zip_deflate; encode64: typeof encode64 };
+  const _default: { encode: typeof encode };
   export default _default;
 }
