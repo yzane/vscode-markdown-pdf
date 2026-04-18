@@ -7,7 +7,7 @@
   </picture>
 </p>
 
-この拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
+この VS Code 拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
 
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->

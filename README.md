@@ -7,7 +7,7 @@
   </picture>
 </p>
 
-This extension converts Markdown files to pdf, html, png or jpeg files.
+This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 [Japanese README](README.ja.md)
 
