@@ -36,7 +36,7 @@ Some changes may affect existing behavior. See the [FAQ](#faq) section for detai
 
 ### X.Y.Z
 
-- Raw HTML in Markdown is now sanitized by default following the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Tags such as `<script>`, `<iframe>`, `<style>`, and `on*` / `javascript:` attributes are stripped from Markdown body content. The behavior is controlled by the new `markdown-pdf.sanitize` setting.
+- To mitigate the XSS-like risk of tags such as `<script>` or `<iframe>` executing when an untrusted Markdown file is opened for preview or PDF export ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)), raw HTML in Markdown is now sanitized by default following the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Tags such as `<script>`, `<iframe>`, `<style>`, and `on*` / `javascript:` attributes are stripped from Markdown body content. The behavior is controlled by the new `markdown-pdf.sanitize` setting.
     - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
 
 ### 2.0.0
