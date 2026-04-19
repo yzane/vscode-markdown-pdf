@@ -6,7 +6,7 @@
 
  / `$$...$$` / `\(...\)` / `\[...\]` / `` ```math `` の 5 種記法を KaTeX で描画し、PDF / HTML / PNG / JPEG へ反映する。
 
-**Architecture:** markdown-it パイプラインに 2 つの経路を追加する。(A) デリミタ記法は `@vscode/markdown-it-katex`（VS Code 組み込み Markdown Math と同一プラグイン）を登録、(B) `` ```math `` フェンスは `src/markdown-it-math-fence.ts` を新規追加し、既存 PlantUML フェンス (`src/extension.ts:259-271`) と同じパターンで `md.renderer.rules.fence` を差し替える。両経路は `src/math-renderer.ts` の共通ヘルパから `katex.renderToString` を呼び、サーバサイド（Node ランタイム）で HTML を生成する。KaTeX CSS / フォントは `styles/katex/` に同梱してオフラインで描画できるようにし、`readStyles()` で注入する。`markdown-pdf.math.enabled: false` のときは経路 A / B および CSS 注入をいずれも登録しない。
+**Architecture:** markdown-it パイプラインに 2 つの経路を追加する。(A) デリミタ記法は `@vscode/markdown-it-katex`（VS Code 組み込み Markdown Math と同一プラグイン）でトークナイズし、直後に `md.renderer.rules.math_inline` / `math_block` を差し替えて `src/math-renderer.ts` の `renderMath()` へ委譲する。(B) `` ```math `` フェンスは `src/markdown-it-math-fence.ts` を新規追加し、既存 PlantUML フェンス (`src/extension.ts:259-271`) と同じパターンで `md.renderer.rules.fence` をチェーンしつつ同じ `renderMath()` を呼ぶ。両経路は同一ヘルパを通ることでオプション・マクロ・例外フォールバックが統一される。KaTeX CSS は `styles/katex/` に同梱し、フォントを base64 `data:` URI としてインライン埋め込みしたうえで `<style>` タグとして注入する（生成 HTML は自己完結で、移動・共有しても壊れない）。`markdown-pdf.math.enabled: false` のときは経路 A / B および CSS 注入をいずれも登録しない。
 
 **Tech Stack:** TypeScript, markdown-it, `@vscode/markdown-it-katex` ^1.1.2（新規追加）, `katex` ^0.16.45（新規追加）, esbuild（既存）, node:test + assert（既存単体テスト）, Mocha + vscode-test（既存統合テスト）, VS Code 拡張 API。
 
@@ -153,10 +153,21 @@ describe('renderMath', () => {
     assert.match(html, /mathbb|mathbb\{R\}|R/);
   });
 
-  it('should fall back to a <code> block on invalid TeX without throwing', () => {
+  it('should render invalid TeX as an inline katex-error span, not a <code> fallback', () => {
+    // With throwOnError: false (the renderer default), KaTeX does NOT throw for
+    // parse errors like \foo; it emits a span styled with errorColor. The <code>
+    // fallback is only for runtime exceptions (tested separately below).
     const html = renderMath('\\foo', false, {});
-    assert.ok(typeof html === 'string' && html.length > 0);
     assert.doesNotThrow(() => renderMath('\\foo', false, {}));
+    assert.match(html, /katex-error/);
+    assert.doesNotMatch(html, /^<code>/);
+  });
+
+  it('should fall back to a <code> block when katex.renderToString throws', () => {
+    // Passing a non-string triggers a runtime TypeError inside KaTeX even with
+    // throwOnError: false, exercising the defensive catch block in renderMath.
+    const html = renderMath(undefined as unknown as string, false, {});
+    assert.match(html, /^<code>/);
   });
 
   it('should not throw on empty input', () => {
@@ -165,6 +176,8 @@ describe('renderMath', () => {
   });
 });
 ```
+
+※ KaTeX 0.16 の挙動: `throwOnError: false` のもと、パースエラー（`\foo` 等）は例外を投げずに `<span class="katex-error" style="color:#cc0000">` を返す。本当に例外が飛ぶのは「型違いの入力」「内部バグ」等のケースのみで、その 1 本線が `<code>` フォールバックの責務範囲。`undefined` を渡すテストは、`katex.renderToString` が `tex.length` 等で TypeError を起こす挙動に依存している。もし KaTeX のバージョン更新でこの振る舞いが変わり `undefined` テストが通らなくなったら、代わりに `renderMath` を `Object.assign(Object.create(null), { [Symbol.toPrimitive]: () => { throw new Error(); } })` のようなスローするオブジェクトで呼び出す方式へ差し替える。
 
 - [ ] **Step 2: テストが失敗することを確認**
 
@@ -220,13 +233,13 @@ function escapeHtml(source: string): string {
 
 実行: `npx tsx --test test/unit/math-renderer.test.ts`
 
-期待: 5 件 pass。
+期待: 6 件 pass。
 
 - [ ] **Step 5: 全テストを再実行**
 
 実行: `npm test`
 
-期待: 既存テスト + 5 件の新規テストが通る。
+期待: 既存テスト + 6 件の新規テストが通る。
 
 - [ ] **Step 6: コミット**
 
@@ -342,7 +355,7 @@ export function mathFencePlugin(md: MarkdownIt, options: MathFencePluginOptions)
 
 実行: `npm test`
 
-期待: 既存テスト + Task 3 の 5 件 + Task 4 の 5 件が通る。
+期待: 既存テスト + Task 3 の 6 件 + Task 4 の 5 件が通る。
 
 - [ ] **Step 6: コミット**
 
@@ -437,9 +450,10 @@ VS Code 設定 + フロントマターから `math.enabled` / `math.katex.macros
 ```typescript
 import markdownItKatex from '@vscode/markdown-it-katex';
 import { mathFencePlugin } from './markdown-it-math-fence';
+import { renderMath } from './math-renderer';
 ```
 
-※ `@vscode/markdown-it-katex` の default エクスポートがプラグイン本体であることを import 形式でロックする。型が上手く解決しないときは暫定で `const markdownItKatex = require('@vscode/markdown-it-katex') as any;` へフォールバックし、Task 6 の Step 6 で解消する。
+※ `@vscode/markdown-it-katex` の default エクスポートがプラグイン本体であることを import 形式でロックする。型が上手く解決しないときは暫定で `const markdownItKatex = require('@vscode/markdown-it-katex') as any;` へフォールバックし、Task 6 の Step 6 で解消する。`renderMath` は経路 A（デリミタ）と経路 B（フェンス）の両方で同じヘルパを通すために必要。
 
 - [ ] **Step 3: フロントマターから object を読むヘルパを追加**
 
@@ -481,12 +495,26 @@ function getFrontMatterRecord(data: Record<string, unknown>, key: string): Recor
         }
       }
       if (mathEnabled) {
-        md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false, macros: mathMacros });
+        md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false });
+        // Route the delimiter path (math_inline / math_block tokens produced by
+        // @vscode/markdown-it-katex) through the same renderMath() helper used
+        // by the fence path. This unifies options, macros, and error handling
+        // across both paths per the design document (spec §データフロー).
+        md.renderer.rules.math_inline = function (tokens, idx) {
+          return renderMath(tokens[idx].content, false, { macros: mathMacros });
+        };
+        md.renderer.rules.math_block = function (tokens, idx) {
+          return renderMath(tokens[idx].content, true, { macros: mathMacros });
+        };
         md.use(mathFencePlugin, { macros: mathMacros });
       }
 ```
 
 ※ `@vscode/markdown-it-katex` のオプション名は `enableBareBlocks` (LaTeX 括弧記法の有効化) / `enableMathBlockInHtml` (HTML 内インライン解析)。プロジェクトの goal は VS Code プレビュー互換なので、VS Code 組み込み Markdown Math と同じ値（`enableBareBlocks: true`、`enableMathBlockInHtml: false`）に揃える。正確なオプション名は `node_modules/@vscode/markdown-it-katex/dist/index.d.ts` で実装前に確認する。
+
+※ プラグイン側にも `macros` オプションはあるが、`md.renderer.rules.math_*` を上書きするため **プラグインに `macros` を渡す必要は無い**。マクロは `renderMath` 経由で反映される。また、`renderMath` は `src/markdown-it-math-fence.ts` でも使われており、両経路の差し替え後 HTML は同じヘルパが生成するため、結果の整合性と例外フォールバックが統一される。
+
+※ `renderMath` の import を忘れずに Step 2 で追加する（`import { renderMath } from './math-renderer';`）。
 
 - [ ] **Step 5: 既存 PlantUML フェンス上書きの位置と順序を確認**
 
@@ -515,36 +543,134 @@ git commit -m "feat(extension): wire KaTeX math rendering and \`\`\`math fence i
 
 ---
 
-## Task 7: KaTeX CSS を `readStyles()` で注入する
+## Task 7: KaTeX CSS をフォント埋め込みでインライン注入する
 
-`math.enabled` のときだけ `styles/katex/katex.min.css` を HTML へ注入する。既存 `buildStyleTags()` は `includeDefaultStyles` / `highlight` に紐付く固定スタイルしか扱わないため、`readStyles()` 側で「math のときだけ追加」を行う方が YAGNI に沿う。
+既存の `markdown.css` / `markdown-pdf.css` / ハイライトテーマは `utils.makeCss()` で `<style>...</style>` としてインライン化されており、生成 HTML は単体で移動・共有しても壊れない。KaTeX の CSS もこの方針に合わせる。
+
+KaTeX の CSS は `url(fonts/KaTeX_*.woff2)`（および `.woff` / `.ttf`）の相対参照でフォントを読む。`<style>` タグでインライン化すると相対 URL はドキュメント URL を基準に解決されるため、HTML ファイルを移動した瞬間にフォントが壊れる。`<link rel="stylesheet" href="file:///.../styles/katex/katex.min.css">` 形式は拡張のインストール先パスに出力 HTML を縛ってしまい、これも持ち運び性が失われる。
+
+両方を解決する方法は **KaTeX CSS 内のフォント URL をすべて `data:` URI に書き換えてから `<style>` で埋め込む** こと。これにより HTML は完全自己完結になる（既定 CSS と同じ挙動）。サイズは ~300KB 程度増えるが、既にバンドルされている highlight テーマ (`tomorrow.css` 他) やデフォルト CSS と同列で扱える。
+
+注入条件は「出力本文に KaTeX 要素が含まれるとき」に限定し、KaTeX を使わない文書の HTML が肥大化しないようにする。
 
 **Files:**
-- Modify: `src/extension.ts:508-537`（`readStyles()`）
-- Modify: `src/extension.ts:311-336`（`makeHtml()`）— KaTeX CSS の判定に必要なら文脈を追加
+- Modify: `src/utils.ts`（`buildKatexStyleTag(baseDir)` ヘルパを新規追加）
+- Modify: `test/unit/utils.test.ts`（`buildKatexStyleTag` のテストを追加）
+- Modify: `src/extension.ts:508-537`（`readStyles()` のシグネチャに `htmlBody` 追加）
+- Modify: `src/extension.ts:311-336`（`makeHtml()` の `readStyles` 呼び出し）
 
-- [ ] **Step 1: `makeHtml()` が KaTeX CSS 注入判定に使える情報を持っているか確認**
+- [ ] **Step 1: 失敗するテストを書く**
 
-実行: `sed -n '311,340p' src/extension.ts`
-
-期待: `makeHtml(data, uri)` は `data`（HTML 本文）と `uri` だけを受け取る。VS Code 設定 + フロントマターの math 判定は `convertMarkdownToHtml` 側で完結するため、`makeHtml` 呼び出し側で `data.includes('class="katex"')` のようなヒューリスティックは使わない。代わりに **VS Code 設定レベルの `math.enabled` だけ** を `readStyles()` で判定する（フロントマター上書きは経路 A / B の登録で担保されるため、CSS 注入の有無だけなら設定値で十分）。
-
-**意思決定ポイント**: CSS を「常に注入するが `math.enabled: false` のときだけ省略」ではなく「出力に KaTeX 要素が含まれるときだけ注入」のほうが HTML 肥大化を避けられる。実装を単純化するため、本タスクでは **設定レベルの `math.enabled` を `readStyles()` 内で読む** 方式を採用する。フロントマターで無効化したケースでは CSS が冗長に入るが動作には無害（不使用のスタイルシート）。
-
-- [ ] **Step 2: `readStyles()` に math CSS 追加を組み込む**
-
-`src/extension.ts:508-537` の `readStyles` 関数の `return utils.buildStyleTags({ ... });` 行の **前** に、以下の追加ロジックを差し込む。最終的に関数を次のように書き換える。
+`test/unit/utils.test.ts` の末尾 `describe('utils', …)` の閉じ括弧の **直前** に、以下の `describe` ブロックを追加する。
 
 ```typescript
-function readStyles(uri: vscode.Uri): string | undefined {
-  try {
-    const includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
-    const highlightStyle = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || '';
-    const highlight = vscode.workspace.getConfiguration('markdown-pdf')['highlight'];
-    const markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
-    const markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
-    const mathEnabled = vscode.workspace.getConfiguration('markdown-pdf').get<boolean>('math.enabled') ?? true;
+  describe('buildKatexStyleTag', function () {
+    const baseDir = path.resolve(__dirname, '..', '..');
 
+    it('should return an inline <style> tag for KaTeX CSS', function () {
+      const result = utils.buildKatexStyleTag(baseDir);
+      assert.match(result, /^\s*<style>[\s\S]*<\/style>\s*$/);
+      assert.match(result, /\.katex\s*\{/);
+    });
+
+    it('should rewrite font url(...) references to base64 data: URIs', function () {
+      const result = utils.buildKatexStyleTag(baseDir);
+      // Any remaining relative font reference would break portable HTML.
+      assert.doesNotMatch(result, /url\(\s*['"]?fonts\//);
+      assert.doesNotMatch(result, /url\(\s*['"]?\.\//);
+      // At least one KaTeX font should have been inlined as data:.
+      assert.match(result, /url\(\s*['"]?data:font\/woff2;base64,[A-Za-z0-9+/=]+['"]?\s*\)/);
+    });
+
+    it('should return an empty string when KaTeX CSS is missing', function () {
+      const result = utils.buildKatexStyleTag('/nonexistent-base-dir-for-test');
+      assert.strictEqual(result, '');
+    });
+  });
+```
+
+※ `path` は既存テストで import 済み。未 import の場合は先頭に `import path from 'path';` を追加する。
+
+- [ ] **Step 2: テストが失敗することを確認**
+
+実行: `npm run test:unit`
+
+期待: `utils.buildKatexStyleTag is not a function` で 3 件失敗。
+
+- [ ] **Step 3: 最小実装を `src/utils.ts` に追加**
+
+`src/utils.ts` の末尾（または `makeCss` の近く）に以下を追加する。
+
+```typescript
+const KATEX_FONT_MIME: Record<string, string> = {
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+};
+
+/**
+ * Builds an inline <style> tag for KaTeX CSS with every url(fonts/...)
+ * reference rewritten to a base64 data: URI. Produces a fully self-contained
+ * stylesheet so the generated HTML stays portable when copied or moved.
+ * Returns '' when the KaTeX CSS file is not present at the expected location.
+ */
+export function buildKatexStyleTag(baseDir: string): string {
+  const cssPath = path.join(baseDir, 'styles', 'katex', 'katex.min.css');
+  const rawCss = readFile(cssPath);
+  if (!rawCss || typeof rawCss !== 'string') {
+    return '';
+  }
+  const fontsDir = path.join(baseDir, 'styles', 'katex', 'fonts');
+  const urlRe = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
+  const inlined = rawCss.replace(urlRe, function (match, _quote, href: string) {
+    // Skip URLs that are already absolute or data: URIs.
+    if (/^(data:|https?:|file:)/i.test(href)) {
+      return match;
+    }
+    const normalized = href.replace(/^\.\//, '').split('?')[0].split('#')[0];
+    const fontPath = path.join(baseDir, 'styles', 'katex', normalized);
+    // Guard against path traversal: only allow files below styles/katex/.
+    const relative = path.relative(path.join(baseDir, 'styles', 'katex'), fontPath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      return match;
+    }
+    if (!isExistsPath(fontPath)) {
+      return match;
+    }
+    const ext = path.extname(fontPath).toLowerCase();
+    const mime = KATEX_FONT_MIME[ext];
+    if (!mime) {
+      return match;
+    }
+    const buffer = fs.readFileSync(fontPath);
+    const base64 = buffer.toString('base64');
+    return 'url(data:' + mime + ';base64,' + base64 + ')';
+  });
+  return '\n<style>\n' + inlined + '\n</style>\n';
+  // fontsDir is retained as a conceptual anchor; reference omitted to avoid unused-var lint.
+  void fontsDir;
+}
+```
+
+`fs`, `path`, `isExistsPath`, `readFile` は既存 util で利用可能（同ファイル内）。`void fontsDir` の行は実装で使っていない変数を残した場合のダミーで、実際には削除してよい（リンタが通ればよい）。
+
+- [ ] **Step 4: 単体テストが通ることを確認**
+
+実行: `npm run test:unit`
+
+期待: 3 件 pass。Task 2 で `styles/katex/katex.min.css` と `styles/katex/fonts/*` が実在することが前提。
+
+- [ ] **Step 5: `readStyles()` / `makeHtml()` を書き換える**
+
+`src/extension.ts:508` の `readStyles` シグネチャを次のように変更する。
+
+```typescript
+function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | undefined {
+```
+
+関数末尾（`return utils.buildStyleTags({...})` の行）を次に置き換える。
+
+```typescript
     let style = utils.buildStyleTags({
       includeDefaultStyles: includeDefaultStyles,
       highlight: highlight,
@@ -564,85 +690,43 @@ function readStyles(uri: vscode.Uri): string | undefined {
       },
     }) || '';
 
-    if (mathEnabled) {
-      const katexCssPath = path.join(EXTENSION_ROOT, 'styles', 'katex', 'katex.min.css');
-      const katexCss = utils.readFile(katexCssPath) as string;
-      style += '<style>\n' + katexCss + '\n</style>';
+    // Inline KaTeX CSS with data: URI fonts only when the body actually
+    // contains KaTeX output. This keeps unrelated documents small and avoids
+    // regenerating every existing snapshot just because math support shipped.
+    if (htmlBody && htmlBody.includes('class="katex')) {
+      style += utils.buildKatexStyleTag(EXTENSION_ROOT);
     }
 
     return style;
-  } catch (error) {
-    showErrorMessage('readStyles()', error);
-  }
-}
 ```
 
-注意:
-- `<style>` タグで直接インライン化することで、`fonts/KaTeX_*.woff2` 参照は CSS 内の相対パスのまま残る。Chromium で HTML を開いたとき、`<style>` は HTML と同じドキュメント URL を基準に解決するため、**HTML を `file://` 以外のパスで開くと相対フォント URL が壊れる**。
-- 代わりに `<link rel="stylesheet" href="file:///…/styles/katex/katex.min.css" type="text/css">` 形式を使えば CSS 側の相対 URL は CSS 自身の URL 基準で解決されるため、より堅牢。本タスクでは **`<link>` 形式** を採用する（下の Step 3 で変更）。
-
-- [ ] **Step 3: `<style>` から `<link>` 形式へ変更**
-
-Step 2 の `if (mathEnabled) { … }` ブロックを次に置き換える。
+呼び出し側 `src/extension.ts:315`（`style += readStyles(uri);`）を次に変更する。
 
 ```typescript
-    if (mathEnabled) {
-      const katexHref = fixHref(uri, path.join(EXTENSION_ROOT, 'styles', 'katex', 'katex.min.css')) || '';
-      style += '<link rel="stylesheet" href="' + katexHref + '" type="text/css">';
-    }
+    style += readStyles(uri, data);
 ```
 
-`fixHref` は `file://` URL へ変換する既存ヘルパ。これにより CSS 内 `url(fonts/...)` は `styles/katex/fonts/...` を基準に Chromium が解決できる。
+`data` は `makeHtml(data, uri)` の第 1 引数であり、markdown-it が生成した HTML 本文。
 
-- [ ] **Step 4: 型チェック**
-
-実行: `npm run check`
-
-期待: エラーなし。
-
-- [ ] **Step 5: 既存テストを実行**
-
-実行: `npm test`
-
-期待: 既存テスト通過。KaTeX CSS の追加により生成 HTML には `<link>` タグが増えるが、既存 fixture で KaTeX を有効化しているものは無い（Task 8 で fixture を追加する）。既存 expected HTML は `math.enabled: true` のデフォルトに応じて **全 fixture に `<link>` タグが 1 行増える** ため、Task 8 で `expected/*.html` を一括で更新する必要が出る。
-
-**判断ポイント**: 全 fixture が変わると回帰が出るため、以下いずれかに調整する:
-
-- **選択肢 A（推奨）**: 本タスク時点では CSS 注入条件を **「`math.enabled` かつ出力に KaTeX 要素が含まれる」** へ強める。`data`（HTML）を `makeHtml` から `readStyles` に渡し、`data.includes('class="katex')` で判定する。これにより KaTeX を使っていない既存 fixture は影響を受けず、expected 更新が `math.md` / `math-disabled.md` だけで済む。
-- 選択肢 B: 全 expected に `<link>` を 1 行加える（機械的な差分だが数が多く、ヒューマンレビュー負荷が高い）。
-
-**選択肢 A の採用方針を以下に記述する。**
-
-- [ ] **Step 6: `readStyles` に HTML 文字列を渡す shape に変更**
-
-`readStyles` のシグネチャを変更する。`src/extension.ts:508` を次のように書き換える。
-
-```typescript
-function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | undefined {
-```
-
-関数末尾の `if (mathEnabled) { … }` を:
-
-```typescript
-    if (mathEnabled && htmlBody && htmlBody.includes('class="katex')) {
-      const katexHref = fixHref(uri, path.join(EXTENSION_ROOT, 'styles', 'katex', 'katex.min.css')) || '';
-      style += '<link rel="stylesheet" href="' + katexHref + '" type="text/css">';
-    }
-```
-
-呼び出し側 `src/extension.ts:315` を `style += readStyles(uri, data);` に変更する（`data` は `makeHtml` の第 1 引数）。
-
-- [ ] **Step 7: 型チェックとテスト**
+- [ ] **Step 6: 型チェックとテスト**
 
 実行: `npm run check && npm test`
 
-期待: エラーなし。既存 fixture には `class="katex` が含まれないため expected HTML に差分が出ない。
+期待: エラーなし、全テスト pass。既存 fixture には `class="katex` が含まれないため `expected/*.html` に差分は出ない。
+
+- [ ] **Step 7: 自己完結性の目視確認（手動）**
+
+Task 8 完了後に改めて行ってよいが、本タスクでも簡易確認できる。
+
+1. 小さな数式入り Markdown を用意してエクスポート（`$E = mc^2$` のみ）
+2. 生成 HTML を別ディレクトリへコピー → そのコピーをブラウザで開く
+3. 数式フォントが正しく表示される（元の場所・`node_modules` 有無に依存しない）
 
 - [ ] **Step 8: コミット**
 
 ```bash
-git add src/extension.ts
-git commit -m "feat(extension): inject KaTeX stylesheet when math output is present"
+git add src/utils.ts test/unit/utils.test.ts src/extension.ts
+git commit -m "feat(styles): inline KaTeX CSS with base64 data: URI fonts for portable HTML"
 ```
 
 ---
@@ -745,14 +829,15 @@ npx vscode-test --config .vscode-test.mjs --label integration \
 
 - `<span class="katex">` が少なくとも 2 箇所（インライン: `E = mc^2`, `\alpha + \beta`）
 - `<span class="katex-display">` が少なくとも 3 箇所（`$$…$$`、`\[…\]`、` ```math ` フェンス）
-- `<link rel="stylesheet" href="file:///...styles/katex/katex.min.css">`（`normalizeHtml` で `file:///NORMALIZED_PATH/styles/katex/katex.min.css` に正規化される）
+- インライン `<style>` ブロック内に `.katex {` などの KaTeX スタイル定義と、`url(data:font/woff2;base64,…)` 形式の埋め込みフォントが含まれる（Task 7 の `buildKatexStyleTag` による自己完結 CSS）
+- 外部 `<link>` タグは追加されない（KaTeX 用の `file://` 参照は発生しない）
 
 `test/integration/expected/math-disabled.html` では:
 
 - `<span class="katex">` が **存在しない**
 - `$100 and $200` は `<p>` 内にプレーンテキストで残る（エスケープのみ）
 - ` ```math ` は `<pre><code class="language-math">\\alpha = \\beta\n</code></pre>` 相当
-- `<link rel="stylesheet" …katex.min.css">` が **含まれない**（Task 7 の条件により、`class="katex` が本文に無いため注入されない）
+- KaTeX の `<style>` ブロック（`.katex {` / `data:font/woff2;base64,…`）が **含まれない**（Task 7 の条件により、`class="katex` が本文に無いため注入されない）
 
 - [ ] **Step 6: テストを実行**
 
@@ -1029,7 +1114,7 @@ git commit -m "docs(changelog): note KaTeX math rendering support"
 
 実行: `npm test`
 
-期待: 既存テスト + 新規単体 10 件（Task 3: 5 件、Task 4: 5 件）+ 新規統合 2 件（Task 8: `math` / `math-disabled`）がすべて pass。
+期待: 既存テスト + 新規単体 14 件（Task 3: 6 件、Task 4: 5 件、Task 7: 3 件）+ 新規統合 2 件（Task 8: `math` / `math-disabled`）がすべて pass。
 
 - [ ] **Step 2: 型チェック**
 
@@ -1091,15 +1176,16 @@ VS Code でこの worktree を開き、`Cmd/Ctrl + ,` で設定 UI を開いて 
 - [x] スコープ「含まないもの」→ 該当タスクを設けないことで担保（MathJax、`math.engine`、`throwOnError` 露出、記法オンオフ個別設定、他レンダリング変更）
 - [x] アーキテクチャ概要（経路 A / B） → Task 4 + Task 6
 - [x] コンポーネントとファイル構成 → Task 1 / 2 / 3 / 4 / 5 / 6 / 7 すべて
-- [x] データフロー（経路 A / B / オプション構築） → Task 6 の挿入コード
+- [x] データフロー（経路 A / B / オプション構築） → Task 6 の挿入コード。経路 A は `md.renderer.rules.math_inline` / `math_block` を `renderMath` に差し替えることでスペック §データフロー §経路 A:2「`@vscode/markdown-it-katex` のレンダラが `renderMath(token.content, displayMode, options)` を呼ぶ」を満たす。
 - [x] エラー処理とエッジケース
-  - 不正 TeX → Task 3（`throwOnError: false` + fallback）の単体テスト
+  - 不正 TeX（パースエラー）→ Task 3 のテストで `katex-error` スパン出力を検証（スペック §エラー処理「該当箇所のみ赤色で ParseError を描画」を反映）
+  - KaTeX 実行時例外 → Task 3 の `<code>` フォールバックテスト（`undefined` 入力で強制）
   - 未閉じデリミタ → Task 6 でプラグインに委譲（既存挙動）
   - 空の math フェンス → Task 4 のテスト
   - `math.enabled: false` → Task 6 の分岐 + Task 8 の `math-disabled.md`
   - sanitize 影響なし → KaTeX は `math_*` トークン経由で `html_*` サニタイザ対象外（Task 6 では既存 sanitize フローに手を入れないことで担保）
 - [x] セキュリティ方針 → Task 3 で `trust: false` 固定、フロントマター露出しない設計（`mathMacrosFrontmatter` のみ許可）
-- [x] CSS とフォントのバンドル → Task 2 + Task 7
+- [x] CSS とフォントのバンドル → Task 2 + Task 7（`<style>` タグでインライン化し、`url(fonts/...)` を base64 `data:` URI に書き換えることで HTML が自己完結）
 - [x] パッケージング → Task 1 + Task 2（CSS / フォントは `.vscodeignore` で除外されず `styles/katex/` が配布に含まれる）+ Task 13 ビルド確認
 - [x] テスト戦略 → Task 3 / 4 / 8 / 9
 - [x] ドキュメント更新 → Task 10 / 11 / 12
@@ -1111,7 +1197,9 @@ VS Code でこの worktree を開き、`Cmd/Ctrl + ,` で設定 UI を開いて 
 タイプの整合性チェック:
 
 - `RenderMathOptions` (Task 3) と `MathFencePluginOptions` (Task 4) が同一の `macros` キーを持つ → OK
-- `renderMath(tex, displayMode, options)` のシグネチャ → Task 3 / Task 4 / Task 6 で統一
+- `renderMath(tex, displayMode, options)` のシグネチャ → Task 3 / Task 4 / Task 6 で統一（経路 A の `math_inline` / `math_block` オーバライドも同じ呼び出し）
 - `mathFencePlugin(md, options)` のシグネチャ → Task 4 / Task 6 で統一
 - `getFrontMatterRecord` の戻り値型 `Record<string, unknown> | undefined` → Task 6 で `mathFrontmatter` / `mathFrontmatterKatex` / `mathMacrosFrontmatter` すべて同じ扱い
 - `@vscode/markdown-it-katex` のオプション名 `enableBareBlocks` / `enableMathBlockInHtml` → Task 6 Step 4 で `node_modules/@vscode/markdown-it-katex/dist/index.d.ts` を確認する手順を明記
+- `readStyles(uri, htmlBody)` のシグネチャ変更 → Task 7 Step 5 と `makeHtml` 側 `src/extension.ts:315` の呼び出しで整合
+- `buildKatexStyleTag(baseDir)` のシグネチャ → Task 7 Step 1（テスト）/ Step 3（実装）/ Step 5（利用）で統一
