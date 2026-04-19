@@ -620,7 +620,7 @@ export function buildKatexStyleTag(baseDir: string): string {
   if (!rawCss || typeof rawCss !== 'string') {
     return '';
   }
-  const fontsDir = path.join(baseDir, 'styles', 'katex', 'fonts');
+  const katexDir = path.join(baseDir, 'styles', 'katex');
   const urlRe = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
   const inlined = rawCss.replace(urlRe, function (match, _quote, href: string) {
     // Skip URLs that are already absolute or data: URIs.
@@ -628,9 +628,9 @@ export function buildKatexStyleTag(baseDir: string): string {
       return match;
     }
     const normalized = href.replace(/^\.\//, '').split('?')[0].split('#')[0];
-    const fontPath = path.join(baseDir, 'styles', 'katex', normalized);
+    const fontPath = path.join(katexDir, normalized);
     // Guard against path traversal: only allow files below styles/katex/.
-    const relative = path.relative(path.join(baseDir, 'styles', 'katex'), fontPath);
+    const relative = path.relative(katexDir, fontPath);
     if (relative.startsWith('..') || path.isAbsolute(relative)) {
       return match;
     }
@@ -647,12 +647,10 @@ export function buildKatexStyleTag(baseDir: string): string {
     return 'url(data:' + mime + ';base64,' + base64 + ')';
   });
   return '\n<style>\n' + inlined + '\n</style>\n';
-  // fontsDir is retained as a conceptual anchor; reference omitted to avoid unused-var lint.
-  void fontsDir;
 }
 ```
 
-`fs`, `path`, `isExistsPath`, `readFile` は既存 util で利用可能（同ファイル内）。`void fontsDir` の行は実装で使っていない変数を残した場合のダミーで、実際には削除してよい（リンタが通ればよい）。
+`fs`, `path`, `isExistsPath`, `readFile` は既存 util で利用可能（同ファイル内）。
 
 - [ ] **Step 4: 単体テストが通ることを確認**
 

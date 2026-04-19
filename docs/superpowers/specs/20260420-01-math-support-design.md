@@ -74,8 +74,8 @@ markdown-it パイプラインに 2 つの経路を追加する。
 | `src/math-renderer.ts`（新規） | `renderMath(tex: string, displayMode: boolean, options: KatexOptions): string` を提供。内部で `katex.renderToString` を呼び、例外を捕捉して元の TeX ソースを `<code>` として返すフォールバックを実装 |
 | `src/markdown-it-math-fence.ts`（新規） | `md.renderer.rules.fence` を差し替える薄いプラグイン。`token.info.trim().toLowerCase() === 'math'` のとき `renderMath(content, true, options)` を呼ぶ。それ以外は委譲 |
 | `src/extension.ts` | markdown-it 構築部に `@vscode/markdown-it-katex` と `markdown-it-math-fence` を `md.use(...)` で登録。`math.enabled` の判定・KaTeX オプション構築・フロントマター反映を担当 |
-| `src/utils.ts` | 必要に応じて `buildKatexOptions({ frontmatter, settings })` を追加（フロントマターと VS Code 設定から最終オプションを組み立てるヘルパ） |
-| `styles/katex/`（新規） | `node_modules/katex/dist/katex.min.css` と `fonts/KaTeX_*.woff2` を拡張同梱する（CSS 内 `url(fonts/...)` の相対参照を保つ） |
+| `src/utils.ts` | `buildKatexStyleTag(baseDir: string): string` を追加（`styles/katex/katex.min.css` を読み、`url(fonts/...)` をフォントファイルの base64 `data:` URI に書き換えて `<style>` タグで返すヘルパ）。必要に応じてフロントマター / 設定のマージヘルパ (`buildKatexOptions` 等) も追加 |
+| `styles/katex/`（新規） | `node_modules/katex/dist/katex.min.css` と `fonts/KaTeX_*.woff2` / `.woff` / `.ttf` を拡張同梱する（CSS 内 `url(fonts/...)` の相対参照はビルド時ではなく `buildKatexStyleTag` による実行時書き換えで解決） |
 | `template/template.html` | 変更なし（サーバサイド描画のため Chromium 側スクリプト注入不要） |
 | `package.json` | `dependencies` に `@vscode/markdown-it-katex` と `katex` を追加。`contributes.configuration` に 2 オプションを追加 |
 
@@ -173,12 +173,22 @@ KaTeX はフォント `KaTeX_Main-*`, `KaTeX_Math-*` 等 18 種の woff2 / woff 
 実施する。
 
 1. `node_modules/katex/dist/katex.min.css` と `node_modules/katex/dist/fonts/`
-   を拡張ルート配下（例: `styles/katex/`）に配置
-2. `readStyles()` 経路で `katex.min.css` を既存スタイルと一緒に HTML へ埋め込
-3. CSS 内の `url(fonts/KaTeX_*.woff2)` 相対パスは、既存の image href 変換方針
-   と同様に `file://` で Chromium が読める絶対パスに書き換え
+   を拡張ルート配下（`styles/katex/`）に配置
+2. `readStyles()` 経路で `utils.buildKatexStyleTag(baseDir)` ヘルパ経由で
+   KaTeX CSS を `<style>` タグとしてインライン化し、既存スタイルと一緒に HTML
+   へ埋め込む
+3. CSS 内の `url(fonts/KaTeX_*.woff2)` 相対参照は、同ヘルパ内でフォントファイ
+   ルを読み込み `url(data:font/woff2;base64,...)` 形式の data: URI に書き換え
+   る。これにより生成 HTML は完全に自己完結となり、別ディレクトリや別マシン
+   に移動しても数式フォントが壊れない（既存の `markdown.css` 等が `makeCss()`
+   でインライン化されているのと同じ方針）
 
-`math.enabled: false` のときは CSS とフォントも注入しない（HTML 肥大化防止）。
+注入条件は「出力本文に KaTeX 要素が含まれるとき (`htmlBody.includes('class="katex')`)」
+に限定する。KaTeX を使わない文書の HTML が ~300KB 肥大化するのを防ぎ、既存
+スナップショット (`test/integration/expected/*.html`) への影響も最小化する。
+
+`math.enabled: false` のときはそもそも経路 A / B が登録されないため、出力本文
+に `class="katex` が含まれず、CSS とフォントも注入されない。
 
 ## パッケージング
 
@@ -278,6 +288,8 @@ KaTeX はフォント `KaTeX_Main-*`, `KaTeX_Math-*` 等 18 種の woff2 / woff 
   設定を上書きする
 - 不正 TeX が含まれても他の本文・他の数式は正常に描画される
 - オフライン環境（ネットワーク未接続）で数式と KaTeX フォントが正しく表示される
+- HTML 出力を別ディレクトリや別マシンに移動しても数式と KaTeX フォントが正しく
+  表示される（CSS とフォントが `<style>` タグ + `data:` URI で自己完結している）
 - `markdown-pdf.sanitize` の各モード（`gfm` / `gfm-allow-style` / `none`）
   のいずれでも KaTeX 出力が剥がれない
 - 既存の統合テストが引き続き通る
