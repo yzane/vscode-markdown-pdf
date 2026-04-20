@@ -167,6 +167,8 @@ OUTPUT (either form produces the same image)
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 
+If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error inline at the include site and continues exporting the rest of the document.
+
 ```
 ├── [plugins]
 │  └── README.md
