@@ -13,6 +13,10 @@ import { full as markdownItEmojiFull } from 'markdown-it-emoji';
 import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
+import markdownItKatex from '@vscode/markdown-it-katex';
+import { mathFencePlugin } from './markdown-it-math-fence';
+import { mathBracketsPlugin } from './markdown-it-math-brackets';
+import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
 import puppeteer from 'puppeteer-core';
 
@@ -172,6 +176,14 @@ function getFrontMatterString(data: Record<string, unknown>, key: string): strin
   return typeof value === 'string' ? value : undefined;
 }
 
+function getFrontMatterRecord(data: Record<string, unknown>, key: string): Record<string, unknown> | undefined {
+  const value = data[key];
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return undefined;
+}
+
 /*
  * convert markdown to html (markdown-it)
  */
@@ -256,6 +268,43 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       });
       md.use(markdownItPlantuml, plantumlOptions);
 
+      // Math rendering via KaTeX
+      // https://github.com/microsoft/vscode-markdown-it-katex (same plugin as VS Code's built-in Markdown Math)
+      const mathFrontmatter = getFrontMatterRecord(matterParts.data, 'math') || {};
+      const mathFrontmatterKatex = getFrontMatterRecord(mathFrontmatter, 'katex') || {};
+      const mathSettings = vscode.workspace.getConfiguration('markdown-pdf').get<{ enabled?: boolean; katex?: { macros?: Record<string, string> } }>('math') || {};
+      const mathEnabled = utils.setBooleanValue(
+        typeof mathFrontmatter['enabled'] === 'boolean' ? (mathFrontmatter['enabled'] as boolean) : undefined,
+        mathSettings.enabled,
+      ) ?? true;
+      const mathMacrosFrontmatter = getFrontMatterRecord(mathFrontmatterKatex, 'macros');
+      const mathMacrosSettings = (mathSettings.katex && mathSettings.katex.macros) || {};
+      const mathMacros: Record<string, string> = {};
+      for (const [k, v] of Object.entries(mathMacrosSettings)) {
+        if (typeof v === 'string') { mathMacros[k] = v; }
+      }
+      if (mathMacrosFrontmatter) {
+        for (const [k, v] of Object.entries(mathMacrosFrontmatter)) {
+          if (typeof v === 'string') { mathMacros[k] = v; }
+        }
+      }
+      if (mathEnabled) {
+        md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false });
+        md.use(mathBracketsPlugin);
+        // Route delimiter-path math tokens through renderMath(). Inline \[...\]
+        // tokens carry markup '\\[' and must render as display math; all other
+        // math_inline tokens render inline.
+        md.renderer.rules.math_inline = function (tokens, idx) {
+          const token = tokens[idx];
+          const displayMode = token.markup === '\\[';
+          return renderMath(token.content, displayMode, { macros: mathMacros });
+        };
+        md.renderer.rules.math_block = function (tokens, idx) {
+          return renderMath(tokens[idx].content, true, { macros: mathMacros });
+        };
+        md.use(mathFencePlugin, { macros: mathMacros });
+      }
+
       // ```plantuml fenced code blocks render as PlantUML diagrams alongside the
       // @startuml/@enduml block syntax handled by markdown-it-plantuml above.
       const defaultFenceRenderer = md.renderer.rules.fence;
@@ -312,7 +361,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
   try {
     // read styles
     let style = '';
-    style += readStyles(uri);
+    style += readStyles(uri, data);
 
     // get title
     const title = path.basename(uri.fsPath);
@@ -505,7 +554,7 @@ function mkdir(dirPath: string): void {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function readStyles(uri: vscode.Uri): string | undefined {
+function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | undefined {
   try {
     const includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
     const highlightStyle = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || '';
@@ -513,7 +562,7 @@ function readStyles(uri: vscode.Uri): string | undefined {
     const markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
     const markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
 
-    return utils.buildStyleTags({
+    let style = utils.buildStyleTags({
       includeDefaultStyles: includeDefaultStyles,
       highlight: highlight,
       highlightStyle: highlightStyle,
@@ -530,7 +579,16 @@ function readStyles(uri: vscode.Uri): string | undefined {
       resolveHrefFn: function (href: string) {
         return fixHref(uri, href) || '';
       },
-    });
+    }) || '';
+
+    // Inline KaTeX CSS with data: URI fonts only when the body actually
+    // contains KaTeX output. This keeps unrelated documents small and avoids
+    // regenerating every existing snapshot just because math support shipped.
+    if (htmlBody && htmlBody.includes('class="katex')) {
+      style += utils.buildKatexStyleTag(EXTENSION_ROOT);
+    }
+
+    return style;
   } catch (error) {
     showErrorMessage('readStyles()', error);
   }

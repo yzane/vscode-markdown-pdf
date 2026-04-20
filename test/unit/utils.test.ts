@@ -1,5 +1,6 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'assert';
+import path from 'path';
 import * as utils from '../../src/utils';
 
 describe('utils', function () {
@@ -1953,6 +1954,28 @@ describe('utils', function () {
       const imgPattern = /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]+" alt="uml diagram">$/;
       assert.match(helperRendered, imgPattern);
       assert.match(pluginRendered, imgPattern);
+    });
+  });
+
+  describe('buildKatexStyleTag', function () {
+    const baseDir = path.resolve(__dirname, '..', '..');
+
+    it('should return an inline <style> tag for KaTeX CSS', function () {
+      const result = utils.buildKatexStyleTag(baseDir);
+      assert.match(result, /^\s*<style>[\s\S]*<\/style>\s*$/);
+      assert.match(result, /\.katex\s*\{/);
+    });
+
+    it('should rewrite font url(...) references to base64 data: URIs', function () {
+      const result = utils.buildKatexStyleTag(baseDir);
+      assert.doesNotMatch(result, /url\(\s*['"]?fonts\//);
+      assert.doesNotMatch(result, /url\(\s*['"]?\.\//);
+      assert.match(result, /url\(\s*['"]?data:font\/woff2;base64,[A-Za-z0-9+/=]+['"]?\s*\)/);
+    });
+
+    it('should return an empty string when KaTeX CSS is missing', function () {
+      const result = utils.buildKatexStyleTag('/nonexistent-base-dir-for-test');
+      assert.strictEqual(result, '');
     });
   });
 });

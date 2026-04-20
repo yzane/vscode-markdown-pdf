@@ -43,6 +43,8 @@ User-visible additions and improvements. For changes that may require action on 
     - Details: [PlantUML](#plantuml)
 - Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
     - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- Added math rendering support via [KaTeX](https://katex.org/), matching VS Code's built-in Markdown preview. Supports inline `$…$` / `\(…\)`, display `$$…$$` / `\[…\]`, and ` ```math ` fenced code blocks. Opt out via [markdown-pdf.math.enabled](#markdown-pdfmathenabled).
+    - Details: [Math](#math)
 
 ### 2.0.1
 
@@ -85,6 +87,7 @@ Some changes may affect existing behavior. See the [FAQ](#faq) section for detai
 | [Container](#container) | Admonition-like blocks | `::: warning` |
 | [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
 | [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| [Math](#math) | LaTeX math via KaTeX | `$E = mc^2$` |
 | [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
 
 Sample files
@@ -217,6 +220,74 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
+### Math
+
+Render LaTeX math via [KaTeX](https://katex.org/). Uses [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex) (the same plugin as VS Code's built-in Markdown preview) for `$…$`, `$$…$$`, and `\begin{env}…\end{env}`, plus a small in-house plugin for `\(…\)` and `\[…\]` bracket delimiters. Rendering runs in Node, so no network access is required.
+
+Supported notations:
+
+- Inline: `$E = mc^2$`, `\(E = mc^2\)`
+- Display: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
+- LaTeX environments: `\begin{aligned}a &= b\\c &= d\end{aligned}`
+- Fenced code block:
+
+    ````
+    ```math
+    \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+    ```
+    ````
+
+INPUT
+<pre>
+Inline: $E = mc^2$
+
+Display:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX environment:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
+</pre>
+
+OUTPUT
+
+Inline: $E = mc^2$
+
+Display:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX environment:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
+
+To disable math rendering (for example, when `$X$`-style placeholders should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
+
+```yaml
+---
+math:
+  enabled: false
+---
+```
+
+User-defined KaTeX macros can be passed via [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) or in the front matter:
+
+```yaml
+---
+math:
+  katex:
+    macros:
+      "\\RR": "\\mathbb{R}"
+---
+```
+
 ## Chromium
 
 Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the following sources in order:
@@ -323,6 +394,8 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
+||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
 |[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
@@ -667,6 +740,19 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 #### `markdown-pdf.mermaidServer`
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
+
+### math options
+
+#### `markdown-pdf.math.enabled`
+  - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ` ```math ` fenced code blocks.
+  - Matches the behavior of VS Code's built-in Markdown preview.
+  - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document contains `$X$`-style placeholders that should not be parsed as math).
+  - Default: true
+
+#### `markdown-pdf.math.katex.macros`
+  - User-defined [KaTeX macros](https://katex.org/docs/options.html) passed to the KaTeX renderer.
+  - Example: `{ "\\RR": "\\mathbb{R}" }`
+  - Default: {}
 
 ### Sanitize options
 

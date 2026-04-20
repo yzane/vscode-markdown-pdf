@@ -41,6 +41,8 @@
     - 詳細: [PlantUML](#plantuml)
 - Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
     - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+- [KaTeX](https://katex.org/) による数式描画に対応しました（VS Code 標準の Markdown プレビューと同じ動作）。インライン `$…$` / `\(…\)`、ブロック `$$…$$` / `\[…\]`、および ` ```math ` フェンスドコードブロックをサポートします。[markdown-pdf.math.enabled](#markdown-pdfmathenabled) で無効化できます。
+    - 詳細: [Math](#math)
 
 ### 2.0.1
 
@@ -83,6 +85,7 @@
 | [Container](#container) | 注記ブロック | `::: warning` |
 | [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
 | [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| [数式](#math) | KaTeX による LaTeX 数式 | `$E = mc^2$` |
 | [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
 
 サンプルファイル
@@ -215,6 +218,74 @@ OUTPUT
 
 ![mermaid](images/mermaid.png)
 
+### Math
+
+[KaTeX](https://katex.org/) で LaTeX 数式を描画します。`$…$` / `$$…$$` / `\begin{env}…\end{env}` には [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)（VS Code 標準の Markdown プレビューと同じプラグイン）を使い、`\(…\)` / `\[…\]` のブラケット区切りには小さな自前プラグインを併用します。Node 側で描画するのでネットワーク接続は不要です。
+
+対応記法:
+
+- インライン: `$E = mc^2$`, `\(E = mc^2\)`
+- ブロック: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
+- LaTeX 環境: `\begin{aligned}a &= b\\c &= d\end{aligned}`
+- フェンスドコードブロック:
+
+    ````
+    ```math
+    \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+    ```
+    ````
+
+INPUT
+<pre>
+インライン: $E = mc^2$
+
+ブロック:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX 環境:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
+</pre>
+
+OUTPUT
+
+インライン: $E = mc^2$
+
+ブロック:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX 環境:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
+
+数式描画を無効化する場合（例: `$X$` 形式のプレースホルダをそのままテキストとして扱いたい場合）は、[markdown-pdf.math.enabled](#markdown-pdfmathenabled) を `false` に設定するか、フロントマターで `math.enabled` を `false` に設定するか、`$` を `\$` としてエスケープします。
+
+```yaml
+---
+math:
+  enabled: false
+---
+```
+
+KaTeX のユーザー定義マクロは [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) またはフロントマターで指定できます:
+
+```yaml
+---
+math:
+  katex:
+    macros:
+      "\\RR": "\\mathbb{R}"
+---
+```
+
 ## Chromium
 
 Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラウザを使用します。以下の順番で解決を試みます:
@@ -321,6 +392,8 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
+||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
 |[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
@@ -664,6 +737,19 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 #### `markdown-pdf.mermaidServer`
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
+
+### math options
+
+#### `markdown-pdf.math.enabled`
+  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックの数式描画を KaTeX で有効化します。
+  - VS Code 標準の Markdown プレビューと同じ動作になります。
+  - `false` にすると `$`, `\(`, `\[`, ` ```math ` はそのままテキストとして残ります（`$X$` 形式のプレースホルダを数式として解釈させたくない場合はこちらを利用してください）。
+  - Default: true
+
+#### `markdown-pdf.math.katex.macros`
+  - KaTeX に渡すユーザー定義 [KaTeX マクロ](https://katex.org/docs/options.html) です。
+  - 例: `{ "\\RR": "\\mathbb{R}" }`
+  - Default: {}
 
 ### Sanitize options
 

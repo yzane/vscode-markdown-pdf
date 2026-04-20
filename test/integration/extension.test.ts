@@ -73,6 +73,8 @@ const HTML_FEATURES: HtmlFeature[] = [
   { name: 'breaks' },
   { name: 'image' },
   { name: 'include-codeblock' },
+  { name: 'math' },
+  { name: 'math-disabled' },
   { name: 'page-break' },
 ];
 
