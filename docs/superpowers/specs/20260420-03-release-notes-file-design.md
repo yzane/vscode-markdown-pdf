@@ -46,9 +46,7 @@ User-facing summary of changes. For the detailed development log, see [CHANGELOG
 ` ```plantuml ` 形式のコードブロックがそのまま PlantUML として描画されます。VS Code preview / GitHub / GitLab と同じ書き方で、従来の `@startuml` ... `@enduml` 形式も互換性のため引き続き動作します。
 
     ```plantuml
-    @startuml
     Alice -> Bob: hello
-    @enduml
     ```
 
 **Breaking change: Markdown 内の HTML サニタイズが既定で有効化**
