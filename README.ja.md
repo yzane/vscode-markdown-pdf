@@ -35,9 +35,7 @@
 
 ### X.Y.Z
 
-- PlantUML の推奨記法として ```` ```plantuml ```` フェンスドコードブロックをサポートしました（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。従来の `@startuml` / `@enduml` ブロック記法も後方互換のため引き続き利用可能です。
-    - 詳細: [PlantUML](#plantuml)
-- `@startuml` / `@enduml` ブロック記法および `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` 設定を非推奨化しました。後方互換のため動作は維持されますが、VS Code の設定 UI 上では非推奨として表示されます。
+- 既存の `@startuml` / `@enduml` ブロックマーカー記法に加えて、```` ```plantuml ```` フェンスドコードブロック記法にも対応しました（フェンス記法は VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。両者は対等にサポートされます。
     - 詳細: [PlantUML](#plantuml)
 - Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
     - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
@@ -144,7 +142,11 @@ OUTPUT
 
 [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
 
-推奨記法は ```` ```plantuml ```` フェンス記法です（VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。
+2 つの記法を対等にサポートします。どちらの記法でも同じ `<img>` タグにレンダリングされ、[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) 設定を共有します。
+
+#### フェンスドコードブロック記法
+
+```` ```plantuml ```` フェンスドコードブロック記法です。VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式です。
 
 INPUT
 
@@ -155,19 +157,22 @@ Alice -[#0000FF]->Bob : ok
 ```
 ````
 
-OUTPUT
+#### ブロックマーカー記法
+
+`@startuml` / `@enduml` ブロックマーカー記法です。マーカーは [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) / [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker) 設定でカスタマイズできます。
+
+INPUT
+
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+OUTPUT（どちらの記法でも同じ画像が生成されます）
 
 ![PlantUML](images/PlantUML.png)
-
-> **後方互換（新規利用は基本的に非推奨）:**
-> 従来の `@startuml` / `@enduml` 形式も引き続き利用できます。
->
-> ```
-> @startuml
-> Bob -[#red]> Alice : hello
-> Alice -[#0000FF]->Bob : ok
-> @enduml
-> ```
 
 ### Include
 
@@ -708,13 +713,11 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - **非推奨。** [PlantUML](#plantuml) セクションに記載の ```` ```plantuml ```` フェンス記法を使ってください。この設定は `@startuml` / `@enduml` ブロック記法との後方互換のためにのみ残しています。
-  - plantuml パーサーの開始区切り文字
+  - `@startuml` / `@enduml` ブロックマーカー記法で使用する開始区切り文字です。別の開始マーカーを使いたい場合に変更します。
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
-  - **非推奨。** [PlantUML](#plantuml) セクションに記載の ```` ```plantuml ```` フェンス記法を使ってください。この設定は `@startuml` / `@enduml` ブロック記法との後方互換のためにのみ残しています。
-  - plantuml パーサーの終了区切り文字
+  - `@startuml` / `@enduml` ブロックマーカー記法で使用する終了区切り文字です。別の終了マーカーを使いたい場合に変更します。
   - Default: @enduml
 
 #### `markdown-pdf.plantumlServer`

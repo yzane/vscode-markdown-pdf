@@ -37,9 +37,7 @@ User-visible additions and improvements. For changes that may require action on 
 
 ### X.Y.Z
 
-- Added support for ` ```plantuml ` fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy `@startuml` / `@enduml` block syntax still works for backward compatibility.
-    - Details: [PlantUML](#plantuml)
-- Deprecated the `@startuml` / `@enduml` block markers and the `markdown-pdf.plantumlOpenMarker` / `markdown-pdf.plantumlCloseMarker` settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
+- Added support for ` ```plantuml ` fenced code blocks as a PlantUML syntax, in addition to the existing `@startuml` / `@enduml` block markers. Both are supported on equal footing (the fence form is the same one used by VS Code preview, GitHub, and GitLab).
     - Details: [PlantUML](#plantuml)
 - Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
     - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
@@ -146,7 +144,11 @@ OUTPUT
 
 Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
 
-The recommended syntax is the ```` ```plantuml ```` fenced code block, which is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.
+Two equivalent syntaxes are supported. Both produce the same `<img>` tag and share the same [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) setting.
+
+#### Fenced code block
+
+A ```` ```plantuml ```` fenced code block. This is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.
 
 INPUT
 
@@ -157,19 +159,22 @@ Alice -[#0000FF]->Bob : ok
 ```
 ````
 
-OUTPUT
+#### Block markers
+
+`@startuml` / `@enduml` block markers. The markers can be customized via [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) and [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker).
+
+INPUT
+
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+OUTPUT (either form produces the same image)
 
 ![PlantUML](images/PlantUML.png)
-
-> **Backward compatibility (generally not recommended for new content):**
-> The legacy `@startuml` / `@enduml` block syntax is also still supported.
->
-> ```
-> @startuml
-> Bob -[#red]> Alice : hello
-> Alice -[#0000FF]->Bob : ok
-> @enduml
-> ```
 
 ### Include
 
@@ -711,13 +716,11 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - **Deprecated.** Use the ```` ```plantuml ```` fenced code block syntax shown in the [PlantUML](#plantuml) section instead. This setting is kept only for backward compatibility with the `@startuml` / `@enduml` block syntax.
-  - Opening delimiter used for the plantuml parser.
+  - Opening delimiter for the `@startuml` / `@enduml` block marker syntax. Change this if you want to use a different start marker.
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
-  - **Deprecated.** Use the ```` ```plantuml ```` fenced code block syntax shown in the [PlantUML](#plantuml) section instead. This setting is kept only for backward compatibility with the `@startuml` / `@enduml` block syntax.
-  - Closing delimiter used for the plantuml parser.
+  - Closing delimiter for the `@startuml` / `@enduml` block marker syntax. Change this if you want to use a different end marker.
   - Default: @enduml
 
 #### `markdown-pdf.plantumlServer`

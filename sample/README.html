@@ -401,12 +401,7 @@ code {
 <p>User-visible additions and improvements. For changes that may require action on your side, see <a href="#breaking-changes">Breaking Changes</a>.</p>
 <h3 id="xyz">X.Y.Z</h3>
 <ul>
-<li>Added support for <code>```plantuml</code> fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy <code>@startuml</code> / <code>@enduml</code> block syntax still works for backward compatibility.
-<ul>
-<li>Details: <a href="#plantuml">PlantUML</a></li>
-</ul>
-</li>
-<li>Deprecated the <code>@startuml</code> / <code>@enduml</code> block markers and the <code>markdown-pdf.plantumlOpenMarker</code> / <code>markdown-pdf.plantumlCloseMarker</code> settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
+<li>Added support for <code>```plantuml</code> fenced code blocks as a PlantUML syntax, in addition to the existing <code>@startuml</code> / <code>@enduml</code> block markers. Both are supported on equal footing (the fence form is the same one used by VS Code preview, GitHub, and GitLab).
 <ul>
 <li>Details: <a href="#plantuml">PlantUML</a></li>
 </ul>
@@ -579,24 +574,25 @@ code {
 </div></code></pre>
 <h3 id="plantuml">PlantUML</h3>
 <p>Render UML diagrams via <a href="https://plantuml.com/">PlantUML</a> using <a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a>.</p>
-<p>The recommended syntax is the <code>```plantuml</code> fenced code block, which is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.</p>
+<p>Two equivalent syntaxes are supported. Both produce the same <code>&lt;img&gt;</code> tag and share the same <a href="#markdown-pdfplantumlserver">markdown-pdf.plantumlServer</a> setting.</p>
+<h4 id="fenced-code-block">Fenced code block</h4>
+<p>A <code>```plantuml</code> fenced code block. This is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.</p>
 <p>INPUT</p>
 <pre class="hljs"><code><div>```plantuml
 Bob -[#red]&gt; Alice : hello
 Alice -[#0000FF]-&gt;Bob : ok
 ```
 </div></code></pre>
-<p>OUTPUT</p>
-<p><img src="images/PlantUML.png" alt="PlantUML"></p>
-<blockquote>
-<p><strong>Backward compatibility (generally not recommended for new content):</strong>
-The legacy <code>@startuml</code> / <code>@enduml</code> block syntax is also still supported.</p>
+<h4 id="block-markers">Block markers</h4>
+<p><code>@startuml</code> / <code>@enduml</code> block markers. The markers can be customized via <a href="#markdown-pdfplantumlopenmarker">markdown-pdf.plantumlOpenMarker</a> and <a href="#markdown-pdfplantumlclosemarker">markdown-pdf.plantumlCloseMarker</a>.</p>
+<p>INPUT</p>
 <pre class="hljs"><code><div>@startuml
 Bob -[#red]&gt; Alice : hello
 Alice -[#0000FF]-&gt;Bob : ok
 @enduml
 </div></code></pre>
-</blockquote>
+<p>OUTPUT (either form produces the same image)</p>
+<p><img src="images/PlantUML.png" alt="PlantUML"></p>
 <h3 id="include">Include</h3>
 <p>Include markdown fragment files: <code>:[alternate-text](relative-path-to-file.md)</code>.</p>
 <pre class="hljs"><code><div>├── [plugins]
@@ -1296,14 +1292,12 @@ x - y &amp;= 4
 <h3 id="plantuml-options">PlantUML options</h3>
 <h4 id="markdown-pdfplantumlopenmarker"><code>markdown-pdf.plantumlOpenMarker</code></h4>
 <ul>
-<li><strong>Deprecated.</strong> Use the <code>```plantuml</code> fenced code block syntax shown in the <a href="#plantuml">PlantUML</a> section instead. This setting is kept only for backward compatibility with the <code>@startuml</code> / <code>@enduml</code> block syntax.</li>
-<li>Opening delimiter used for the plantuml parser.</li>
+<li>Opening delimiter for the <code>@startuml</code> / <code>@enduml</code> block marker syntax. Change this if you want to use a different start marker.</li>
 <li>Default: @startuml</li>
 </ul>
 <h4 id="markdown-pdfplantumlclosemarker"><code>markdown-pdf.plantumlCloseMarker</code></h4>
 <ul>
-<li><strong>Deprecated.</strong> Use the <code>```plantuml</code> fenced code block syntax shown in the <a href="#plantuml">PlantUML</a> section instead. This setting is kept only for backward compatibility with the <code>@startuml</code> / <code>@enduml</code> block syntax.</li>
-<li>Closing delimiter used for the plantuml parser.</li>
+<li>Closing delimiter for the <code>@startuml</code> / <code>@enduml</code> block marker syntax. Change this if you want to use a different end marker.</li>
 <li>Default: @enduml</li>
 </ul>
 <h4 id="markdown-pdfplantumlserver"><code>markdown-pdf.plantumlServer</code></h4>
