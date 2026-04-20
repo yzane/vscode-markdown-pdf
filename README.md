@@ -957,20 +957,9 @@ Set [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) to `
 * Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 
-## [Release Notes](CHANGELOG.md)
+## [Change Log](CHANGELOG.md)
 
-### 2.0.1 (2026/04/14)
-* Fix: Self-closing `<div class="page" />` now correctly triggers a page break [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
-
-### 2.0.0 (2026/04/13)
-* Breaking: Heading ID slug generation, front matter parsing, and Chromium resolution have changed. See the [FAQ](#faq) for details.
-* Change: Migrate to TypeScript and bundle with esbuild
-* Change: Bundle `puppeteer-core` and manage Chromium via the built-in `chromium-resolver` (installed Chrome/Edge preferred, auto-download fallback)
-* Change: Replace `markdown-it-include`, `markdown-it-named-headers`, and `markdown-it-checkbox` with in-repo custom implementations
-* Change: Remove `cheerio`, `mustache`, and `gray-matter` dependencies
-* Add: Unit and integration test suites (`vscode-test-cli`)
-
-For details, see [Change Log](CHANGELOG.md).
+For a user-facing summary of changes, see [RELEASE_NOTES.md](RELEASE_NOTES.md). For the detailed change history including developer-facing notes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
