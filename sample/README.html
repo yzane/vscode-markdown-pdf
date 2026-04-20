@@ -398,7 +398,7 @@ code {
 <!-- /TOC -->
 <div class="page"/>
 <h2 id="whats-new">What's New</h2>
-<p>User-visible additions and improvements. For changes that may require action on your side, see <a href="#breaking-changes">Breaking Changes</a>.</p>
+<p>Highlights of new features and improvements since v2. See <a href="#breaking-changes">Breaking Changes</a> for changes that may affect existing behavior.</p>
 <h3 id="xyz">X.Y.Z</h3>
 <ul>
 <li>Add PlantUML fenced code block support (<a href="#plantuml">details</a>)</li>
@@ -406,7 +406,7 @@ code {
 <li>Auto-download latest Chrome Stable (<a href="#markdown-pdfchromiumautodownload">details</a>)</li>
 </ul>
 <h2 id="breaking-changes">Breaking Changes</h2>
-<p>Some changes may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
+<p>Changes since v2 that may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
 <h3 id="xyz-1">X.Y.Z</h3>
 <ul>
 <li>To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
