@@ -31,26 +31,30 @@
 
 ## What's New
 
-ユーザに直接関係する追加・改善点です。ユーザ対応が必要な変更については [仕様変更](#仕様変更) を参照してください。
+ユーザに直接関係する追加・改善点です。ユーザ対応が必要な変更については [仕様変更](#仕様変更) を参照してください。過去バージョンを含むユーザー向けリリースノート全体は [RELEASE_NOTES.ja.md](RELEASE_NOTES.ja.md) を参照してください。
 
 ### X.Y.Z
 
-- 既存の `@startuml` / `@enduml` ブロックマーカー記法に加えて、```` ```plantuml ```` フェンスドコードブロック記法にも対応しました（フェンス記法は VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。両者は対等にサポートされます。
-    - 詳細: [PlantUML](#plantuml)
+- 既存の `@startuml` / `@enduml` ブロックマーカー記法に加えて、```` ```plantuml ```` フェンスドコードブロック記法にも対応しました。両者は対等にサポートされます。
+    - 詳細: [PlantUML](#plantuml) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 - Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
-    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 - [KaTeX](https://katex.org/) による数式描画に対応しました（VS Code 標準の Markdown プレビューと同じ動作）。インライン `$…$` / `\(…\)`、ブロック `$$…$$` / `\[…\]`、および ` ```math ` フェンスドコードブロックをサポートします。[markdown-pdf.math.enabled](#markdown-pdfmathenabled) で無効化できます。
-    - 詳細: [Math](#math)
+    - 詳細: [Math](#math) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 
 ### 2.0.1
 
 - 自己閉じタグ `<div class="page" />` で改ページが正しく動作するようになりました（[#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)）。
+    - 詳細: [RELEASE_NOTES.ja.md#201-20260414](RELEASE_NOTES.ja.md#201-20260414)
 
 ### 2.0.0
 
 - Include 機能（`:[label](path.md)`）で読み込みに失敗した場合にエクスポート全体を中断せず、該当箇所にエラーを表示するようになりました。一部のフラグメントが欠けていてもドキュメントの残りは出力されます。
+    - 詳細: [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - 画像 `src` の書き換えで、引用符付き属性・可変長の空白・raw-text コンテキスト等の取り扱いが改善されました。
+    - 詳細: [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - フロントマターの解析が BOM 付きファイルに対応しました。
+    - 詳細: [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 
 ## 仕様変更
 
