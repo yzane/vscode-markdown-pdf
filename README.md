@@ -33,30 +33,13 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## What's New
 
-User-visible additions and improvements. For changes that may require action on your side, see [Breaking Changes](#breaking-changes). For the full user-facing release notes including past versions, see [RELEASE_NOTES.md](RELEASE_NOTES.md).
+User-visible additions and improvements. For changes that may require action on your side, see [Breaking Changes](#breaking-changes).
 
 ### X.Y.Z
 
-- Added support for ` ```plantuml ` fenced code blocks as a PlantUML syntax, in addition to the existing `@startuml` / `@enduml` block markers. Both are supported on equal footing.
-    - Details: [PlantUML](#plantuml) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
-- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
-    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
-- Added math rendering support via [KaTeX](https://katex.org/), matching VS Code's built-in Markdown preview. Supports inline `$…$` / `\(…\)`, display `$$…$$` / `\[…\]`, and ` ```math ` fenced code blocks. Opt out via [markdown-pdf.math.enabled](#markdown-pdfmathenabled).
-    - Details: [Math](#math) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
-
-### 2.0.1
-
-- Self-closing `<div class="page" />` now correctly triggers a page break ([#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)).
-    - Details: [RELEASE_NOTES.md#201-20260414](RELEASE_NOTES.md#201-20260414)
-
-### 2.0.0
-
-- Include (`:[label](path.md)`) now reports errors inline instead of aborting the whole export, so a missing or unreadable fragment no longer breaks the rest of the document.
-    - Details: [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
-- Image `src` rewriting now correctly handles quoted attributes, flexible whitespace, and raw-text contexts.
-    - Details: [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
-- Front matter parsing now supports BOM-prefixed files.
-    - Details: [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
+- Add PlantUML fenced code block support ([details](#plantuml))
+- Add math rendering via KaTeX ([details](#math))
+- Auto-download latest Chrome Stable ([details](#markdown-pdfchromiumautodownload))
 
 ## Breaking Changes
 
