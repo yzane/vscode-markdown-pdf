@@ -237,6 +237,23 @@ Supported notations:
     ```
     ````
 
+INPUT
+<pre>
+Inline: $E = mc^2$
+
+Display:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+</pre>
+
+OUTPUT
+
+Inline: $E = mc^2$
+
+Display:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
 To disable math rendering (for example, when `$100` should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
 
 ```yaml
@@ -363,6 +380,8 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
+||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
 |[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options

@@ -235,6 +235,23 @@ OUTPUT
     ```
     ````
 
+INPUT
+<pre>
+インライン: $E = mc^2$
+
+ブロック:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+</pre>
+
+OUTPUT
+
+インライン: $E = mc^2$
+
+ブロック:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
 数式描画を無効化する場合（例: `$100` をそのままテキストとして扱いたい場合）は、[markdown-pdf.math.enabled](#markdown-pdfmathenabled) を `false` に設定するか、フロントマターで `math.enabled` を `false` に設定するか、`$` を `\$` としてエスケープします。
 
 ```yaml
@@ -361,6 +378,8 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
+||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
 |[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
