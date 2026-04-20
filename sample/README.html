@@ -366,12 +366,19 @@ code {
     });
   </script>
 <h1 id="markdown-pdf">Markdown PDF</h1>
-<p>This extension converts Markdown files to pdf, html, png or jpeg files.</p>
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.svg">
+    <img src="images/banner.svg" alt="Markdown PDF" width="400">
+  </picture>
+</p>
+<p>This VS Code extension converts Markdown files to pdf, html, png or jpeg files.</p>
 <p><a href="README.ja.md">Japanese README</a></p>
 <h2 id="table-of-contents">Table of Contents</h2>
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 <ul>
-<li><a href="#breaking-changes-in-200">Breaking Changes in 2.0.0</a></li>
+<li><a href="#whats-new">What's New</a></li>
+<li><a href="#breaking-changes">Breaking Changes</a></li>
 <li><a href="#features">Features</a></li>
 <li><a href="#chromium">Chromium</a></li>
 <li><a href="#usage">Usage</a></li>
@@ -385,13 +392,73 @@ code {
 </ul>
 <!-- /TOC -->
 <div class="page"/>
-<h2 id="breaking-changes-in-200">Breaking Changes in 2.0.0</h2>
-<p>Version 2.0.0 introduces changes that may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
+<h2 id="whats-new">What's New</h2>
+<p>User-visible additions and improvements. For changes that may require action on your side, see <a href="#breaking-changes">Breaking Changes</a>.</p>
+<h3 id="xyz">X.Y.Z</h3>
 <ul>
-<li>Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change. See <a href="#why-did-my-heading-anchors-change">Why did my heading anchors change?</a>.</li>
-<li>Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed. See <a href="#why-did-my-syntax-highlight-style-stop-working">Why did my syntax highlight style stop working?</a>.</li>
-<li>Front matter parsing is now stricter. Some previously accepted formats may be rejected. See <a href="#why-is-my-front-matter-no-longer-parsed">Why is my front matter no longer parsed?</a>.</li>
-<li>Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use. See <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> and <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a>.</li>
+<li>Added support for <code>```plantuml</code> fenced code blocks as the recommended PlantUML syntax (the same form used by VS Code preview, GitHub, and GitLab). The legacy <code>@startuml</code> / <code>@enduml</code> block syntax still works for backward compatibility.
+<ul>
+<li>Details: <a href="#plantuml">PlantUML</a></li>
+</ul>
+</li>
+<li>Deprecated the <code>@startuml</code> / <code>@enduml</code> block markers and the <code>markdown-pdf.plantumlOpenMarker</code> / <code>markdown-pdf.plantumlCloseMarker</code> settings. They remain functional for backward compatibility, but the VS Code settings UI now marks them as deprecated.
+<ul>
+<li>Details: <a href="#plantuml">PlantUML</a></li>
+</ul>
+</li>
+<li>Chromium auto-download now fetches the latest Chrome Stable build from the <a href="https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json">Chrome for Testing API</a>, instead of relying only on the build id pinned by <code>puppeteer-core</code>. A new <a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a> setting (default <code>true</code>) lets you opt out.
+<ul>
+<li>Details: <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a></li>
+</ul>
+</li>
+<li>Added math rendering support via <a href="https://katex.org/">KaTeX</a>, matching VS Code's built-in Markdown preview. Supports inline <code>$…$</code> / <code>\(…\)</code>, display <code>$$…$$</code> / <code>\[…\]</code>, and <code>```math</code> fenced code blocks. Opt out via <a href="#markdown-pdfmathenabled">markdown-pdf.math.enabled</a>.
+<ul>
+<li>Details: <a href="#math">Math</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="201">2.0.1</h3>
+<ul>
+<li>Self-closing <code>&lt;div class=&quot;page&quot; /&gt;</code> now correctly triggers a page break (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/428">#428</a>).</li>
+</ul>
+<h3 id="200">2.0.0</h3>
+<ul>
+<li>Include (<code>:[label](path.md)</code>) now reports errors inline instead of aborting the whole export, so a missing or unreadable fragment no longer breaks the rest of the document.</li>
+<li>Image <code>src</code> rewriting now correctly handles quoted attributes, flexible whitespace, and raw-text contexts.</li>
+<li>Front matter parsing now supports BOM-prefixed files.</li>
+</ul>
+<h2 id="breaking-changes">Breaking Changes</h2>
+<p>Some changes may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
+<h3 id="xyz-1">X.Y.Z</h3>
+<ul>
+<li>To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
+<ul>
+<li>Details: <a href="#why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="200-1">2.0.0</h3>
+<ul>
+<li>Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change.
+<ul>
+<li>Details: <a href="#why-did-my-heading-anchors-change">Why did my heading anchors change?</a></li>
+</ul>
+</li>
+<li>Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed.
+<ul>
+<li>Details: <a href="#why-did-my-syntax-highlight-style-stop-working">Why did my syntax highlight style stop working?</a></li>
+</ul>
+</li>
+<li>Front matter parsing is now stricter. Some previously accepted formats may be rejected.
+<ul>
+<li>Details: <a href="#why-is-my-front-matter-no-longer-parsed">Why is my front matter no longer parsed?</a></li>
+</ul>
+</li>
+<li>Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use.
+<ul>
+<li>Details: <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> / <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a></li>
+</ul>
+</li>
 </ul>
 <h2 id="features">Features</h2>
 <table>
@@ -437,6 +504,11 @@ code {
 <td><a href="#plantuml">PlantUML</a></td>
 <td>UML diagrams from code blocks</td>
 <td><code>@startuml</code> … <code>@enduml</code></td>
+</tr>
+<tr>
+<td><a href="#math">Math</a></td>
+<td>LaTeX math via KaTeX</td>
+<td><code>$E = mc^2$</code></td>
 </tr>
 <tr>
 <td><a href="#mermaid">Mermaid</a></td>
@@ -502,14 +574,24 @@ code {
 </div></code></pre>
 <h3 id="plantuml">PlantUML</h3>
 <p>Render UML diagrams via <a href="https://plantuml.com/">PlantUML</a> using <a href="https://github.com/gmunguia/markdown-it-plantuml">markdown-it-plantuml</a>.</p>
+<p>The recommended syntax is the <code>```plantuml</code> fenced code block, which is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.</p>
 <p>INPUT</p>
+<pre class="hljs"><code><div>```plantuml
+Bob -[#red]&gt; Alice : hello
+Alice -[#0000FF]-&gt;Bob : ok
+```
+</div></code></pre>
+<p>OUTPUT</p>
+<p><img src="images/PlantUML.png" alt="PlantUML"></p>
+<blockquote>
+<p><strong>Backward compatibility (generally not recommended for new content):</strong>
+The legacy <code>@startuml</code> / <code>@enduml</code> block syntax is also still supported.</p>
 <pre class="hljs"><code><div>@startuml
 Bob -[#red]&gt; Alice : hello
 Alice -[#0000FF]-&gt;Bob : ok
 @enduml
 </div></code></pre>
-<p>OUTPUT</p>
-<p><img src="images/PlantUML.png" alt="PlantUML"></p>
+</blockquote>
 <h3 id="include">Include</h3>
 <p>Include markdown fragment files: <code>:[alternate-text](relative-path-to-file.md)</code>.</p>
 <pre class="hljs"><code><div>├── [plugins]
@@ -546,12 +628,47 @@ stateDiagram
 </pre>
 <p>OUTPUT</p>
 <p><img src="images/mermaid.png" alt="mermaid"></p>
+<h3 id="math">Math</h3>
+<p>Render LaTeX math via <a href="https://katex.org/">KaTeX</a>. Uses <a href="https://github.com/microsoft/vscode-markdown-it-katex">@vscode/markdown-it-katex</a> (the same plugin as VS Code's built-in Markdown preview) for <code>$…$</code>, <code>$$…$$</code>, and <code>\begin{env}…\end{env}</code>, plus a small in-house plugin for <code>\(…\)</code> and <code>\[…\]</code> bracket delimiters. Rendering runs in Node, so no network access is required.</p>
+<p>Supported notations:</p>
+<ul>
+<li>
+<p>Inline: <code>$E = mc^2$</code>, <code>\(E = mc^2\)</code></p>
+</li>
+<li>
+<p>Display: <code>$$\int_0^\infty f(x)\,dx$$</code>, <code>\[\alpha\]</code></p>
+</li>
+<li>
+<p>LaTeX environments: <code>\begin{aligned}a &amp;= b\\c &amp;= d\end{aligned}</code></p>
+</li>
+<li>
+<p>Fenced code block:</p>
+<pre class="hljs"><code><div>```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```
+</div></code></pre>
+</li>
+</ul>
+<p>To disable math rendering (for example, when <code>$100</code> should stay as plain text), set <a href="#markdown-pdfmathenabled">markdown-pdf.math.enabled</a> to <code>false</code>, set <code>math.enabled</code> to <code>false</code> in the document front matter, or escape the <code>$</code> as <code>\$</code>.</p>
+<pre class="hljs"><code><div><span class="hljs-meta">---</span>
+<span class="hljs-attr">math:</span>
+  <span class="hljs-attr">enabled:</span> <span class="hljs-literal">false</span>
+<span class="hljs-meta">---
+</span></div></code></pre>
+<p>User-defined KaTeX macros can be passed via <a href="#markdown-pdfmathkatexmacros">markdown-pdf.math.katex.macros</a> or in the front matter:</p>
+<pre class="hljs"><code><div><span class="hljs-meta">---</span>
+<span class="hljs-attr">math:</span>
+  <span class="hljs-attr">katex:</span>
+    <span class="hljs-attr">macros:</span>
+      <span class="hljs-string">&quot;\\RR&quot;</span><span class="hljs-string">:</span> <span class="hljs-string">&quot;\\mathbb{R}&quot;</span>
+<span class="hljs-meta">---
+</span></div></code></pre>
 <h2 id="chromium">Chromium</h2>
 <p>Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the following sources in order:</p>
 <ol>
 <li>The path specified in <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a></li>
 <li>An installed Google Chrome, Microsoft Edge, or Chromium on your system</li>
-<li>A managed Chromium automatically downloaded on first use</li>
+<li>A managed Chromium automatically downloaded on first use (latest Chrome Stable; can be disabled with <a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a>)</li>
 </ol>
 <p>See <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> and <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a> in the FAQ for details.</p>
 <p>If you are behind a proxy, set the <code>http.proxy</code> option in settings.json and restart Visual Studio Code.</p>
@@ -681,6 +798,11 @@ stateDiagram
 <td style="text-align:left"></td>
 </tr>
 <tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"><a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
 <td style="text-align:left"><a href="#common-options">Common Options</a></td>
 <td style="text-align:left"><a href="#markdown-pdfscale">markdown-pdf.scale</a></td>
 <td style="text-align:left"></td>
@@ -803,6 +925,11 @@ stateDiagram
 <tr>
 <td style="text-align:left"><a href="#mermaid-options">mermaid options</a></td>
 <td style="text-align:left"><a href="#markdown-pdfmermaidserver">markdown-pdf.mermaidServer</a></td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#sanitize-options">Sanitize options</a></td>
+<td style="text-align:left"><a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a></td>
 <td style="text-align:left"></td>
 </tr>
 </tbody>
@@ -974,6 +1101,15 @@ stateDiagram
 </ul>
 <pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.executablePath&quot;</span>: <span class="hljs-string">&quot;C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe&quot;</span>
 </div></code></pre>
+<h4 id="markdown-pdfchromiumautodownload"><code>markdown-pdf.chromium.autoDownload</code></h4>
+<ul>
+<li>Automatically download a managed Chromium when no installed browser is found</li>
+<li>boolean. Default: true</li>
+<li>When <code>false</code>, Markdown PDF does not download Chromium and relies only on <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a> or an installed Google Chrome / Microsoft Edge / Chromium. Export fails if none is available.</li>
+<li>See <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> in the FAQ for the full resolution order</li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.chromium.autoDownload&quot;</span>: <span class="hljs-literal">true</span>
+</div></code></pre>
 <h3 id="common-options">Common Options</h3>
 <h4 id="markdown-pdfscale"><code>markdown-pdf.scale</code></h4>
 <ul>
@@ -1111,11 +1247,13 @@ stateDiagram
 <h3 id="plantuml-options">PlantUML options</h3>
 <h4 id="markdown-pdfplantumlopenmarker"><code>markdown-pdf.plantumlOpenMarker</code></h4>
 <ul>
+<li><strong>Deprecated.</strong> Use the <code>```plantuml</code> fenced code block syntax shown in the <a href="#plantuml">PlantUML</a> section instead. This setting is kept only for backward compatibility with the <code>@startuml</code> / <code>@enduml</code> block syntax.</li>
 <li>Opening delimiter used for the plantuml parser.</li>
 <li>Default: @startuml</li>
 </ul>
 <h4 id="markdown-pdfplantumlclosemarker"><code>markdown-pdf.plantumlCloseMarker</code></h4>
 <ul>
+<li><strong>Deprecated.</strong> Use the <code>```plantuml</code> fenced code block syntax shown in the <a href="#plantuml">PlantUML</a> section instead. This setting is kept only for backward compatibility with the <code>@startuml</code> / <code>@enduml</code> block syntax.</li>
 <li>Closing delimiter used for the plantuml parser.</li>
 <li>Default: @enduml</li>
 </ul>
@@ -1139,7 +1277,31 @@ stateDiagram
 <li>mermaid server</li>
 <li>Default: https://unpkg.com/mermaid/dist/mermaid.min.js</li>
 </ul>
-<div class="page"/>
+<h3 id="math-options">math options</h3>
+<h4 id="markdown-pdfmathenabled"><code>markdown-pdf.math.enabled</code></h4>
+<ul>
+<li>Enable math rendering via KaTeX for <code>$…$</code>, <code>$$…$$</code>, <code>\(…\)</code>, <code>\[…\]</code>, and <code>```math</code> fenced code blocks.</li>
+<li>Matches the behavior of VS Code's built-in Markdown preview.</li>
+<li>Set to <code>false</code> to keep the raw <code>$</code>, <code>\(</code>, <code>\[</code>, and <code>```math</code> text (use this if your document relies on <code>$100</code>-style literal dollar signs).</li>
+<li>Default: true</li>
+</ul>
+<h4 id="markdown-pdfmathkatexmacros"><code>markdown-pdf.math.katex.macros</code></h4>
+<ul>
+<li>User-defined <a href="https://katex.org/docs/options.html">KaTeX macros</a> passed to the KaTeX renderer.</li>
+<li>Example: <code>{ &quot;\\RR&quot;: &quot;\\mathbb{R}&quot; }</code></li>
+<li>Default: {}</li>
+</ul>
+<h3 id="sanitize-options">Sanitize options</h3>
+<h4 id="markdown-pdfsanitize"><code>markdown-pdf.sanitize</code></h4>
+<ul>
+<li>Sanitization mode for raw HTML in Markdown</li>
+<li><code>&quot;gfm&quot;</code>: Strip GFM's disallowed tags and dangerous attributes (default)</li>
+<li><code>&quot;gfm-allow-style&quot;</code>: Same as <code>&quot;gfm&quot;</code> but keeps <code>&lt;style&gt;</code> elements</li>
+<li><code>&quot;none&quot;</code>: Disable sanitization (legacy behavior, not recommended)</li>
+<li>Default: <code>&quot;gfm&quot;</code></li>
+</ul>
+<pre class="hljs"><code><div><span class="hljs-string">&quot;markdown-pdf.sanitize&quot;</span>: <span class="hljs-string">&quot;gfm&quot;</span>,
+</div></code></pre>
 <h2 id="faq">FAQ</h2>
 <h3 id="how-can-i-change-emoji-size-">How can I change emoji size ?</h3>
 <ol>
@@ -1186,6 +1348,58 @@ stateDiagram
 <span class="hljs-meta">---
 </span></div></code></pre>
 <p>BOM-prefixed files are still supported.</p>
+<h3 id="why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</h3>
+<p>Earlier versions of this extension passed all raw HTML in Markdown through to the renderer without validation. Tags such as <code>&lt;script&gt;</code> and <code>&lt;iframe&gt;</code> could therefore execute during preview or PDF rendering, creating XSS-like risk when opening untrusted Markdown files (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>).</p>
+<p>Starting with X.Y.Z, raw HTML inside the Markdown body is sanitized by default per the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Behavior is controlled by <code>markdown-pdf.sanitize</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;gfm&quot;</code> (default)</td>
+<td>Strip GFM's disallowed tags and dangerous attributes. Recommended when opening Markdown files authored by others.</td>
+</tr>
+<tr>
+<td><code>&quot;gfm-allow-style&quot;</code></td>
+<td>Same as <code>&quot;gfm&quot;</code> but keeps <code>&lt;style&gt;</code> so you can embed CSS directly in a Markdown file to produce a self-contained PDF. <strong>Use only with content you trust</strong> — CSS itself can still exfiltrate data.</td>
+</tr>
+<tr>
+<td><code>&quot;none&quot;</code></td>
+<td>Disable sanitization. Legacy behavior. Not recommended.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What <code>&quot;gfm&quot;</code> removes</strong></p>
+<p>Tags (opening and closing forms are both escaped to visible text):
+<code>&lt;title&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;style&gt;</code>, <code>&lt;xmp&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;noembed&gt;</code>, <code>&lt;noframes&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;plaintext&gt;</code></p>
+<p>Attributes:</p>
+<ul>
+<li><code>on*</code> event handlers (<code>onclick</code>, <code>onload</code>, …)</li>
+<li><code>href</code> / <code>src</code> whose value starts with <code>javascript:</code></li>
+</ul>
+<p><strong>Migrating from inline <code>&lt;style&gt;</code></strong></p>
+<p>If you used to customize PDF layout by writing <code>&lt;style&gt;</code> directly inside a Markdown file, move that CSS into a <code>.css</code> file and reference it via <code>markdown-pdf.styles</code>. External stylesheets are loaded from your VS Code settings, not from the Markdown body, so they are not affected by sanitization.</p>
+<p>Caveats for external CSS:</p>
+<ul>
+<li>CSS can still make outbound network requests through <code>@import url(...)</code>, <code>background: url(...)</code>, attribute selectors with <code>url(...)</code>, etc. Only reference stylesheet files you trust.</li>
+<li>When <code>markdown-pdf.stylesRelativePathFile</code> is <code>true</code>, the stylesheet path is resolved relative to the opened Markdown file. Be cautious about opening Markdown from untrusted locations that may ship a malicious sibling <code>.css</code>.</li>
+</ul>
+<p><strong>Sanitization scope</strong></p>
+<p>Sanitized:</p>
+<ul>
+<li>Raw HTML written inside the Markdown body (rendered via markdown-it's <code>html_block</code> / <code>html_inline</code>)</li>
+<li>Content pulled in by the Include feature (<code>:[label](path.md)</code>) — it goes through the same renderer</li>
+</ul>
+<p>Not sanitized:</p>
+<ul>
+<li>External CSS loaded via <code>markdown-pdf.styles</code> (by design — user-configured trust boundary)</li>
+<li>The extension's built-in stylesheets and HTML template</li>
+<li>HTML emitted by the extension itself (mermaid, highlight.js, emoji, PlantUML)</li>
+</ul>
 <h3 id="how-is-the-chromium-browser-selected">How is the Chromium browser selected?</h3>
 <p>Markdown PDF resolves a Chromium-based browser in the following order:</p>
 <ol>
@@ -1244,6 +1458,14 @@ stateDiagram
 </table>
 <p>If you use VS Code Insiders or VSCodium, the base path changes accordingly (for example <code>Code - Insiders</code> or <code>VSCodium</code> instead of <code>Code</code>).</p>
 <p>During the download, <code>Installing Chromium</code> is shown in the status bar.</p>
+<p><strong>Which Chromium build is downloaded?</strong></p>
+<p>Markdown PDF tries to fetch the latest Chrome Stable build id from the <a href="https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json">Chrome for Testing API</a>. If the API is unreachable, it falls back in this order:</p>
+<ol>
+<li>The most recently cached build under the global storage directory shown above</li>
+<li>The build id pinned by the bundled <code>puppeteer-core</code> (last-resort fallback)</li>
+</ol>
+<p><strong>Disabling the auto-download</strong></p>
+<p>Set <a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a> to <code>false</code> to skip the download entirely. Markdown PDF will then rely only on <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a> or an installed Google Chrome / Microsoft Edge / Chromium, and export will fail with an error if none is available.</p>
 <div class="page"/>
 <h2 id="known-issues">Known Issues</h2>
 <h3 id="markdown-pdfstyles-option"><code>markdown-pdf.styles</code> option</h3>
