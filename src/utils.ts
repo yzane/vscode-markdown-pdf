@@ -111,6 +111,53 @@ export function makeCss(filename: string): string {
   }
 }
 
+const KATEX_FONT_MIME: Record<string, string> = {
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+};
+
+/**
+ * Builds an inline <style> tag for KaTeX CSS with every url(fonts/...)
+ * reference rewritten to a base64 data: URI. Produces a fully self-contained
+ * stylesheet so the generated HTML stays portable when copied or moved.
+ * Returns '' when the KaTeX CSS file is not present at the expected location.
+ */
+export function buildKatexStyleTag(baseDir: string): string {
+  const cssPath = path.join(baseDir, 'styles', 'katex', 'katex.min.css');
+  const rawCss = readFile(cssPath);
+  if (!rawCss || typeof rawCss !== 'string') {
+    return '';
+  }
+  const katexDir = path.join(baseDir, 'styles', 'katex');
+  const urlRe = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
+  const inlined = rawCss.replace(urlRe, function (match, _quote, href: string) {
+    // Skip URLs that are already absolute or data: URIs.
+    if (/^(data:|https?:|file:)/i.test(href)) {
+      return match;
+    }
+    const normalized = href.replace(/^\.\//, '').split('?')[0].split('#')[0];
+    const fontPath = path.join(katexDir, normalized);
+    // Guard against path traversal: only allow files below styles/katex/.
+    const relative = path.relative(katexDir, fontPath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      return match;
+    }
+    if (!isExistsPath(fontPath)) {
+      return match;
+    }
+    const ext = path.extname(fontPath).toLowerCase();
+    const mime = KATEX_FONT_MIME[ext];
+    if (!mime) {
+      return match;
+    }
+    const buffer = fs.readFileSync(fontPath);
+    const base64 = buffer.toString('base64');
+    return 'url(data:' + mime + ';base64,' + base64 + ')';
+  });
+  return '\n<style>\n' + inlined + '\n</style>\n';
+}
+
 /** Resolves an image src to an absolute file:// URL, or returns the original src for remote URLs. */
 export function convertImgPath(src: string, filename: string): string {
   let href = decodeURIComponent(src);

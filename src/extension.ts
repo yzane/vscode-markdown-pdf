@@ -357,7 +357,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
   try {
     // read styles
     let style = '';
-    style += readStyles(uri);
+    style += readStyles(uri, data);
 
     // get title
     const title = path.basename(uri.fsPath);
@@ -550,7 +550,7 @@ function mkdir(dirPath: string): void {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function readStyles(uri: vscode.Uri): string | undefined {
+function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | undefined {
   try {
     const includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
     const highlightStyle = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || '';
@@ -558,7 +558,7 @@ function readStyles(uri: vscode.Uri): string | undefined {
     const markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
     const markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
 
-    return utils.buildStyleTags({
+    let style = utils.buildStyleTags({
       includeDefaultStyles: includeDefaultStyles,
       highlight: highlight,
       highlightStyle: highlightStyle,
@@ -575,7 +575,16 @@ function readStyles(uri: vscode.Uri): string | undefined {
       resolveHrefFn: function (href: string) {
         return fixHref(uri, href) || '';
       },
-    });
+    }) || '';
+
+    // Inline KaTeX CSS with data: URI fonts only when the body actually
+    // contains KaTeX output. This keeps unrelated documents small and avoids
+    // regenerating every existing snapshot just because math support shipped.
+    if (htmlBody && htmlBody.includes('class="katex')) {
+      style += utils.buildKatexStyleTag(EXTENSION_ROOT);
+    }
+
+    return style;
   } catch (error) {
     showErrorMessage('readStyles()', error);
   }
