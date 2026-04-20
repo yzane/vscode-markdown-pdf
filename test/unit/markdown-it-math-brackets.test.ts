@@ -37,6 +37,14 @@ describe('mathBracketsPlugin', () => {
     assert.strictEqual(block?.markup, '\\[');
   });
 
+  it('emits math_block token for single-line \\[...\\]', () => {
+    const tokens = tokenize('\\[x + y\\]\n');
+    const block = tokens.find((t) => t.type === 'math_block');
+    assert.ok(block, 'math_block token should be emitted');
+    assert.strictEqual(block?.content, 'x + y');
+    assert.strictEqual(block?.markup, '\\[');
+  });
+
   it('does not emit math tokens for escaped delimiters (\\\\( / \\\\[)', () => {
     const tokens = tokenize('Literal: \\\\(x\\\\) and \\\\[y\\\\].');
     const inline = tokens.find((t) => t.type === 'inline');

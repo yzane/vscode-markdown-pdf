@@ -291,12 +291,12 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       if (mathEnabled) {
         md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false });
         md.use(mathBracketsPlugin);
-        // Route delimiter-path math tokens through renderMath(). Respect `markup` so
-        // inline $$...$$ and \[...\] render as display math, matching upstream
-        // @vscode/markdown-it-katex behavior.
+        // Route delimiter-path math tokens through renderMath(). Inline \[...\]
+        // tokens carry markup '\\[' and must render as display math; all other
+        // math_inline tokens render inline.
         md.renderer.rules.math_inline = function (tokens, idx) {
           const token = tokens[idx];
-          const displayMode = token.markup === '$$' || token.markup === '\\[';
+          const displayMode = token.markup === '\\[';
           return renderMath(token.content, displayMode, { macros: mathMacros });
         };
         md.renderer.rules.math_block = function (tokens, idx) {

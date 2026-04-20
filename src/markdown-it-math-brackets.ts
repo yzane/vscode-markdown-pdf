@@ -6,9 +6,13 @@ import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
  * Inline rule: matches \(...\) and \[...\] on a single line.
  * - \(...\)  -> math_inline with markup '\\(' (displayMode: false)
  * - \[...\]  -> math_inline with markup '\\[' (displayMode: true)
- * Skips when the opening backslash was itself escaped at the markdown level:
- * markdown-it's \\ escape handling runs before inline rules in this configuration,
- * so a literal "\\\\(" in source is consumed as "\\" + "(" before this rule fires.
+ *
+ * Registered before the built-in `escape` rule so that `\(` and `\[` are not
+ * consumed as character escapes. Code spans and other delimited constructs
+ * survive because this rule only fires at `\`; positions inside a backtick
+ * span are reached only after the `backticks` rule has consumed the span.
+ * The first unescaped close sequence wins (nested opens are not supported;
+ * a user writing `\(x + \(y\) + z\)` gets `x + \(y` as the inline math).
  */
 function inlineBracketMath(state: StateInline, silent: boolean): boolean {
   const src = state.src;
@@ -41,21 +45,34 @@ function inlineBracketMath(state: StateInline, silent: boolean): boolean {
 }
 
 /**
- * Block rule: matches a block that starts with \[ and continues until \]
- * (possibly across multiple lines). Emits math_block with markup '\\['.
+ * Block rule: matches a block that starts with \[ and continues until \].
+ * Handles both single-line (\[x\]) and multi-line forms.
+ * Emits math_block with markup '\\['.
  */
 function blockBracketMath(state: StateBlock, startLine: number, endLine: number, silent: boolean): boolean {
   const startPos = state.bMarks[startLine] + state.tShift[startLine];
   const startMax = state.eMarks[startLine];
-  const firstLine = state.src.slice(startPos, startMax);
-  if (!/^\\\[/.test(firstLine)) {
+  const openLine = state.src.slice(startPos, startMax);
+  if (!openLine.startsWith('\\[')) {
     return false;
   }
-  if (silent) {
+  // Same-line close: \[...\] on the opening line. Scan for \] past the \[.
+  const sameLineClose = openLine.indexOf('\\]', 2);
+  if (sameLineClose >= 0) {
+    if (silent) {
+      return true;
+    }
+    const token = state.push('math_block', 'math', 0);
+    token.block = true;
+    token.content = openLine.slice(2, sameLineClose).trim();
+    token.markup = '\\[';
+    token.map = [startLine, startLine + 1];
+    state.line = startLine + 1;
     return true;
   }
+  // Multi-line case: scan subsequent lines for \].
   let found = false;
-  let nextLine = startLine;
+  let nextLine = startLine + 1;
   let lastLine = '';
   for (; nextLine < endLine; nextLine++) {
     const pos = state.bMarks[nextLine] + state.tShift[nextLine];
@@ -71,7 +88,10 @@ function blockBracketMath(state: StateBlock, startLine: number, endLine: number,
   if (!found) {
     return false;
   }
-  const rawFirst = state.src.slice(startPos, startMax).replace(/^\\\[/, '');
+  if (silent) {
+    return true;
+  }
+  const rawFirst = openLine.slice(2);
   const middleLines: string[] = [];
   for (let i = startLine + 1; i < nextLine; i++) {
     const p = state.bMarks[i] + state.tShift[i];
