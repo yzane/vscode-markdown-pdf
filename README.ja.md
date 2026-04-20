@@ -21,7 +21,7 @@
 - [オプション](#オプション)
 - [FAQ](#faq)
 - [既知の問題](#既知の問題)
-- [Release Notes](#release-notes)
+- [Change Log](#change-log)
 - [License](#license)
 - [Special thanks](#special-thanks)
 
