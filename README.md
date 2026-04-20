@@ -152,7 +152,7 @@ Two equivalent syntaxes are supported. Both produce the same `<img>` tag and sha
 
 #### Fenced code block
 
-A ```` ```plantuml ```` fenced code block. This is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.
+A ```` ```plantuml ```` fenced code block. This is the common fence convention used across the PlantUML ecosystem (for example, [GitLab renders this form natively](https://docs.gitlab.com/administration/integration/plantuml/) when the PlantUML integration is enabled).
 
 INPUT
 
