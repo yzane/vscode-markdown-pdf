@@ -1147,12 +1147,13 @@ git commit -m "test(integration): add math fixtures for KaTeX rendering and disa
 ````markdown
 ### Math
 
-Render LaTeX math via [KaTeX](https://katex.org/) using [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex) (the same plugin as VS Code's built-in Markdown preview). Rendering runs in Node, so no network access is required.
+Render LaTeX math via [KaTeX](https://katex.org/). Uses [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex) (the same plugin as VS Code's built-in Markdown preview) for `$…$`, `$$…$$`, and `\begin{env}…\end{env}`, plus a small in-house plugin for `\(…\)` and `\[…\]` bracket delimiters. Rendering runs in Node, so no network access is required.
 
 Supported notations:
 
 - Inline: `$E = mc^2$`, `\(E = mc^2\)`
 - Display: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
+- LaTeX environments: `\begin{aligned}a &= b\\c &= d\end{aligned}`
 - Fenced code block:
 
 ````
