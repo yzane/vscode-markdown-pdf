@@ -15,6 +15,7 @@ import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
 import markdownItKatex from '@vscode/markdown-it-katex';
 import { mathFencePlugin } from './markdown-it-math-fence';
+import { mathBracketsPlugin } from './markdown-it-math-brackets';
 import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
 import puppeteer from 'puppeteer-core';
@@ -289,11 +290,14 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       }
       if (mathEnabled) {
         md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false });
-        // Route delimiter-path math tokens (math_inline / math_block) through
-        // the same renderMath() helper used by the fence path. This unifies
-        // options, macros, and error handling across both paths.
+        md.use(mathBracketsPlugin);
+        // Route delimiter-path math tokens through renderMath(). Respect `markup` so
+        // inline $$...$$ and \[...\] render as display math, matching upstream
+        // @vscode/markdown-it-katex behavior.
         md.renderer.rules.math_inline = function (tokens, idx) {
-          return renderMath(tokens[idx].content, false, { macros: mathMacros });
+          const token = tokens[idx];
+          const displayMode = token.markup === '$$' || token.markup === '\\[';
+          return renderMath(token.content, displayMode, { macros: mathMacros });
         };
         md.renderer.rules.math_block = function (tokens, idx) {
           return renderMath(tokens[idx].content, true, { macros: mathMacros });
