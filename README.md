@@ -43,7 +43,7 @@ User-visible additions and improvements. For changes that may require action on 
     - Details: [PlantUML](#plantuml)
 - Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
     - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-- Added math rendering support via [KaTeX](https://katex.org/), matching VS Code's built-in Markdown preview. Supports inline `$…$` / `\(…\)`, display `$$…$$` / `\[…\]`, and ```math fenced code blocks. Opt out via [markdown-pdf.math.enabled](#markdown-pdfmathenabled).
+- Added math rendering support via [KaTeX](https://katex.org/), matching VS Code's built-in Markdown preview. Supports inline `$…$` / `\(…\)`, display `$$…$$` / `\[…\]`, and ` ```math ` fenced code blocks. Opt out via [markdown-pdf.math.enabled](#markdown-pdfmathenabled).
     - Details: [Math](#math)
 
 ### 2.0.1
@@ -231,13 +231,20 @@ Supported notations:
 - LaTeX environments: `\begin{aligned}a &= b\\c &= d\end{aligned}`
 - Fenced code block:
 
-````
-```math
-\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
-```
-````
+    ````
+    ```math
+    \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+    ```
+    ````
 
-To disable math rendering (for example, when `$100` should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, add `math.enabled: false` to the document front matter, or escape the `$` as `\$`.
+To disable math rendering (for example, when `$100` should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
+
+```yaml
+---
+math:
+  enabled: false
+---
+```
 
 User-defined KaTeX macros can be passed via [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) or in the front matter:
 
@@ -704,9 +711,9 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### math options
 
 #### `markdown-pdf.math.enabled`
-  - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ```math fenced code blocks.
+  - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ` ```math ` fenced code blocks.
   - Matches the behavior of VS Code's built-in Markdown preview.
-  - Set to `false` to keep the raw `$` / `\(` / `\[` / ```math text (use this if your document relies on `$100`-style literal dollar signs).
+  - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document relies on `$100`-style literal dollar signs).
   - Default: true
 
 #### `markdown-pdf.math.katex.macros`
