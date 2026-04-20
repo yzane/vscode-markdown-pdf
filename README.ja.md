@@ -165,6 +165,8 @@ OUTPUT（どちらの記法でも同じ画像が生成されます）
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 
+読み込みに失敗した場合（ファイルが存在しない・読み込み権限がない等）は、該当箇所にエラーを表示しつつエクスポートを継続します。フラグメントが欠けていてもドキュメントの残りは出力されます。
+
 ```
 ├── [plugins]
 │  └── README.md
