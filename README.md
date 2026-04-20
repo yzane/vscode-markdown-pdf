@@ -23,7 +23,7 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 - [Options](#options)
 - [FAQ](#faq)
 - [Known Issues](#known-issues)
-- [Release Notes](#release-notes)
+- [Change Log](#change-log)
 - [License](#license)
 - [Special thanks](#special-thanks)
 
