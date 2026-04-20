@@ -244,6 +244,13 @@ Inline: $E = mc^2$
 Display:
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX environment:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
 </pre>
 
 OUTPUT
@@ -253,6 +260,13 @@ Inline: $E = mc^2$
 Display:
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX environment:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
 
 To disable math rendering (for example, when `$X$`-style placeholders should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
 

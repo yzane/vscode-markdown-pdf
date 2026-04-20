@@ -242,6 +242,13 @@ INPUT
 ブロック:
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX 環境:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
 </pre>
 
 OUTPUT
@@ -251,6 +258,13 @@ OUTPUT
 ブロック:
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX 環境:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
 
 数式描画を無効化する場合（例: `$X$` 形式のプレースホルダをそのままテキストとして扱いたい場合）は、[markdown-pdf.math.enabled](#markdown-pdfmathenabled) を `false` に設定するか、フロントマターで `math.enabled` を `false` に設定するか、`$` を `\$` としてエスケープします。
 
