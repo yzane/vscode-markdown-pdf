@@ -150,7 +150,7 @@ OUTPUT
 
 #### フェンスドコードブロック記法
 
-```` ```plantuml ```` フェンスドコードブロック記法です。VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式です。
+```` ```plantuml ```` フェンスドコードブロック記法です。PlantUML エコシステムで一般的に使われる記法で、[GitLab では PlantUML 連携を有効化するとネイティブに描画されます](https://docs.gitlab.com/administration/integration/plantuml/)。
 
 INPUT
 
