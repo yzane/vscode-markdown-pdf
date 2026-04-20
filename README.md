@@ -254,7 +254,7 @@ Display:
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
 
-To disable math rendering (for example, when `$100` should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
+To disable math rendering (for example, when `$X$`-style placeholders should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
 
 ```yaml
 ---
@@ -732,7 +732,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 #### `markdown-pdf.math.enabled`
   - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ` ```math ` fenced code blocks.
   - Matches the behavior of VS Code's built-in Markdown preview.
-  - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document relies on `$100`-style literal dollar signs).
+  - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document contains `$X$`-style placeholders that should not be parsed as math).
   - Default: true
 
 #### `markdown-pdf.math.katex.macros`

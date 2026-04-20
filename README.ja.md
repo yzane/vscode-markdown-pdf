@@ -252,7 +252,7 @@ OUTPUT
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
 
-数式描画を無効化する場合（例: `$100` をそのままテキストとして扱いたい場合）は、[markdown-pdf.math.enabled](#markdown-pdfmathenabled) を `false` に設定するか、フロントマターで `math.enabled` を `false` に設定するか、`$` を `\$` としてエスケープします。
+数式描画を無効化する場合（例: `$X$` 形式のプレースホルダをそのままテキストとして扱いたい場合）は、[markdown-pdf.math.enabled](#markdown-pdfmathenabled) を `false` に設定するか、フロントマターで `math.enabled` を `false` に設定するか、`$` を `\$` としてエスケープします。
 
 ```yaml
 ---
@@ -729,7 +729,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 #### `markdown-pdf.math.enabled`
   - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックの数式描画を KaTeX で有効化します。
   - VS Code 標準の Markdown プレビューと同じ動作になります。
-  - `false` にすると `$`, `\(`, `\[`, ` ```math ` はそのままテキストとして残ります（`$100` のようなドル記号リテラルを使う場合はこちらを利用してください）。
+  - `false` にすると `$`, `\(`, `\[`, ` ```math ` はそのままテキストとして残ります（`$X$` 形式のプレースホルダを数式として解釈させたくない場合はこちらを利用してください）。
   - Default: true
 
 #### `markdown-pdf.math.katex.macros`
