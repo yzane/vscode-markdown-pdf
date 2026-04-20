@@ -126,7 +126,7 @@ const KATEX_FONT_MIME: Record<string, string> = {
 export function buildKatexStyleTag(baseDir: string): string {
   const cssPath = path.join(baseDir, 'styles', 'katex', 'katex.min.css');
   const rawCss = readFile(cssPath);
-  if (!rawCss || typeof rawCss !== 'string') {
+  if (!rawCss) {
     return '';
   }
   const katexDir = path.join(baseDir, 'styles', 'katex');
