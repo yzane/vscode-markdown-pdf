@@ -43,7 +43,7 @@ User-facing summary of changes. For the detailed development log, see [CHANGELOG
 
 **新機能: PlantUML fenced code block サポート**
 
-` ```plantuml ` 形式のコードブロックがそのまま PlantUML として描画されます。VS Code preview / GitHub / GitLab と同じ書き方で、従来の `@startuml` ... `@enduml` 形式も互換性のため引き続き動作します。
+` ```plantuml ` 形式のコードブロックがそのまま PlantUML として描画されるようになりました。従来の `@startuml` ... `@enduml` 形式も互換性のため引き続き動作します。
 
     ```plantuml
     Alice -> Bob: hello
@@ -144,6 +144,19 @@ Q4 で合意した範囲（2.0.0 以降）を初期コンテンツとする。�
 - リンク先は `RELEASE_NOTES.ja.md` と `CHANGELOG.md`（CHANGELOG は単一ファイル）に向ける。
 - 見出しも日本語版の従来の訳語ポリシーに合わせる（例: `Change Log` / `変更履歴`）。既存訳のトーンを踏襲し、新たな用語を導入しないこと。
 
+### PlantUML に関する既存記述の修正
+
+現在 README 内に「the same form used by VS Code preview, GitHub, and GitLab」という記述が 2 箇所あるが、これは事実として不正確である。
+
+- GitLab: 管理者が PlantUML サーバー連携を有効化した場合、` ```plantuml ` をネイティブに描画する。
+- VS Code ビルトイン Markdown preview: ` ```plantuml ` を PlantUML としてはレンダリングしない（拡張機能に依存）。
+- GitHub: `mermaid` はネイティブ描画するが、`plantuml` はしない。単なるコードブロックとして表示される。
+
+本 spec の実装範囲で以下を修正する（`README.ja.md` の対応箇所も同様）。
+
+- `README.md` 行 40 付近（`What's New` の PlantUML 項目）: 第三者ツールとの並列比較を削除し、「PlantUML の一般的な fence 記法」「従来形式も互換動作」といった事実ベースの表現に改める。
+- `README.md` 行 151 付近（`### PlantUML` セクション内）: 同様に、ビルトインで描画するかのように読める表現を修正する。GitLab のみを正確に言及するか、第三者ツール名自体を書かない形にする。
+
 ## Marketplace 公開時のワークフロー
 
 1. `RELEASE_NOTES.md` と `RELEASE_NOTES.ja.md` に新バージョンのユーザー視点エントリを追記する。
@@ -172,6 +185,8 @@ Q4 で合意した範囲（2.0.0 以降）を初期コンテンツとする。�
 - [ ] `README.ja.md` に対して対称の変更がなされ、TOC / 上部セクション / 下部セクション / リンク先（`RELEASE_NOTES.ja.md`）がすべて英語版と一致する構造になっている。
 - [ ] `CHANGELOG.md` には変更を加えない。
 - [ ] README 内で `#release-notes` を参照している箇所が残っていない（TOC・本文中の相互リンクを含め、すべて `#change-log` または `RELEASE_NOTES.md` への直接リンクに更新されている）。
+- [ ] `README.md` の「the same form used by VS Code preview, GitHub, and GitLab」系の不正確な PlantUML 記述が、事実に即した表現に修正されている（行 40 付近の `What's New` 項目、および行 151 付近の `### PlantUML` セクション）。
+- [ ] `README.ja.md` 側の対応する PlantUML 記述も、英語版と整合する形に修正されている。
 
 ## オープンな疑問
 
