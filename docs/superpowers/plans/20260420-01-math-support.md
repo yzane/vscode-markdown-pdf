@@ -729,6 +729,259 @@ git commit -m "feat(styles): inline KaTeX CSS with base64 data: URI fonts for po
 
 ---
 
+## Task 7.5: ブラケット区切りプラグインを追加する
+
+`@vscode/markdown-it-katex@1.1.2` は `\(...\)` / `\[...\]` をネイティブ対応しない（VS Code 組込みプレビューも同様）。本タスクでは同等のトークンを生成する小さな markdown-it プラグインを TDD で追加し、`extension.ts` に組み込む。
+
+**Files:**
+- Create: `src/markdown-it-math-brackets.ts`
+- Create: `test/unit/markdown-it-math-brackets.test.ts`
+- Modify: `src/extension.ts:290-301`（`markup` を見て displayMode を決める + 新プラグインを `md.use()`）
+
+トークン設計:
+
+| 入力 | トークン | `markup` |
+|---|---|---|
+| `\(tex\)` インライン | `math_inline` | `'\\('` |
+| `\[tex\]` インライン | `math_inline` | `'\\['` |
+| `\[tex\]` ブロック（単独行または複数行） | `math_block` | `'\\['` |
+
+既存レンダラオーバーライドは `math_inline` を常に `displayMode: false` でレンダしていたが、本タスクで `markup === '$$' || markup === '\\['` の判定を導入する。これは `@vscode/markdown-it-katex` のインラインブロック数式（文中の `$$...$$`）の display 判定を正しく反映する副次的改善にもなる。
+
+- [ ] **Step 1: 失敗テストを書く**
+
+ファイル新規作成: `test/unit/markdown-it-math-brackets.test.ts`
+
+```typescript
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+import MarkdownIt from 'markdown-it';
+import { mathBracketsPlugin } from '../../src/markdown-it-math-brackets';
+
+function tokenize(src: string) {
+  const md = new MarkdownIt();
+  md.use(mathBracketsPlugin);
+  return md.parse(src, {});
+}
+
+describe('mathBracketsPlugin', () => {
+  it('emits math_inline token for \\(...\\) on a single line', () => {
+    const tokens = tokenize('Hello \\(E = mc^2\\) world.');
+    const inline = tokens.find((t) => t.type === 'inline');
+    const math = inline?.children?.find((t) => t.type === 'math_inline');
+    assert.ok(math, 'math_inline token should be emitted');
+    assert.strictEqual(math?.content, 'E = mc^2');
+    assert.strictEqual(math?.markup, '\\(');
+  });
+
+  it('emits math_inline token with display markup for inline \\[...\\]', () => {
+    const tokens = tokenize('See \\[\\alpha\\] here.');
+    const inline = tokens.find((t) => t.type === 'inline');
+    const math = inline?.children?.find((t) => t.type === 'math_inline');
+    assert.ok(math, 'math_inline token should be emitted');
+    assert.strictEqual(math?.content, '\\alpha');
+    assert.strictEqual(math?.markup, '\\[');
+  });
+
+  it('emits math_block token for \\[...\\] on its own block', () => {
+    const src = '\\[\n\\gamma^2\n\\]\n';
+    const tokens = tokenize(src);
+    const block = tokens.find((t) => t.type === 'math_block');
+    assert.ok(block, 'math_block token should be emitted');
+    assert.strictEqual(block?.content.trim(), '\\gamma^2');
+    assert.strictEqual(block?.markup, '\\[');
+  });
+
+  it('does not emit math tokens for escaped delimiters (\\\\( / \\\\[)', () => {
+    const tokens = tokenize('Literal: \\\\(x\\\\) and \\\\[y\\\\].');
+    const inline = tokens.find((t) => t.type === 'inline');
+    const math = inline?.children?.find((t) => t.type === 'math_inline' || t.type === 'math_block');
+    assert.strictEqual(math, undefined);
+  });
+
+  it('does not treat \\(...\\) inside a code span as math', () => {
+    const tokens = tokenize('Code: `\\(x\\)` here.');
+    const inline = tokens.find((t) => t.type === 'inline');
+    const math = inline?.children?.find((t) => t.type === 'math_inline');
+    assert.strictEqual(math, undefined);
+  });
+
+  it('does not match an unclosed \\( delimiter', () => {
+    const tokens = tokenize('Dangling: \\(x + y.');
+    const inline = tokens.find((t) => t.type === 'inline');
+    const math = inline?.children?.find((t) => t.type === 'math_inline');
+    assert.strictEqual(math, undefined);
+  });
+});
+```
+
+- [ ] **Step 2: テスト失敗を確認**
+
+実行: `npx tsx --test test/unit/markdown-it-math-brackets.test.ts`
+
+期待: モジュール `../../src/markdown-it-math-brackets` が存在しないため解決エラー。
+
+- [ ] **Step 3: 最小実装を追加**
+
+ファイル新規作成: `src/markdown-it-math-brackets.ts`
+
+```typescript
+import type MarkdownIt from 'markdown-it';
+import type StateInline from 'markdown-it/lib/rules_inline/state_inline';
+import type StateBlock from 'markdown-it/lib/rules_block/state_block';
+
+/**
+ * Inline rule: matches \(...\) and \[...\] on a single line.
+ * - \(...\)  -> math_inline with markup '\\(' (displayMode: false)
+ * - \[...\]  -> math_inline with markup '\\[' (displayMode: true)
+ * Skips when the opening backslash is itself escaped (e.g. "\\(" in source).
+ */
+function inlineBracketMath(state: StateInline, silent: boolean): boolean {
+  const src = state.src;
+  const pos = state.pos;
+  if (src.charCodeAt(pos) !== 0x5c /* \\ */) {
+    return false;
+  }
+  const next = src.charCodeAt(pos + 1);
+  const isParen = next === 0x28; /* ( */
+  const isBracket = next === 0x5b; /* [ */
+  if (!isParen && !isBracket) {
+    return false;
+  }
+  // Reject when preceding char is an unescaped backslash (i.e., the leading \\ is itself escaped).
+  // markdown-it's \\ escape handling consumes the escape before calling inline rules, so in practice
+  // "\\\\(x\\\\)" arrives here already unescaped to "\(x\)"; we only guard against explicit \\ that
+  // was *not* consumed (defensive). This matches katex plugin behavior.
+  const closeOpen = isParen ? '\\)' : '\\]';
+  const end = src.indexOf(closeOpen, pos + 2);
+  if (end < 0) {
+    return false;
+  }
+  const content = src.slice(pos + 2, end);
+  // Reject if content crosses a line break (inline rules are per-line in markdown-it).
+  if (content.indexOf('\n') >= 0) {
+    return false;
+  }
+  if (!silent) {
+    const token = state.push('math_inline', 'math', 0);
+    token.content = content;
+    token.markup = isParen ? '\\(' : '\\[';
+  }
+  state.pos = end + 2;
+  return true;
+}
+
+/**
+ * Block rule: matches a block that starts with \[ and continues until \]
+ * (possibly across multiple lines). Emits math_block with markup '\\['.
+ * Only triggers when the line begins with \[ (allowing leading whitespace).
+ */
+function blockBracketMath(state: StateBlock, startLine: number, endLine: number, silent: boolean): boolean {
+  const startPos = state.bMarks[startLine] + state.tShift[startLine];
+  const startMax = state.eMarks[startLine];
+  const firstLine = state.src.slice(startPos, startMax);
+  if (!/^\\\[/.test(firstLine)) {
+    return false;
+  }
+  if (silent) {
+    return true;
+  }
+  let found = false;
+  let nextLine = startLine;
+  let lastLine = '';
+  for (; nextLine < endLine; nextLine++) {
+    const pos = state.bMarks[nextLine] + state.tShift[nextLine];
+    const max = state.eMarks[nextLine];
+    const line = state.src.slice(pos, max);
+    const closeIdx = line.indexOf('\\]');
+    if (closeIdx >= 0) {
+      lastLine = line.slice(0, closeIdx);
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    return false;
+  }
+  // Assemble content from the block, stripping the opening \[ on the first line and the \] on the last.
+  const rawFirst = state.src.slice(startPos, startMax).replace(/^\\\[/, '');
+  const middleLines: string[] = [];
+  for (let i = startLine + 1; i < nextLine; i++) {
+    const p = state.bMarks[i] + state.tShift[i];
+    const m = state.eMarks[i];
+    middleLines.push(state.src.slice(p, m));
+  }
+  const parts = [rawFirst, ...middleLines, lastLine].filter((s) => s.length > 0 || true);
+  const content = parts.join('\n').trim();
+  const token = state.push('math_block', 'math', 0);
+  token.block = true;
+  token.content = content;
+  token.markup = '\\[';
+  token.map = [startLine, nextLine + 1];
+  state.line = nextLine + 1;
+  return true;
+}
+
+export function mathBracketsPlugin(md: MarkdownIt): void {
+  md.inline.ruler.before('escape', 'math_brackets_inline', inlineBracketMath);
+  md.block.ruler.before('fence', 'math_brackets_block', blockBracketMath, {
+    alt: ['paragraph', 'reference', 'blockquote', 'list'],
+  });
+}
+```
+
+- [ ] **Step 4: テスト成功を確認**
+
+実行: `npx tsx --test test/unit/markdown-it-math-brackets.test.ts`
+
+期待: 6 件すべて pass。
+
+- [ ] **Step 5: `extension.ts` にプラグインを組み込み、`markup` 判定を追加**
+
+`src/extension.ts` の import ブロックに追加:
+
+```typescript
+import { mathBracketsPlugin } from './markdown-it-math-brackets';
+```
+
+既存の `if (mathEnabled) { ... }` ブロックを次のように書き換える:
+
+```typescript
+if (mathEnabled) {
+  md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false });
+  md.use(mathBracketsPlugin);
+  // Route delimiter-path math tokens through renderMath(). Respect `markup` so
+  // inline $$...$$ and \[...\] render as display math, matching the upstream
+  // @vscode/markdown-it-katex behavior.
+  md.renderer.rules.math_inline = function (tokens, idx) {
+    const token = tokens[idx];
+    const displayMode = token.markup === '$$' || token.markup === '\\[';
+    return renderMath(token.content, displayMode, { macros: mathMacros });
+  };
+  md.renderer.rules.math_block = function (tokens, idx) {
+    return renderMath(tokens[idx].content, true, { macros: mathMacros });
+  };
+  md.use(mathFencePlugin, { macros: mathMacros });
+}
+```
+
+- [ ] **Step 6: 既存単体テストがすべて pass することを確認**
+
+実行: `npm run test:unit`
+
+期待: 既存テスト + 新規 6 件がすべて pass、0 失敗。
+
+- [ ] **Step 7: コミット**
+
+```bash
+git add src/markdown-it-math-brackets.ts \
+        test/unit/markdown-it-math-brackets.test.ts \
+        src/extension.ts
+git commit -m "feat(math): add bracket delimiter plugin for \\(...\\) and \\[...\\]"
+```
+
+---
+
 ## Task 8: 数式の統合テスト fixture と期待 HTML を追加する
 
 既存 PlantUML fence の手順（`docs/superpowers/plans/20260418-02-plantuml-fence-support.md` Task 4）と同じ要領で、数式入り fixture と期待 HTML を追加する。KaTeX の出力は決定論的なので期待値を固定できる。

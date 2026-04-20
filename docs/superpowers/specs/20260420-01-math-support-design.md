@@ -53,18 +53,21 @@ VS Code 標準プレビューと**同じ挙動**で数式を描画し、PDF / HT
 
 ## アーキテクチャ概要
 
-markdown-it パイプラインに 2 つの経路を追加する。
+markdown-it パイプラインに 3 つの経路を追加する。いずれも `math_inline` / `math_block` トークンを生成し、Task 6 で共通化したレンダラオーバーライドが `renderMath()` を呼び出して KaTeX HTML に変換する。
 
 | 経路 | 担当 | 入力 | 出力 |
 |---|---|---|---|
-| A. デリミタ検出 | `@vscode/markdown-it-katex`（ブラケット記法オプション有効化） | `$...$` / `$$...$$` / `\(...\)` / `\[...\]` | KaTeX の生成する HTML (`<span class="katex">…` / `<span class="katex-display">…`) |
-| B. フェンス検出（新規） | カスタム `fence` レンダラ | `` ```math ... ``` `` | `katex.renderToString(..., { displayMode: true })` の HTML |
+| A. デリミタ検出（`$` 系） | `@vscode/markdown-it-katex`（`enableBareBlocks: true`） | `$...$` / `$$...$$` / `\begin{env}...\end{env}` | `math_inline` / `math_block` トークン |
+| A'. デリミタ検出（ブラケット系） | カスタム markdown-it プラグイン（新規） | `\(...\)` / `\[...\]` | `math_inline` / `math_block` トークン |
+| B. フェンス検出 | カスタム `fence` レンダラ（新規） | `` ```math ... ``` `` | `renderMath(..., displayMode: true)` の HTML |
+
+`@vscode/markdown-it-katex@1.1.2` はブラケット区切り (`\(...\)` / `\[...\]`) をネイティブにサポートしないため、同等のトークンを生成する小さな markdown-it プラグインを自前で追加する（VS Code 組込みプレビューもプラグイン自体はブラケット非対応である）。バックスラッシュのエスケープ (`\\(` など) とコードスパン・コードブロック内の保護は markdown-it のトークナイズ順で担保する。
 
 既存の PlantUML フェンス (`src/extension.ts:262-271`) と同じパターンで `fence`
 ルールを差し替え、`info === 'math'` のとき KaTeX を呼ぶ。既存の PlantUML フェ
 ンス判定より**後**に数式フェンス判定を追加する（既存挙動に影響を与えないため）。
 
-`math.enabled: false` のとき経路 A / B のどちらも有効化せず、`$`・`\(`・`\[`
+`math.enabled: false` のとき経路 A / A' / B をどれも有効化せず、`$`・`\(`・`\[`
 は通常のテキスト、`` ```math `` は通常のコードブロックとして出力される。
 
 ## コンポーネントとファイル構成
@@ -73,7 +76,8 @@ markdown-it パイプラインに 2 つの経路を追加する。
 |---|---|
 | `src/math-renderer.ts`（新規） | `renderMath(tex: string, displayMode: boolean, options: KatexOptions): string` を提供。内部で `katex.renderToString` を呼び、例外を捕捉して元の TeX ソースを `<code>` として返すフォールバックを実装 |
 | `src/markdown-it-math-fence.ts`（新規） | `md.renderer.rules.fence` を差し替える薄いプラグイン。`token.info.trim().toLowerCase() === 'math'` のとき `renderMath(content, true, options)` を呼ぶ。それ以外は委譲 |
-| `src/extension.ts` | markdown-it 構築部に `@vscode/markdown-it-katex` と `markdown-it-math-fence` を `md.use(...)` で登録。`math.enabled` の判定・KaTeX オプション構築・フロントマター反映を担当 |
+| `src/markdown-it-math-brackets.ts`（新規） | ブラケット区切り (`\(...\)` / `\[...\]`) を検出する markdown-it プラグイン。インラインルール・ブロックルールを追加し、`math_inline` / `math_block` トークンを生成（本文の HTML 生成は Task 6 のレンダラオーバーライド経由で `renderMath` が担当） |
+| `src/extension.ts` | markdown-it 構築部に `@vscode/markdown-it-katex`、ブラケットプラグイン、`markdown-it-math-fence` を `md.use(...)` で登録。`math.enabled` の判定・KaTeX オプション構築・フロントマター反映を担当 |
 | `src/utils.ts` | `buildKatexStyleTag(baseDir: string): string` を追加（`styles/katex/katex.min.css` を読み、`url(fonts/...)` をフォントファイルの base64 `data:` URI に書き換えて `<style>` タグで返すヘルパ）。必要に応じてフロントマター / 設定のマージヘルパ (`buildKatexOptions` 等) も追加 |
 | `styles/katex/`（新規） | `node_modules/katex/dist/katex.min.css` と `fonts/KaTeX_*.woff2` / `.woff` / `.ttf` を拡張同梱する（CSS 内 `url(fonts/...)` の相対参照はビルド時ではなく `buildKatexStyleTag` による実行時書き換えで解決） |
 | `template/template.html` | 変更なし（サーバサイド描画のため Chromium 側スクリプト注入不要） |
@@ -126,12 +130,19 @@ math:
 
 ## データフロー
 
-### 経路 A（デリミタ）
+### 経路 A（`$` 系デリミタ）
 
-1. markdown-it が `$...$` 等をパースし `math_inline` / `math_block` トークンを生成
-2. `@vscode/markdown-it-katex` のレンダラが `renderMath(token.content, displayMode, options)` を呼ぶ
+1. `@vscode/markdown-it-katex` が `$...$` / `$$...$$` / `\begin{env}...\end{env}` をパースし `math_inline` / `math_block` トークンを生成
+2. Task 6 の共通レンダラオーバーライドが `renderMath(token.content, displayMode, { macros })` を呼ぶ
 3. `renderMath` が `katex.renderToString` を実行し HTML を返す
 4. 生成された HTML はサニタイザ (`html_block` / `html_inline` 専用) の対象外
+
+### 経路 A'（ブラケット系デリミタ）
+
+1. カスタムプラグインがインラインルールで `\(...\)` を検出、`math_inline` トークンを生成
+2. 同プラグインのブロックルールが `\[...\]` を検出、`math_block` トークンを生成（単一行・複数行いずれも許容）
+3. 以降は経路 A と同じ共通レンダラオーバーライドで `renderMath` が呼ばれる
+4. `\\(` / `\\[` のようにエスケープされたバックスラッシュは検出せず、素通りさせる
 
 ### 経路 B（フェンス）
 
@@ -144,8 +155,8 @@ math:
 
 1. VS Code 設定から `markdown-pdf.math.enabled` / `markdown-pdf.math.katex.macros` を取得
 2. フロントマターの `math.*` 値を読み取り、設定値を上書き
-3. `math.enabled === false` なら経路 A / B ともに登録しない
-4. それ以外なら `@vscode/markdown-it-katex` と math フェンスプラグインを `md.use()` する
+3. `math.enabled === false` なら経路 A / A' / B をどれも登録しない
+4. それ以外なら `@vscode/markdown-it-katex`・ブラケットプラグイン・math フェンスプラグインを `md.use()` する
 
 ## エラー処理とエッジケース
 
@@ -155,7 +166,8 @@ math:
 | 未閉じデリミタ (`$abc`) | `@vscode/markdown-it-katex` が数式として認識せずプレーンテキストで出力（プラグイン既存挙動） |
 | 空の数式ブロック (` ```math\n``` `) | KaTeX に空文字列を渡す → 空の KaTeX ラッパが出力される。例外なし |
 | KaTeX 実行時例外 | `renderMath` の try/catch で捕捉し、元 TeX ソースを `<code>` として返しつつ `console.warn` にログ出力 |
-| `math.enabled: false` | 経路 A / B をどちらも登録しない。`$...$` はプレーン、`` ```math `` は通常コードブロック |
+| エスケープされたブラケット (`\\(x\\)`) | ブラケットプラグインが検出せず素通り。バックスラッシュのみエスケープ解除される通常の markdown として出力 |
+| `math.enabled: false` | 経路 A / A' / B をどれも登録しない。`$...$` / `\(...\)` / `\[...\]` はプレーン、`` ```math `` は通常コードブロック |
 | `markdown-pdf.sanitize` 有効時 | KaTeX 出力は `math_*` トークン経由で生成されるため、`html_block` / `html_inline` に紐付くサニタイザの影響を受けない |
 | 大量の数式 | KaTeX は同期・高速（1 式 1ms 未満）。数百式の文書でも体感影響なし |
 
