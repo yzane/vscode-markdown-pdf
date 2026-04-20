@@ -966,20 +966,9 @@ Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.
 * オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 
-## [Release Notes](CHANGELOG.md)
+## [Change Log](CHANGELOG.md)
 
-### 2.0.1 (2026/04/14)
-* Fix: 自己閉じタグ `<div class="page" />` で改ページが正しく動作するよう修正 [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
-
-### 2.0.0 (2026/04/13)
-* Breaking: 見出し ID の slug 生成、フロントマター解析、Chromium 解決ロジックが変更されました。詳細は [FAQ](#faq) を参照してください。
-* Change: ソースコードを TypeScript に移行し、esbuild でバンドルするよう変更
-* Change: `puppeteer-core` をバンドルし、内製の `chromium-resolver` で Chromium を管理 (インストール済み Chrome/Edge を優先し、見つからなければ自動ダウンロード)
-* Change: `markdown-it-include` / `markdown-it-named-headers` / `markdown-it-checkbox` を内製実装に置換
-* Change: `cheerio` / `mustache` / `gray-matter` 依存を削除
-* Add: ユニットテストと統合テスト (`vscode-test-cli`)
-
-詳細は [Change Log](CHANGELOG.md) を参照してください。
+ユーザー向けの変更点まとめは [RELEASE_NOTES.ja.md](RELEASE_NOTES.ja.md) を参照してください。開発者向けの詳細な変更履歴は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ## License
 
