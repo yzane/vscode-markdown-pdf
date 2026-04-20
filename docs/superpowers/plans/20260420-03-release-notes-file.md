@@ -1,5 +1,8 @@
 # Release Notes ファイル分離 実装プラン
 
+> **方針変更 (2026-04-20):** 本プランの途中で RELEASE_NOTES.md 採用を取りやめ、CHANGELOG.md 単一化方針に転換した。設計文書 `docs/superpowers/specs/20260420-03-release-notes-file-design.md` 冒頭の方針変更記録を参照。最終的に採用された変更は (1) README 下部セクションを Change Log にリネーム、(2) What's New を短縮化、(3) PlantUML フェンス記述の修正、(4) Include 機能説明への読み込み失敗挙動追記、のみ。
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** ユーザー視点の変更説明を `RELEASE_NOTES.md` / `RELEASE_NOTES.ja.md` に切り出し、`README.md` / `README.ja.md` は最新バージョン分の抜粋と RELEASE_NOTES / CHANGELOG へのリンクに整理する。併せて現 README 内の不正確な PlantUML 記述を修正する。

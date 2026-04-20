@@ -1,5 +1,16 @@
 # Release Notes ファイル分離 設計
 
+> **方針変更 (2026-04-20):** 本設計で提案した `RELEASE_NOTES.md` / `RELEASE_NOTES.ja.md` の新設は取りやめた。
+>
+> 業界標準である「CHANGELOG.md 単一ファイル」を尊重し、VS Code Marketplace が CHANGELOG.md をネイティブ表示することを活かす方針に転換した。結果として、以下のみ採用：
+>
+> - README 下部セクション名を `Release Notes` → `Change Log` にリネーム（本文は CHANGELOG.md へのリンクのみ）
+> - README 上部 `What's New` を短いバレットリストに簡素化し、詳細は既存の機能・オプション・FAQ セクションに委譲
+> - PlantUML フェンスドコードブロック記述の不正確な箇所（「VS Code プレビュー・GitHub・GitLab と同じ書式」）を修正
+> - 2.0.0 で改善された Include 機能の読み込み失敗時挙動を `### Include` 機能説明に追記
+>
+> 以下の設計内容は経緯の記録として保存する。
+
 ## 背景と目的
 
 現在、リリースに関連する情報は以下の 3 箇所に分散している。
