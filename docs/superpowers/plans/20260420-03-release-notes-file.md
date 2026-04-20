@@ -29,13 +29,19 @@
 
 ## アンカー規約
 
-個別項目への Details リンクを安定させるため、`RELEASE_NOTES.md` / `RELEASE_NOTES.ja.md` ではバージョン見出しの直前に明示的な HTML アンカーを置く。
+バージョン見出しのアンカーには明示的な `<a id="...">` を置かず、GitHub（および VS Code プレビュー）の自動スラグ生成に任せる。CHANGELOG.md と同じ運用で、README / RELEASE_NOTES 間のリンクも同じ方式で機能する。
 
-- `<a id="rel-xyz"></a>` → `## X.Y.Z (YYYY/MM/DD)`
-- `<a id="rel-201"></a>` → `## 2.0.1 (2026/04/14)`
-- `<a id="rel-200"></a>` → `## 2.0.0 (2026/04/13)`
+見出し → 自動生成スラグの対応は以下:
 
-`README.md` 側の各項目末尾から `[RELEASE_NOTES.md#rel-xyz](RELEASE_NOTES.md#rel-xyz)` 形式でリンクする（同バージョンの全項目は同じアンカーを共有）。`README.ja.md` からは `RELEASE_NOTES.ja.md#rel-xyz` を使う。
+| 見出し | スラグ |
+|---|---|
+| `## X.Y.Z (YYYY/MM/DD)` | `#xyz-yyyymmdd` |
+| `## 2.0.1 (2026/04/14)` | `#201-20260414` |
+| `## 2.0.0 (2026/04/13)` | `#200-20260413` |
+
+`README.md` 側の各項目末尾から `[RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)` 形式でリンクする（同バージョンの全項目は同じスラグを共有）。`README.ja.md` からは `RELEASE_NOTES.ja.md#<slug>` を使う。
+
+本リリースで X.Y.Z を具体的なバージョン・日付に書き換える場合は、RELEASE_NOTES 側の見出しと README 側のスラグ参照を同一 PR 内で揃えて更新する。
 
 ---
 
@@ -44,7 +50,7 @@
 **Files:**
 - Create: `RELEASE_NOTES.md`
 
-**Context:** 現 `README.md` 上部の `What's New` / `Breaking Changes` にあるユーザー視点のテキストを種に、ハイブリッド形式（バージョン見出し + 太字ラベル + プロース）で再構成する。GitHub の HTML アンカーは見出し直前に置く。
+**Context:** 現 `README.md` 上部の `What's New` / `Breaking Changes` にあるユーザー視点のテキストを種に、ハイブリッド形式（バージョン見出し + 太字ラベル + プロース）で再構成する。バージョン見出しのアンカーは GitHub の自動スラグに任せる（明示的な `<a id="...">` は置かない）。
 
 - [ ] **Step 1: 新規ファイルを作成**
 
@@ -54,8 +60,6 @@
 # Release Notes
 
 User-facing summary of changes. For the detailed development log, see [CHANGELOG.md](CHANGELOG.md).
-
-<a id="rel-xyz"></a>
 
 ## X.Y.Z (YYYY/MM/DD)
 
@@ -97,15 +101,11 @@ The behavior is controlled by the new [markdown-pdf.sanitize](README.md#markdown
 - Use `"gfm-allow-style"` if you only need inline `<style>` blocks.
 - Move layout CSS into a stylesheet file and reference it via [markdown-pdf.styles](README.md#markdown-pdfstyles) — external stylesheets are not sanitized.
 
-<a id="rel-201"></a>
-
 ## 2.0.1 (2026/04/14)
 
 **Fix: Self-closing `<div class="page" />` now triggers a page break**
 
 Self-closing `<div class="page" />` now correctly triggers a page break, matching the paired `<div class="page"></div>` form ([#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)).
-
-<a id="rel-200"></a>
 
 ## 2.0.0 (2026/04/13)
 
@@ -153,10 +153,10 @@ Chromium download and cache management moved to a built-in `chromium-resolver`. 
 Run:
 
 ```bash
-test -f RELEASE_NOTES.md && grep -n '<a id="rel-xyz"></a>' RELEASE_NOTES.md && grep -n '<a id="rel-201"></a>' RELEASE_NOTES.md && grep -n '<a id="rel-200"></a>' RELEASE_NOTES.md
+test -f RELEASE_NOTES.md && grep -n '^## X.Y.Z (YYYY/MM/DD)$' RELEASE_NOTES.md && grep -n '^## 2.0.1 (2026/04/14)$' RELEASE_NOTES.md && grep -n '^## 2.0.0 (2026/04/13)$' RELEASE_NOTES.md && ! grep -q '<a id=' RELEASE_NOTES.md && echo OK
 ```
 
-Expected: ファイルが存在し、3 つのアンカーがそれぞれ出力される。
+Expected: ファイルが存在し、3 つのバージョン見出しがヒットし、明示的 `<a id=` が含まれておらず、末尾に `OK`。
 
 - [ ] **Step 3: コミット**
 
@@ -167,8 +167,8 @@ docs(release-notes): add RELEASE_NOTES.md with user-facing notes
 
 Seed 2.0.0, 2.0.1, and X.Y.Z entries in the hybrid bold-label + prose
 format described in docs/superpowers/specs/20260420-03-release-notes-file-design.md.
-Version headings carry explicit `<a id="rel-...">` anchors so README can
-link to them stably.
+Version headings rely on GitHub's auto-generated slugs (e.g.
+#200-20260413) so README can link to them without explicit anchors.
 EOF
 )"
 ```
@@ -180,7 +180,7 @@ EOF
 **Files:**
 - Create: `RELEASE_NOTES.ja.md`
 
-**Context:** `README.ja.md` の `What's New` / `仕様変更` の既存日本語テキストを種に、英語版と同じ構造・同じアンカーで日本語版を作成する。「生 HTML」表現は使わず「Markdown 内の HTML」などの言い回しを使う。
+**Context:** `README.ja.md` の `What's New` / `仕様変更` の既存日本語テキストを種に、英語版と同じ構造・同じ見出しで日本語版を作成する。バージョン見出しのアンカーは GitHub 自動スラグに任せる（明示的な `<a id="...">` は置かない）。「生 HTML」表現は使わず「Markdown 内の HTML」などの言い回しを使う。
 
 - [ ] **Step 1: 新規ファイルを作成**
 
@@ -190,8 +190,6 @@ EOF
 # Release Notes
 
 ユーザー向けの変更点まとめです。開発者向けの詳細な変更履歴は [CHANGELOG.md](CHANGELOG.md) を参照してください。
-
-<a id="rel-xyz"></a>
 
 ## X.Y.Z (YYYY/MM/DD)
 
@@ -233,15 +231,11 @@ XSS リスク低減のため（[#411](https://github.com/yzane/vscode-markdown-p
 - インライン `<style>` だけ残したい: `"gfm-allow-style"` を設定。
 - レイアウト用 CSS は別 `.css` ファイルに移し、[markdown-pdf.styles](README.ja.md#markdown-pdfstyles) で読み込む形に移行する（外部スタイルシートはサニタイズ対象外）。
 
-<a id="rel-201"></a>
-
 ## 2.0.1 (2026/04/14)
 
 **修正: 自己閉じタグの `<div class="page" />` で改ページが動作**
 
 自己閉じタグ形式の `<div class="page" />` が改ページとして正しく認識されるようになりました（対応タグ形式 `<div class="page"></div>` と挙動が揃います）。[#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
-
-<a id="rel-200"></a>
 
 ## 2.0.0 (2026/04/13)
 
@@ -289,10 +283,10 @@ Chromium のダウンロードとキャッシュ管理が組み込みの `chromi
 Run:
 
 ```bash
-test -f RELEASE_NOTES.ja.md && grep -n '<a id="rel-xyz"></a>' RELEASE_NOTES.ja.md && grep -n '<a id="rel-201"></a>' RELEASE_NOTES.ja.md && grep -n '<a id="rel-200"></a>' RELEASE_NOTES.ja.md && ! grep -q '生 HTML' RELEASE_NOTES.ja.md && echo OK
+test -f RELEASE_NOTES.ja.md && grep -n '^## X.Y.Z (YYYY/MM/DD)$' RELEASE_NOTES.ja.md && grep -n '^## 2.0.1 (2026/04/14)$' RELEASE_NOTES.ja.md && grep -n '^## 2.0.0 (2026/04/13)$' RELEASE_NOTES.ja.md && ! grep -q '<a id=' RELEASE_NOTES.ja.md && ! grep -q '生 HTML' RELEASE_NOTES.ja.md && echo OK
 ```
 
-Expected: 3 つのアンカーが出力され、末尾に `OK`。「生 HTML」表現が含まれていないこと。
+Expected: 3 つのバージョン見出しがヒットし、明示的 `<a id=` が含まれておらず、「生 HTML」表現も含まれていない。末尾に `OK`。
 
 - [ ] **Step 3: コミット**
 
@@ -302,9 +296,9 @@ git commit -m "$(cat <<'EOF'
 docs(release-notes): add RELEASE_NOTES.ja.md (Japanese mirror)
 
 Mirrors RELEASE_NOTES.md entries for 2.0.0, 2.0.1, and X.Y.Z in
-Japanese, using the same version headings and `<a id="rel-...">`
-anchors. Avoids the "生 HTML" term in favor of "Markdown 内の HTML"
-per the spec's terminology guideline.
+Japanese, using the same version headings and relying on GitHub's
+auto-generated slugs for anchors. Avoids the "生 HTML" term in favor of
+"Markdown 内の HTML" per the spec's terminology guideline.
 EOF
 )"
 ```
@@ -391,17 +385,17 @@ User-visible additions and improvements. For changes that may require action on 
 ### X.Y.Z
 
 - Added support for ` ```plantuml ` fenced code blocks as a PlantUML syntax, in addition to the existing `@startuml` / `@enduml` block markers. Both are supported on equal footing.
-    - Details: [PlantUML](#plantuml) / [RELEASE_NOTES.md#rel-xyz](RELEASE_NOTES.md#rel-xyz)
+    - Details: [PlantUML](#plantuml) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
 - Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
-    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.md#rel-xyz](RELEASE_NOTES.md#rel-xyz)
+    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
 - Added math rendering support via [KaTeX](https://katex.org/), matching VS Code's built-in Markdown preview. Supports inline `$…$` / `\(…\)`, display `$$…$$` / `\[…\]`, and ` ```math ` fenced code blocks. Opt out via [markdown-pdf.math.enabled](#markdown-pdfmathenabled).
-    - Details: [Math](#math) / [RELEASE_NOTES.md#rel-xyz](RELEASE_NOTES.md#rel-xyz)
+    - Details: [Math](#math) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
 ```
 
 変更点:
 - 行 36 の末尾に「For the full user-facing release notes including past versions, see [RELEASE_NOTES.md](RELEASE_NOTES.md).」を追加。
 - 行 40 の `(the fence form is the same one used by VS Code preview, GitHub, and GitLab)` 部分を削除し、一文を短くする。
-- 各項目の `Details: ...` 行末尾に `/ [RELEASE_NOTES.md#rel-xyz](RELEASE_NOTES.md#rel-xyz)` を追加。
+- 各項目の `Details: ...` 行末尾に `/ [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)` を追加。
 
 - [ ] **Step 2: 2.0.1 / 2.0.0 項目の `Details:` を追記**
 
@@ -421,7 +415,7 @@ After:
 ### 2.0.1
 
 - Self-closing `<div class="page" />` now correctly triggers a page break ([#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)).
-    - Details: [RELEASE_NOTES.md#rel-201](RELEASE_NOTES.md#rel-201)
+    - Details: [RELEASE_NOTES.md#201-20260414](RELEASE_NOTES.md#201-20260414)
 ```
 
 続いて `### 2.0.0` ブロック（元行 51-55）を書き換える。
@@ -442,11 +436,11 @@ After:
 ### 2.0.0
 
 - Include (`:[label](path.md)`) now reports errors inline instead of aborting the whole export, so a missing or unreadable fragment no longer breaks the rest of the document.
-    - Details: [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 - Image `src` rewriting now correctly handles quoted attributes, flexible whitespace, and raw-text contexts.
-    - Details: [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 - Front matter parsing now supports BOM-prefixed files.
-    - Details: [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 ```
 
 - [ ] **Step 3: 検証**
@@ -454,10 +448,10 @@ After:
 Run:
 
 ```bash
-! grep -n 'VS Code preview, GitHub, and GitLab' README.md && grep -cn 'RELEASE_NOTES.md#rel-xyz' README.md && grep -cn 'RELEASE_NOTES.md#rel-201' README.md && grep -cn 'RELEASE_NOTES.md#rel-200' README.md && echo OK
+! grep -n 'VS Code preview, GitHub, and GitLab' README.md && grep -cn 'RELEASE_NOTES.md#xyz-yyyymmdd' README.md && grep -cn 'RELEASE_NOTES.md#201-20260414' README.md && grep -cn 'RELEASE_NOTES.md#200-20260413' README.md && echo OK
 ```
 
-Expected: PlantUML 第三者並列比較が消えており、各アンカーが数行分ヒット（rel-xyz: 3、rel-201: 1、rel-200: 3）し、末尾に `OK`。
+Expected: PlantUML 第三者並列比較が消えており、各スラグが数行分ヒット（`xyz-yyyymmdd`: 3、`201-20260414`: 1、`200-20260413`: 3）し、末尾に `OK`。
 
 - [ ] **Step 4: コミット**
 
@@ -516,7 +510,7 @@ After:
 ### X.Y.Z
 
 - To mitigate XSS-like risk ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)), raw HTML in Markdown is now sanitized by default following the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Tags such as `<script>`, `<iframe>`, `<style>`, and `on*` / `javascript:` attributes are stripped from Markdown body content. The behavior is controlled by the new [markdown-pdf.sanitize](#markdown-pdfsanitize) setting.
-    - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed) / [RELEASE_NOTES.md#rel-xyz](RELEASE_NOTES.md#rel-xyz)
+    - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed) / [RELEASE_NOTES.md#xyz-yyyymmdd](RELEASE_NOTES.md#xyz-yyyymmdd)
 ```
 
 - [ ] **Step 3: 2.0.0 項目の `Details:` に RELEASE_NOTES リンクを追記**
@@ -542,13 +536,13 @@ After:
 ### 2.0.0
 
 - Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change.
-    - Details: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) / [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) / [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 - Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed.
-    - Details: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working) / [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working) / [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 - Front matter parsing is now stricter. Some previously accepted formats may be rejected.
-    - Details: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed) / [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed) / [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 - Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use.
-    - Details: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.md#rel-200](RELEASE_NOTES.md#rel-200)
+    - Details: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.md#200-20260413](RELEASE_NOTES.md#200-20260413)
 ```
 
 - [ ] **Step 4: 検証**
@@ -556,10 +550,10 @@ After:
 Run:
 
 ```bash
-grep -c 'RELEASE_NOTES.md#rel-xyz' README.md && grep -c 'RELEASE_NOTES.md#rel-200' README.md && grep -q 'For the full user-facing release notes' README.md && echo OK
+grep -c 'RELEASE_NOTES.md#xyz-yyyymmdd' README.md && grep -c 'RELEASE_NOTES.md#200-20260413' README.md && grep -q 'For the full user-facing release notes' README.md && echo OK
 ```
 
-Expected: `RELEASE_NOTES.md#rel-xyz` は 4 件以上、`RELEASE_NOTES.md#rel-200` は 7 件以上（What's New 3 + Breaking Changes 4）、末尾に `OK`。
+Expected: `RELEASE_NOTES.md#xyz-yyyymmdd` は 4 件以上、`RELEASE_NOTES.md#200-20260413` は 7 件以上（What's New 3 + Breaking Changes 4）、末尾に `OK`。
 
 - [ ] **Step 5: コミット**
 
@@ -767,17 +761,17 @@ After:
 ### X.Y.Z
 
 - 既存の `@startuml` / `@enduml` ブロックマーカー記法に加えて、```` ```plantuml ```` フェンスドコードブロック記法にも対応しました。両者は対等にサポートされます。
-    - 詳細: [PlantUML](#plantuml) / [RELEASE_NOTES.ja.md#rel-xyz](RELEASE_NOTES.ja.md#rel-xyz)
+    - 詳細: [PlantUML](#plantuml) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 - Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
-    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.ja.md#rel-xyz](RELEASE_NOTES.ja.md#rel-xyz)
+    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 - [KaTeX](https://katex.org/) による数式描画に対応しました（VS Code 標準の Markdown プレビューと同じ動作）。インライン `$…$` / `\(…\)`、ブロック `$$…$$` / `\[…\]`、および ` ```math ` フェンスドコードブロックをサポートします。[markdown-pdf.math.enabled](#markdown-pdfmathenabled) で無効化できます。
-    - 詳細: [Math](#math) / [RELEASE_NOTES.ja.md#rel-xyz](RELEASE_NOTES.ja.md#rel-xyz)
+    - 詳細: [Math](#math) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 ```
 
 変更点:
 - 行 34 末尾に「過去バージョンを含むユーザー向けリリースノート全体は [RELEASE_NOTES.ja.md](RELEASE_NOTES.ja.md) を参照してください。」を追加。
 - 行 38 の PlantUML 項目から `（フェンス記法は VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）` を削除。
-- 各項目の `詳細: ...` 末尾に `/ [RELEASE_NOTES.ja.md#rel-xyz](RELEASE_NOTES.ja.md#rel-xyz)` を追加。
+- 各項目の `詳細: ...` 末尾に `/ [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)` を追加。
 
 - [ ] **Step 2: 2.0.1 / 2.0.0 項目の `詳細:` を追記**
 
@@ -801,16 +795,16 @@ After:
 ### 2.0.1
 
 - 自己閉じタグ `<div class="page" />` で改ページが正しく動作するようになりました（[#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)）。
-    - 詳細: [RELEASE_NOTES.ja.md#rel-201](RELEASE_NOTES.ja.md#rel-201)
+    - 詳細: [RELEASE_NOTES.ja.md#201-20260414](RELEASE_NOTES.ja.md#201-20260414)
 
 ### 2.0.0
 
 - Include 機能（`:[label](path.md)`）で読み込みに失敗した場合にエクスポート全体を中断せず、該当箇所にエラーを表示するようになりました。一部のフラグメントが欠けていてもドキュメントの残りは出力されます。
-    - 詳細: [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - 画像 `src` の書き換えで、引用符付き属性・可変長の空白・raw-text コンテキスト等の取り扱いが改善されました。
-    - 詳細: [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - フロントマターの解析が BOM 付きファイルに対応しました。
-    - 詳細: [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 ```
 
 - [ ] **Step 3: 検証**
@@ -818,10 +812,10 @@ After:
 Run:
 
 ```bash
-! grep -n 'VS Code 標準の Markdown プレビュー・GitHub・GitLab' README.ja.md && grep -c 'RELEASE_NOTES.ja.md#rel-xyz' README.ja.md && grep -c 'RELEASE_NOTES.ja.md#rel-200' README.ja.md && echo OK
+! grep -n 'VS Code 標準の Markdown プレビュー・GitHub・GitLab' README.ja.md && grep -c 'RELEASE_NOTES.ja.md#xyz-yyyymmdd' README.ja.md && grep -c 'RELEASE_NOTES.ja.md#200-20260413' README.ja.md && echo OK
 ```
 
-Expected: 古い第三者並列比較が消えており、`rel-xyz` は 3 件、`rel-200` は 3 件以上ヒットし、末尾に `OK`。
+Expected: 古い第三者並列比較が消えており、`xyz-yyyymmdd` は 3 件、`200-20260413` は 3 件以上ヒットし、末尾に `OK`。
 
 - [ ] **Step 4: コミット**
 
@@ -870,7 +864,7 @@ After:
 ### X.Y.Z
 
 - XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい [markdown-pdf.sanitize](#markdown-pdfsanitize) 設定で制御できます。
-    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed) / [RELEASE_NOTES.ja.md#rel-xyz](RELEASE_NOTES.ja.md#rel-xyz)
+    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
 ```
 
 注: spec の用語ガイドに合わせ、本項目冒頭の「Markdown 内の Raw HTML」から `Raw` を外して「Markdown 内の HTML」に揃えている（FAQ 本体の `<a id="...">` 付き見出しや詳細説明は別タスクの範囲外として変更しない）。
@@ -898,13 +892,13 @@ After:
 ### 2.0.0
 
 - 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。
-    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) / [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。
-    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working) / [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。
-    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed) / [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 - Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
-    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.ja.md#rel-200](RELEASE_NOTES.ja.md#rel-200)
+    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
 ```
 
 - [ ] **Step 4: 検証**
@@ -912,10 +906,10 @@ After:
 Run:
 
 ```bash
-grep -c 'RELEASE_NOTES.ja.md#rel-xyz' README.ja.md && grep -c 'RELEASE_NOTES.ja.md#rel-200' README.ja.md && grep -q '過去バージョンを含むユーザー向けリリースノート全体は' README.ja.md && echo OK
+grep -c 'RELEASE_NOTES.ja.md#xyz-yyyymmdd' README.ja.md && grep -c 'RELEASE_NOTES.ja.md#200-20260413' README.ja.md && grep -q '過去バージョンを含むユーザー向けリリースノート全体は' README.ja.md && echo OK
 ```
 
-Expected: `rel-xyz` が 4 件以上（What's New 3 + Breaking 1）、`rel-200` が 7 件以上（What's New 3 + 仕様変更 4）、末尾に `OK`。
+Expected: `xyz-yyyymmdd` が 4 件以上（What's New 3 + 仕様変更 1）、`200-20260413` が 7 件以上（What's New 3 + 仕様変更 4）、末尾に `OK`。
 
 - [ ] **Step 5: コミット**
 
@@ -1042,15 +1036,25 @@ Run:
 
 ```bash
 set -e
-# RELEASE_NOTES.md 存在と必要アンカー
+# RELEASE_NOTES 存在と必要バージョン見出し（明示アンカーなし）
 test -f RELEASE_NOTES.md
 test -f RELEASE_NOTES.ja.md
-grep -q '<a id="rel-xyz"></a>' RELEASE_NOTES.md
-grep -q '<a id="rel-201"></a>' RELEASE_NOTES.md
-grep -q '<a id="rel-200"></a>' RELEASE_NOTES.md
-grep -q '<a id="rel-xyz"></a>' RELEASE_NOTES.ja.md
-grep -q '<a id="rel-201"></a>' RELEASE_NOTES.ja.md
-grep -q '<a id="rel-200"></a>' RELEASE_NOTES.ja.md
+grep -q '^## X.Y.Z (YYYY/MM/DD)$' RELEASE_NOTES.md
+grep -q '^## 2.0.1 (2026/04/14)$' RELEASE_NOTES.md
+grep -q '^## 2.0.0 (2026/04/13)$' RELEASE_NOTES.md
+grep -q '^## X.Y.Z (YYYY/MM/DD)$' RELEASE_NOTES.ja.md
+grep -q '^## 2.0.1 (2026/04/14)$' RELEASE_NOTES.ja.md
+grep -q '^## 2.0.0 (2026/04/13)$' RELEASE_NOTES.ja.md
+! grep -q '<a id=' RELEASE_NOTES.md
+! grep -q '<a id=' RELEASE_NOTES.ja.md
+
+# README 側からのスラグ参照が正しい形式で存在
+grep -q 'RELEASE_NOTES.md#xyz-yyyymmdd' README.md
+grep -q 'RELEASE_NOTES.md#201-20260414' README.md
+grep -q 'RELEASE_NOTES.md#200-20260413' README.md
+grep -q 'RELEASE_NOTES.ja.md#xyz-yyyymmdd' README.ja.md
+grep -q 'RELEASE_NOTES.ja.md#201-20260414' README.ja.md
+grep -q 'RELEASE_NOTES.ja.md#200-20260413' README.ja.md
 
 # TOC リネーム
 grep -q '^- \[Change Log\](#change-log)$' README.md
@@ -1145,7 +1149,7 @@ Expected: `feature/release-notes-file` 上に spec コミット 3 件 + 本プ�
 
 spec のオープン疑問に対する本プランでの扱い:
 
-- **RELEASE_NOTES.md へのアンカー文字列**: 明示的な HTML アンカー `<a id="rel-xyz">` / `rel-201` / `rel-200` を使う形に固定。GitHub slug 生成の挙動に依存しないため安定。
+- **RELEASE_NOTES.md へのアンカー文字列**: 明示的な `<a id="...">` は置かず、GitHub 自動スラグに従う（`## X.Y.Z (YYYY/MM/DD)` → `#xyz-yyyymmdd` / `## 2.0.1 (2026/04/14)` → `#201-20260414` / `## 2.0.0 (2026/04/13)` → `#200-20260413`）。CHANGELOG.md と同じ運用で、シンプルさと整合性を優先。
 - **`RELEASE_NOTES.ja.md` の見出し**: 英語版と同じく `# Release Notes` のまま（「Release Notes」はプロジェクト内で既に広く使われている固有名詞として扱う）。日本語側の導入文では「ユーザー向けの変更点まとめです」と言及する。
 - **`Release Notes` アンカー参照の外部リンク調査**: リポジトリ内で `#release-notes` を参照している箇所は TOC と下部セクション内部リンクのみであることを grep で確認済み（本プラン Task 13 Step 1 で担保）。リポジトリ外の外部リンクが存在する可能性はあるが、本プランの範囲外とする。
 
