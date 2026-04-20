@@ -21,7 +21,7 @@
 - [オプション](#オプション)
 - [FAQ](#faq)
 - [既知の問題](#既知の問題)
-- [Release Notes](#release-notes)
+- [Change Log](#change-log)
 - [License](#license)
 - [Special thanks](#special-thanks)
 
@@ -31,30 +31,17 @@
 
 ## What's New
 
-ユーザに直接関係する追加・改善点です。ユーザ対応が必要な変更については [仕様変更](#仕様変更) を参照してください。
+バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
 
 ### X.Y.Z
 
-- 既存の `@startuml` / `@enduml` ブロックマーカー記法に加えて、```` ```plantuml ```` フェンスドコードブロック記法にも対応しました（フェンス記法は VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式）。両者は対等にサポートされます。
-    - 詳細: [PlantUML](#plantuml)
-- Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
-    - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-- [KaTeX](https://katex.org/) による数式描画に対応しました（VS Code 標準の Markdown プレビューと同じ動作）。インライン `$…$` / `\(…\)`、ブロック `$$…$$` / `\[…\]`、および ` ```math ` フェンスドコードブロックをサポートします。[markdown-pdf.math.enabled](#markdown-pdfmathenabled) で無効化できます。
-    - 詳細: [Math](#math)
-
-### 2.0.1
-
-- 自己閉じタグ `<div class="page" />` で改ページが正しく動作するようになりました（[#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)）。
-
-### 2.0.0
-
-- Include 機能（`:[label](path.md)`）で読み込みに失敗した場合にエクスポート全体を中断せず、該当箇所にエラーを表示するようになりました。一部のフラグメントが欠けていてもドキュメントの残りは出力されます。
-- 画像 `src` の書き換えで、引用符付き属性・可変長の空白・raw-text コンテキスト等の取り扱いが改善されました。
-- フロントマターの解析が BOM 付きファイルに対応しました。
+- `` ```plantuml `` フェンスドコードブロック記法のサポートを追加（[詳細](#plantuml)）
+- KaTeX による数式描画のサポートを追加（[詳細](#math)）
+- Chrome Stable 最新版の自動ダウンロードに対応（[詳細](#markdown-pdfchromiumautodownload)）
 
 ## 仕様変更
 
-既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+バージョン 2 以降で既存動作に影響する変更です。詳細は [FAQ](#faq) セクションを参照してください。
 
 ### X.Y.Z
 
@@ -146,7 +133,7 @@ OUTPUT
 
 #### フェンスドコードブロック記法
 
-```` ```plantuml ```` フェンスドコードブロック記法です。VS Code 標準の Markdown プレビュー・GitHub・GitLab と同じ書式です。
+```` ```plantuml ```` フェンスドコードブロック記法です。PlantUML エコシステムで一般的に使われる記法で、[GitLab では PlantUML 連携を有効化するとネイティブに描画されます](https://docs.gitlab.com/administration/integration/plantuml/)。
 
 INPUT
 
@@ -177,6 +164,8 @@ OUTPUT（どちらの記法でも同じ画像が生成されます）
 ### Include
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+
+読み込みに失敗した場合（ファイルが存在しない・読み込み権限がない等）は、該当箇所にエラーを表示しつつエクスポートを継続します。フラグメントが欠けていてもドキュメントの残りは出力されます。
 
 ```
 ├── [plugins]
@@ -962,20 +951,9 @@ Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.
 * オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 
-## [Release Notes](CHANGELOG.md)
+## [Change Log](CHANGELOG.md)
 
-### 2.0.1 (2026/04/14)
-* Fix: 自己閉じタグ `<div class="page" />` で改ページが正しく動作するよう修正 [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
-
-### 2.0.0 (2026/04/13)
-* Breaking: 見出し ID の slug 生成、フロントマター解析、Chromium 解決ロジックが変更されました。詳細は [FAQ](#faq) を参照してください。
-* Change: ソースコードを TypeScript に移行し、esbuild でバンドルするよう変更
-* Change: `puppeteer-core` をバンドルし、内製の `chromium-resolver` で Chromium を管理 (インストール済み Chrome/Edge を優先し、見つからなければ自動ダウンロード)
-* Change: `markdown-it-include` / `markdown-it-named-headers` / `markdown-it-checkbox` を内製実装に置換
-* Change: `cheerio` / `mustache` / `gray-matter` 依存を削除
-* Add: ユニットテストと統合テスト (`vscode-test-cli`)
-
-詳細は [Change Log](CHANGELOG.md) を参照してください。
+変更履歴の全文は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ## License
 

@@ -9,6 +9,16 @@ These rules apply only to plan/spec files managed by the `superpowers` plugin un
 
 - Code comments must be written in English.
 
+# Release Notes
+
+- `CHANGELOG.md` is the single source of truth for release history. Each version groups entries under `### Breaking Changes` / `### Changes` / `### Fixes` subheadings. VS Code Marketplace renders this file directly.
+- GitHub Release body: paste the `CHANGELOG.md` entry for the released version verbatim.
+- `README.md` / `README.ja.md` upper sections surface a short excerpt:
+  - `## What's New`: one-line bullets scoped to **v2 and later**, each ending with a link to the existing Features / Options / FAQ section for detail. No prose blocks.
+  - `## Breaking Changes`: entries scoped to **v2 and later**, each linking to the FAQ entry that explains the migration.
+- README bottom section is `## [Change Log](CHANGELOG.md)` with only a pointer sentence — no CHANGELOG excerpts.
+- Do not introduce a separate `RELEASE_NOTES.md` layer (a 2026-04-20 design attempt was rejected; see `docs/superpowers/specs/20260420-03-release-notes-file-design.md`).
+
 # Development Workflow
 
 This repository follows the GitFlow branching model without `hotfix/*`. All bug fixes go through `develop` via `bugfix/*`. `master` is updated only when publishing to the VS Code Marketplace, so it always reflects the latest published release.

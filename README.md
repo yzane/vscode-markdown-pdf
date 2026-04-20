@@ -33,30 +33,17 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## What's New
 
-User-visible additions and improvements. For changes that may require action on your side, see [Breaking Changes](#breaking-changes).
+Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
 
 ### X.Y.Z
 
-- Added support for ` ```plantuml ` fenced code blocks as a PlantUML syntax, in addition to the existing `@startuml` / `@enduml` block markers. Both are supported on equal footing (the fence form is the same one used by VS Code preview, GitHub, and GitLab).
-    - Details: [PlantUML](#plantuml)
-- Chromium auto-download now fetches the latest Chrome Stable build from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json), instead of relying only on the build id pinned by `puppeteer-core`. A new [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) setting (default `true`) lets you opt out.
-    - Details: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-- Added math rendering support via [KaTeX](https://katex.org/), matching VS Code's built-in Markdown preview. Supports inline `$…$` / `\(…\)`, display `$$…$$` / `\[…\]`, and ` ```math ` fenced code blocks. Opt out via [markdown-pdf.math.enabled](#markdown-pdfmathenabled).
-    - Details: [Math](#math)
-
-### 2.0.1
-
-- Self-closing `<div class="page" />` now correctly triggers a page break ([#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)).
-
-### 2.0.0
-
-- Include (`:[label](path.md)`) now reports errors inline instead of aborting the whole export, so a missing or unreadable fragment no longer breaks the rest of the document.
-- Image `src` rewriting now correctly handles quoted attributes, flexible whitespace, and raw-text contexts.
-- Front matter parsing now supports BOM-prefixed files.
+- Add PlantUML fenced code block support ([details](#plantuml))
+- Add math rendering via KaTeX ([details](#math))
+- Auto-download latest Chrome Stable ([details](#markdown-pdfchromiumautodownload))
 
 ## Breaking Changes
 
-Some changes may affect existing behavior. See the [FAQ](#faq) section for details.
+Changes since v2 that may affect existing behavior. See the [FAQ](#faq) section for details.
 
 ### X.Y.Z
 
@@ -148,7 +135,7 @@ Two equivalent syntaxes are supported. Both produce the same `<img>` tag and sha
 
 #### Fenced code block
 
-A ```` ```plantuml ```` fenced code block. This is the same form used by VS Code's built-in Markdown preview, GitHub, and GitLab.
+A ```` ```plantuml ```` fenced code block. This is the common fence convention used across the PlantUML ecosystem (for example, [GitLab renders this form natively](https://docs.gitlab.com/administration/integration/plantuml/) when the PlantUML integration is enabled).
 
 INPUT
 
@@ -179,6 +166,8 @@ OUTPUT (either form produces the same image)
 ### Include
 
 Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+
+If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error inline at the include site and continues exporting the rest of the document.
 
 ```
 ├── [plugins]
@@ -955,7 +944,7 @@ Set [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) to `
 
 ## [Change Log](CHANGELOG.md)
 
-For a user-facing summary of changes, see [RELEASE_NOTES.md](RELEASE_NOTES.md). For the detailed change history including developer-facing notes, see [CHANGELOG.md](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) for the full change history.
 
 ## License
 
