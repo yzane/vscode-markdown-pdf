@@ -398,81 +398,43 @@ code {
 <!-- /TOC -->
 <div class="page"/>
 <h2 id="whats-new">What's New</h2>
-<p>User-visible additions and improvements. For changes that may require action on your side, see <a href="#breaking-changes">Breaking Changes</a>. For the full user-facing release notes including past versions, see <a href="RELEASE_NOTES.md">RELEASE_NOTES.md</a>.</p>
+<p>User-visible additions and improvements. For changes that may require action on your side, see <a href="#breaking-changes">Breaking Changes</a>.</p>
 <h3 id="xyz">X.Y.Z</h3>
 <ul>
-<li>Added support for <code>```plantuml</code> fenced code blocks as a PlantUML syntax, in addition to the existing <code>@startuml</code> / <code>@enduml</code> block markers. Both are supported on equal footing.
-<ul>
-<li>Details: <a href="#plantuml">PlantUML</a> / <a href="RELEASE_NOTES.md#xyz-yyyymmdd">RELEASE_NOTES.md#xyz-yyyymmdd</a></li>
+<li>Add PlantUML fenced code block support (<a href="#plantuml">details</a>)</li>
+<li>Add math rendering via KaTeX (<a href="#math">details</a>)</li>
+<li>Auto-download latest Chrome Stable (<a href="#markdown-pdfchromiumautodownload">details</a>)</li>
 </ul>
-</li>
-<li>Chromium auto-download now fetches the latest Chrome Stable build from the <a href="https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json">Chrome for Testing API</a>, instead of relying only on the build id pinned by <code>puppeteer-core</code>. A new <a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a> setting (default <code>true</code>) lets you opt out.
+<h2 id="breaking-changes">Breaking Changes</h2>
+<p>Some changes may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
+<h3 id="xyz-1">X.Y.Z</h3>
 <ul>
-<li>Details: <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a> / <a href="RELEASE_NOTES.md#xyz-yyyymmdd">RELEASE_NOTES.md#xyz-yyyymmdd</a></li>
-</ul>
-</li>
-<li>Added math rendering support via <a href="https://katex.org/">KaTeX</a>, matching VS Code's built-in Markdown preview. Supports inline <code>$…$</code> / <code>\(…\)</code>, display <code>$$…$$</code> / <code>\[…\]</code>, and <code>```math</code> fenced code blocks. Opt out via <a href="#markdown-pdfmathenabled">markdown-pdf.math.enabled</a>.
+<li>To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
 <ul>
-<li>Details: <a href="#math">Math</a> / <a href="RELEASE_NOTES.md#xyz-yyyymmdd">RELEASE_NOTES.md#xyz-yyyymmdd</a></li>
-</ul>
-</li>
-</ul>
-<h3 id="201">2.0.1</h3>
-<ul>
-<li>Self-closing <code>&lt;div class=&quot;page&quot; /&gt;</code> now correctly triggers a page break (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/428">#428</a>).
-<ul>
-<li>Details: <a href="RELEASE_NOTES.md#201-20260414">RELEASE_NOTES.md#201-20260414</a></li>
+<li>Details: <a href="#why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</a></li>
 </ul>
 </li>
 </ul>
 <h3 id="200">2.0.0</h3>
 <ul>
-<li>Include (<code>:[label](path.md)</code>) now reports errors inline instead of aborting the whole export, so a missing or unreadable fragment no longer breaks the rest of the document.
-<ul>
-<li>Details: <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
-</ul>
-</li>
-<li>Image <code>src</code> rewriting now correctly handles quoted attributes, flexible whitespace, and raw-text contexts.
-<ul>
-<li>Details: <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
-</ul>
-</li>
-<li>Front matter parsing now supports BOM-prefixed files.
-<ul>
-<li>Details: <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
-</ul>
-</li>
-</ul>
-<h2 id="breaking-changes">Breaking Changes</h2>
-<p>Some changes may affect existing behavior. See the <a href="#faq">FAQ</a> section for details. For the full user-facing release notes including past versions, see <a href="RELEASE_NOTES.md">RELEASE_NOTES.md</a>.</p>
-<h3 id="xyz-1">X.Y.Z</h3>
-<ul>
-<li>To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
-<ul>
-<li>Details: <a href="#why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</a> / <a href="RELEASE_NOTES.md#xyz-yyyymmdd">RELEASE_NOTES.md#xyz-yyyymmdd</a></li>
-</ul>
-</li>
-</ul>
-<h3 id="200-1">2.0.0</h3>
-<ul>
 <li>Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change.
 <ul>
-<li>Details: <a href="#why-did-my-heading-anchors-change">Why did my heading anchors change?</a> / <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
+<li>Details: <a href="#why-did-my-heading-anchors-change">Why did my heading anchors change?</a></li>
 </ul>
 </li>
 <li>Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed.
 <ul>
-<li>Details: <a href="#why-did-my-syntax-highlight-style-stop-working">Why did my syntax highlight style stop working?</a> / <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
+<li>Details: <a href="#why-did-my-syntax-highlight-style-stop-working">Why did my syntax highlight style stop working?</a></li>
 </ul>
 </li>
 <li>Front matter parsing is now stricter. Some previously accepted formats may be rejected.
 <ul>
-<li>Details: <a href="#why-is-my-front-matter-no-longer-parsed">Why is my front matter no longer parsed?</a> / <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
+<li>Details: <a href="#why-is-my-front-matter-no-longer-parsed">Why is my front matter no longer parsed?</a></li>
 </ul>
 </li>
 <li>Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use.
 <ul>
-<li>Details: <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> / <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a> / <a href="RELEASE_NOTES.md#200-20260413">RELEASE_NOTES.md#200-20260413</a></li>
+<li>Details: <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> / <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a></li>
 </ul>
 </li>
 </ul>
@@ -611,6 +573,7 @@ Alice -[#0000FF]-&gt;Bob : ok
 <p><img src="images/PlantUML.png" alt="PlantUML"></p>
 <h3 id="include">Include</h3>
 <p>Include markdown fragment files: <code>:[alternate-text](relative-path-to-file.md)</code>.</p>
+<p>If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error inline at the include site and continues exporting the rest of the document.</p>
 <pre class="hljs"><code><div>├── [plugins]
 │  └── README.md
 ├── CHANGELOG.md
@@ -1532,7 +1495,7 @@ x - y &amp;= 4
 <li>Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. <a href="https://github.com/yzane/vscode-markdown-pdf/issues/67">#67</a></li>
 </ul>
 <h2 id="change-log"><a href="CHANGELOG.md">Change Log</a></h2>
-<p>For a user-facing summary of changes, see <a href="RELEASE_NOTES.md">RELEASE_NOTES.md</a>. For the detailed change history including developer-facing notes, see <a href="CHANGELOG.md">CHANGELOG.md</a>.</p>
+<p>See <a href="CHANGELOG.md">CHANGELOG.md</a> for the full change history.</p>
 <h2 id="license">License</h2>
 <p>MIT</p>
 <h2 id="special-thanks">Special thanks</h2>
