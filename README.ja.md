@@ -41,7 +41,7 @@
     - 詳細: [PlantUML](#plantuml)
 - Chromium の自動ダウンロードが [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable ビルドを取得する挙動に変更されました（従来は `puppeteer-core` に固定された build id のみを使用）。新設定 [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)（デフォルト `true`）で自動ダウンロードを無効化できます。
     - 詳細: [Where is Chromium downloaded?](#where-is-chromium-downloaded)
-- [KaTeX](https://katex.org/) による数式描画に対応しました（VS Code 標準の Markdown プレビューと同じ動作）。インライン `$…$` / `\(…\)`、ブロック `$$…$$` / `\[…\]`、および ` ```math ` フェンスコードブロックをサポートします。[markdown-pdf.math.enabled](#markdown-pdfmathenabled) で無効化できます。
+- [KaTeX](https://katex.org/) による数式描画に対応しました（VS Code 標準の Markdown プレビューと同じ動作）。インライン `$…$` / `\(…\)`、ブロック `$$…$$` / `\[…\]`、および ` ```math ` フェンスドコードブロックをサポートします。[markdown-pdf.math.enabled](#markdown-pdfmathenabled) で無効化できます。
     - 詳細: [Math](#math)
 
 ### 2.0.1
@@ -227,7 +227,7 @@ OUTPUT
 - インライン: `$E = mc^2$`, `\(E = mc^2\)`
 - ブロック: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
 - LaTeX 環境: `\begin{aligned}a &= b\\c &= d\end{aligned}`
-- フェンスコードブロック:
+- フェンスドコードブロック:
 
     ````
     ```math
@@ -708,7 +708,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### math options
 
 #### `markdown-pdf.math.enabled`
-  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスコードブロックの数式描画を KaTeX で有効化します。
+  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックの数式描画を KaTeX で有効化します。
   - VS Code 標準の Markdown プレビューと同じ動作になります。
   - `false` にすると `$`, `\(`, `\[`, ` ```math ` はそのままテキストとして残ります（`$100` のようなドル記号リテラルを使う場合はこちらを利用してください）。
   - Default: true
