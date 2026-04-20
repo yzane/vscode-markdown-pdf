@@ -24,10 +24,11 @@ describe('renderMath', () => {
     // parse errors like \foo; it renders the unknown command inline with the
     // configured errorColor. The <code> fallback is only for runtime exceptions
     // (tested separately below).
+    // If renderMath throws, the following assignment fails the test; no
+    // separate doesNotThrow assertion is needed. KaTeX 0.16 emits the
+    // offending token as a span styled with errorColor (#cc0000 is what
+    // renderMath passes in).
     const html = renderMath('\\foo', false, {});
-    assert.doesNotThrow(() => renderMath('\\foo', false, {}));
-    // KaTeX 0.16 emits the offending token as a span styled with errorColor
-    // (#cc0000 is what renderMath passes in).
     assert.match(html, /color\s*:\s*#cc0000/);
     assert.doesNotMatch(html, /^<code>/);
   });
