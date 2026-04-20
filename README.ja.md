@@ -41,23 +41,23 @@
 
 ## 仕様変更
 
-既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。過去バージョンを含むユーザー向けリリースノート全体は [RELEASE_NOTES.ja.md](RELEASE_NOTES.ja.md) を参照してください。
+既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
 
 ### X.Y.Z
 
-- XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい [markdown-pdf.sanitize](#markdown-pdfsanitize) 設定で制御できます。
-    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed) / [RELEASE_NOTES.ja.md#xyz-yyyymmdd](RELEASE_NOTES.ja.md#xyz-yyyymmdd)
+- XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい [markdown-pdf.sanitize](#markdown-pdfsanitize) 設定で制御できます。
+    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
 
 ### 2.0.0
 
 - 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。
-    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
+    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
 - highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。
-    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
+    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
 - フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。
-    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
+    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
 - Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
-    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded) / [RELEASE_NOTES.ja.md#200-20260413](RELEASE_NOTES.ja.md#200-20260413)
+    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ## 機能
 
@@ -951,7 +951,7 @@ Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.
 
 ## [Change Log](CHANGELOG.md)
 
-ユーザー向けの変更点まとめは [RELEASE_NOTES.ja.md](RELEASE_NOTES.ja.md) を参照してください。開発者向けの詳細な変更履歴は [CHANGELOG.md](CHANGELOG.md) を参照してください。
+変更履歴の全文は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ## License
 
