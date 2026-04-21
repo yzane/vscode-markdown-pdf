@@ -63,14 +63,21 @@
 
 Markdown PDF は、Markdown を PDF / HTML / PNG / JPEG に変換する際、標準の Markdown レンダラーに以下の機能を追加します。
 
-### Basic syntax extensions
+### List
 
-| 機能 | 説明 | 記法例 |
-|---|---|---|
-| [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
-| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
-| [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー | `# Heading` → `#heading` |
+| カテゴリ | 機能 | 説明 | 記法例 |
+|---|---|---|---|
+| [Basic syntax extensions](#basic-syntax-extensions) | [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
+| | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
+| | [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
+| | [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー | `# Heading` → `#heading` |
+| [Content composition](#content-composition) | [Container](#container) | 注記ブロック | `::: warning` |
+| | [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
+| [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| | [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
+| | [Math](#math) | KaTeX による LaTeX 数式 | `$E = mc^2$` |
+
+### Basic syntax extensions
 
 #### Checkbox
 
@@ -100,11 +107,6 @@ See also: FAQ の [見出しのアンカーが変わったのはなぜ？](#why-
 
 ### Content composition
 
-| 機能 | 説明 | 記法例 |
-|---|---|---|
-| [Container](#container) | 注記ブロック | `::: warning` |
-| [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
-
 #### Container
 
 [markdown-it-container](https://github.com/markdown-it/markdown-it-container) による注記風ブロック。`:::` の後ろに書いた識別子がブロックの CSS クラスになるため、[markdown-pdf.styles](#markdown-pdfstyles) と組み合わせて警告・ヒント・補足などのスタイルを与えられます。
@@ -112,8 +114,23 @@ See also: FAQ の [見出しのアンカーが変わったのはなぜ？](#why-
 Markdown
 ```
 ::: warning
-*here be dragons*
+**Warning:** here be dragons
 :::
+```
+
+スタイルシート（例: `markdown-pdf.css`）
+```css
+.warning {
+  border-left: 4px solid #f0ad4e;
+  background: #fff8e1;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+```
+
+設定
+```json
+"markdown-pdf.styles": ["markdown-pdf.css"]
 ```
 
 Preview
@@ -125,6 +142,8 @@ See also: [markdown-pdf.styles](#markdown-pdfstyles)
 #### Include
 
 `:[alternate-text](relative-path-to-file.md)` で別の Markdown ファイルの内容をインラインで埋め込みます。参照先のフラグメントを読み込めない場合（ファイルが存在しない、権限エラーなど）は、Include 記述位置にエラーを表示したうえで残りのドキュメントのエクスポートは継続されます。
+
+以下のディレクトリ構成（`README.md` がエクスポート対象のドキュメント）を例にします:
 
 ```
 ├── [plugins]
@@ -154,12 +173,6 @@ Content of CHANGELOG.md
 See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)
 
 ### Diagrams & math
-
-| 機能 | 説明 | 記法例 |
-|---|---|---|
-| [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
-| [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
-| [Math](#math) | KaTeX による LaTeX 数式 | `$E = mc^2$` |
 
 #### PlantUML
 
@@ -199,7 +212,7 @@ See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
 
 #### Mermaid
 
-[Mermaid](https://mermaid-js.github.io/mermaid/) によってフェンスドコードブロックから図をレンダリングします。Mermaid のライブラリは [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) で指定された URL から読み込まれるため、ローカル URL に差し替えない限り図の描画にはネットワーク接続が必要です。
+[Mermaid](https://mermaid-js.github.io/mermaid/) によってフェンスドコードブロックから図をレンダリングします。Mermaid のライブラリは [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) で指定された URL から読み込まれます（既定値は CDN）。
 
 Markdown
 
@@ -217,8 +230,6 @@ stateDiagram
 Preview
 
 ![mermaid](images/mermaid.png)
-
-See also: [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)
 
 #### Math
 
@@ -736,7 +747,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
       enabled: false
     ---
     ```
-  - Default: true
+  - boolean. Default: true
 
 #### `markdown-pdf.math.katex.macros`
   - KaTeX レンダラーに渡す、ユーザー定義の [KaTeX マクロ](https://katex.org/docs/options.html)。

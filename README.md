@@ -65,14 +65,21 @@ Changes since v2 that may affect existing behavior. See the [FAQ](#faq) section 
 
 Markdown PDF adds the following authoring features on top of the default Markdown renderer when converting to PDF, HTML, PNG, or JPEG.
 
-### Basic syntax extensions
+### List
 
-| Feature | Description | Example |
-|---|---|---|
-| [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
-| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
-| [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
+| Category | Feature | Description | Example |
+|---|---|---|---|
+| [Basic syntax extensions](#basic-syntax-extensions) | [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
+| | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
+| | [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
+| | [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
+| [Content composition](#content-composition) | [Container](#container) | Admonition-like blocks | `::: warning` |
+| | [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
+| [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| | [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
+| | [Math](#math) | LaTeX math via KaTeX | `$E = mc^2$` |
+
+### Basic syntax extensions
 
 #### Checkbox
 
@@ -102,11 +109,6 @@ See also: [Why did my heading anchors change?](#why-did-my-heading-anchors-chang
 
 ### Content composition
 
-| Feature | Description | Example |
-|---|---|---|
-| [Container](#container) | Admonition-like blocks | `::: warning` |
-| [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
-
 #### Container
 
 Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container). The identifier after `:::` becomes the block's CSS class, so you can style warnings, tips, and notes by pairing it with [markdown-pdf.styles](#markdown-pdfstyles).
@@ -114,8 +116,23 @@ Admonition-like blocks via [markdown-it-container](https://github.com/markdown-i
 Markdown
 ```
 ::: warning
-*here be dragons*
+**Warning:** here be dragons
 :::
+```
+
+Stylesheet (for example `markdown-pdf.css`)
+```css
+.warning {
+  border-left: 4px solid #f0ad4e;
+  background: #fff8e1;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+```
+
+Settings
+```json
+"markdown-pdf.styles": ["markdown-pdf.css"]
 ```
 
 Preview
@@ -127,6 +144,8 @@ See also: [markdown-pdf.styles](#markdown-pdfstyles).
 #### Include
 
 Embed the content of another Markdown file inline using `:[alternate-text](relative-path-to-file.md)`. If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error at the include site and continues exporting the rest of the document.
+
+Given the following directory layout (where `README.md` is the document being exported):
 
 ```
 ├── [plugins]
@@ -156,12 +175,6 @@ Content of CHANGELOG.md
 See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable).
 
 ### Diagrams & math
-
-| Feature | Description | Example |
-|---|---|---|
-| [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
-| [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
-| [Math](#math) | LaTeX math via KaTeX | `$E = mc^2$` |
 
 #### PlantUML
 
@@ -201,7 +214,7 @@ See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver).
 
 #### Mermaid
 
-Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/). The mermaid library is loaded from the URL configured in [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver), so diagrams require network access unless a local URL is substituted.
+Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/). The Mermaid library is loaded from the URL configured in [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) (defaults to a CDN).
 
 Markdown
 
@@ -219,8 +232,6 @@ stateDiagram
 Preview
 
 ![mermaid](images/mermaid.png)
-
-See also: [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver).
 
 #### Math
 
@@ -739,7 +750,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
       enabled: false
     ---
     ```
-  - Default: true
+  - boolean. Default: true
 
 #### `markdown-pdf.math.katex.macros`
   - User-defined [KaTeX macros](https://katex.org/docs/options.html) passed to the KaTeX renderer.
