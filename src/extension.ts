@@ -388,12 +388,13 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
  * export a html to a html file
  */
 function exportHtml(data: string, filename: string): void {
-  fs.writeFile(filename, data, 'utf-8', function (error) {
-    if (error) {
-      showErrorMessage('exportHtml()', error);
-      return;
-    }
-  });
+  // Synchronous write: downstream code (exportPdf) launches puppeteer and then
+  // navigates to this file, so the write must be complete before navigation.
+  try {
+    fs.writeFileSync(filename, data, 'utf-8');
+  } catch (error) {
+    showErrorMessage('exportHtml()', error);
+  }
 }
 
 /*
