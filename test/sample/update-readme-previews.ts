@@ -1,6 +1,5 @@
 import assert from 'assert';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
 
@@ -9,6 +8,9 @@ import { extractReadmePreviewSources, resolveReadmePreviewExportPath } from '../
 const WORKSPACE_ROOT = path.resolve(__dirname, '..', '..');
 const README_MD = path.resolve(WORKSPACE_ROOT, 'README.md');
 const IMAGES_DIR = path.resolve(WORKSPACE_ROOT, 'images');
+// Write intermediate files inside the workspace (not /tmp) so snap-confined
+// Chromium can read them via file:// URLs.
+const TEMP_ROOT = path.resolve(WORKSPACE_ROOT, '.tmp-readme-previews');
 
 function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
   return new Promise<void>((resolve, reject) => {
@@ -33,7 +35,8 @@ function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
 }
 
 async function exportDiagramPng(markdownSource: string, outputName: string): Promise<void> {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-readme-preview-'));
+  fs.mkdirSync(TEMP_ROOT, { recursive: true });
+  const tempDir = fs.mkdtempSync(path.join(TEMP_ROOT, 'preview-'));
   const markdownPath = path.join(tempDir, outputName + '.md');
   const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(markdownPath));
   const generatedPng = resolveReadmePreviewExportPath(

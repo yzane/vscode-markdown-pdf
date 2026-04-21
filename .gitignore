@@ -23,3 +23,6 @@ work/
 
 # Visual inspection output
 tmp/
+
+# Transient workspace for update-readme-previews
+.tmp-readme-previews/
