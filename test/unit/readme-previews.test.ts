@@ -4,6 +4,7 @@ import {
   buildMermaidRenderHtml,
   buildPlantumlImageUrl,
   extractFirstFencedBlock,
+  extractFirstPreBlock,
   extractReadmePreviewSources,
   extractReadmeSection,
   resolveReadmePreviewExportPath,
@@ -39,6 +40,13 @@ describe('readme-previews', function () {
     '#### PlantUML',
     '',
     'Markdown',
+    '',
+    '````',
+    '```plantuml',
+    'Bob -> Alice: hello',
+    '```',
+    '````',
+    '',
     '```',
     '@startuml',
     'Alice -> Bob: hello',
@@ -48,17 +56,21 @@ describe('readme-previews', function () {
     '#### Mermaid',
     '',
     'Markdown',
+    '',
+    '<pre>',
     '```mermaid',
     'graph TD',
     '  A-->B',
     '```',
+    '</pre>',
     '',
     '#### Math',
     '',
     'Markdown',
-    '```',
+    '',
+    '<pre>',
     'Inline: $E = mc^2$',
-    '```',
+    '</pre>',
     '',
     '### next',
     'done',
@@ -70,7 +82,7 @@ describe('readme-previews', function () {
     assert.ok(!section.includes('#### Mermaid'));
   });
 
-  it('extractFirstFencedBlock should return first fenced block content', function () {
+  it('extractFirstFencedBlock should skip 4-backtick meta wrappers and return the next 3-backtick block', function () {
     const section = extractReadmeSection(README_SNIPPET, '#### PlantUML');
     assert.strictEqual(
       extractFirstFencedBlock(section),
@@ -81,6 +93,11 @@ describe('readme-previews', function () {
   it('extractFirstFencedBlock should filter by language when specified', function () {
     const section = extractReadmeSection(README_SNIPPET, '#### Mermaid');
     assert.strictEqual(extractFirstFencedBlock(section, 'mermaid'), 'graph TD\n  A-->B');
+  });
+
+  it('extractFirstPreBlock should return the <pre> block body', function () {
+    const section = extractReadmeSection(README_SNIPPET, '#### Math');
+    assert.strictEqual(extractFirstPreBlock(section), 'Inline: $E = mc^2$');
   });
 
   it('extractReadmePreviewSources should return all five preview sources', function () {
