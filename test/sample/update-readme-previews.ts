@@ -33,7 +33,7 @@ function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
 }
 
 async function exportDiagramPng(markdownSource: string, outputName: string): Promise<void> {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-readme-diagram-'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-readme-preview-'));
   const markdownPath = path.join(tempDir, outputName + '.md');
   const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(markdownPath));
   const generatedPng = resolveReadmePreviewExportPath(
@@ -62,7 +62,7 @@ async function exportDiagramPng(markdownSource: string, outputName: string): Pro
   }
 }
 
-suite('Update README Diagram Images', () => {
+suite('Update README Preview Images', () => {
   test('export README PlantUML and Mermaid snippets to images/', async function () {
     this.timeout(180000);
 
