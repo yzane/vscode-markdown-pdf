@@ -20,6 +20,7 @@ work/
 .cocoindex_code/
 .codex
 .eslintrc.json
+.superpowers/
 
 # Visual inspection output
 tmp/
