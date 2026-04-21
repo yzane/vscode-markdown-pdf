@@ -736,7 +736,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
       enabled: false
     ---
     ```
-  - デフォルト: true
+  - Default: true
 
 #### `markdown-pdf.math.katex.macros`
   - KaTeX レンダラーに渡す、ユーザー定義の [KaTeX マクロ](https://katex.org/docs/options.html)。
@@ -751,7 +751,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
           "\\RR": "\\mathbb{R}"
     ---
     ```
-  - デフォルト: {}
+  - Default: {}
 
 ### Sanitize options
 
