@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 import * as vscode from 'vscode';
 
-import { extractReadmeDiagramSources, resolveReadmeDiagramExportPath } from '../../src/readme-diagrams';
+import { extractReadmePreviewSources, resolveReadmePreviewExportPath } from '../../src/readme-previews';
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '..', '..');
 const README_MD = path.resolve(WORKSPACE_ROOT, 'README.md');
@@ -36,7 +36,7 @@ async function exportDiagramPng(markdownSource: string, outputName: string): Pro
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'markdown-pdf-readme-diagram-'));
   const markdownPath = path.join(tempDir, outputName + '.md');
   const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(markdownPath));
-  const generatedPng = resolveReadmeDiagramExportPath(
+  const generatedPng = resolveReadmePreviewExportPath(
     path.join(tempDir, outputName + '.png'),
     markdownPath,
     vscode.workspace.getConfiguration('markdown-pdf').get<string>('outputDirectory'),
@@ -67,7 +67,7 @@ suite('Update README Diagram Images', () => {
     this.timeout(180000);
 
     const markdown = fs.readFileSync(README_MD, 'utf-8');
-    const { plantuml, mermaid } = extractReadmeDiagramSources(markdown);
+    const { plantuml, mermaid } = extractReadmePreviewSources(markdown);
 
     await exportDiagramPng(plantuml, 'PlantUML');
     await exportDiagramPng('```mermaid\n' + mermaid + '\n```', 'mermaid');

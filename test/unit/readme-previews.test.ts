@@ -4,12 +4,12 @@ import {
   buildMermaidRenderHtml,
   buildPlantumlImageUrl,
   extractFirstFencedBlock,
-  extractReadmeDiagramSources,
+  extractReadmePreviewSources,
   extractReadmeSection,
-  resolveReadmeDiagramExportPath,
-} from '../../src/readme-diagrams';
+  resolveReadmePreviewExportPath,
+} from '../../src/readme-previews';
 
-describe('readme-diagrams', function () {
+describe('readme-previews', function () {
   const README_SNIPPET = [
     '## Intro',
     '',
@@ -53,8 +53,8 @@ describe('readme-diagrams', function () {
     assert.strictEqual(extractFirstFencedBlock(section, 'mermaid'), 'graph TD\n  A-->B');
   });
 
-  it('extractReadmeDiagramSources should return plantuml and mermaid blocks', function () {
-    assert.deepStrictEqual(extractReadmeDiagramSources(README_SNIPPET), {
+  it('extractReadmePreviewSources should return plantuml and mermaid blocks', function () {
+    assert.deepStrictEqual(extractReadmePreviewSources(README_SNIPPET), {
       plantuml: '@startuml\nAlice -> Bob: hello\n@enduml',
       mermaid: 'graph TD\n  A-->B',
     });
@@ -78,9 +78,9 @@ describe('readme-diagrams', function () {
     assert.ok(html.includes('mermaid.initialize({ startOnLoad: true })'));
   });
 
-  it('resolveReadmeDiagramExportPath should use workspace-relative output when workspace exists', function () {
+  it('resolveReadmePreviewExportPath should use workspace-relative output when workspace exists', function () {
     assert.strictEqual(
-      resolveReadmeDiagramExportPath(
+      resolveReadmePreviewExportPath(
         '/tmp/PlantUML.png',
         '/tmp/PlantUML.md',
         'sample',
@@ -91,9 +91,9 @@ describe('readme-diagrams', function () {
     );
   });
 
-  it('resolveReadmeDiagramExportPath should fall back to file-relative output without a workspace', function () {
+  it('resolveReadmePreviewExportPath should fall back to file-relative output without a workspace', function () {
     assert.strictEqual(
-      resolveReadmeDiagramExportPath(
+      resolveReadmePreviewExportPath(
         '/tmp/PlantUML.png',
         '/tmp/PlantUML.md',
         'sample',
@@ -104,9 +104,9 @@ describe('readme-diagrams', function () {
     );
   });
 
-  it('resolveReadmeDiagramExportPath should keep adjacent output when outputDirectory is empty', function () {
+  it('resolveReadmePreviewExportPath should keep adjacent output when outputDirectory is empty', function () {
     assert.strictEqual(
-      resolveReadmeDiagramExportPath(
+      resolveReadmePreviewExportPath(
         '/tmp/PlantUML.png',
         '/tmp/PlantUML.md',
         '',

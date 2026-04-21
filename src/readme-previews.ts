@@ -40,7 +40,7 @@ export function extractFirstFencedBlock(section: string, language?: string): str
   return match[1];
 }
 
-export function extractReadmeDiagramSources(markdown: string): { plantuml: string; mermaid: string } {
+export function extractReadmePreviewSources(markdown: string): { plantuml: string; mermaid: string } {
   return {
     plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '### PlantUML')),
     mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '### Mermaid'), 'mermaid'),
@@ -79,7 +79,7 @@ export function buildMermaidRenderHtml(mermaidSource: string, mermaidScriptUrl: 
   ].join('');
 }
 
-export function resolveReadmeDiagramExportPath(
+export function resolveReadmePreviewExportPath(
   filename: string,
   resourceFsPath: string,
   outputDirectory: string | undefined | null,
