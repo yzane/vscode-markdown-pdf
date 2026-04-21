@@ -731,11 +731,29 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ` ```math ` fenced code blocks.
   - Matches the behavior of VS Code's built-in Markdown preview.
   - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document contains `$X$`-style placeholders that should not be parsed as math).
+  - To disable math in a single document only, escape the `$` as `\$` at the call site, or override this setting via YAML front matter:
+
+    ```yaml
+    ---
+    math:
+      enabled: false
+    ---
+    ```
   - Default: true
 
 #### `markdown-pdf.math.katex.macros`
   - User-defined [KaTeX macros](https://katex.org/docs/options.html) passed to the KaTeX renderer.
   - Example: `{ "\\RR": "\\mathbb{R}" }`
+  - Per-document macros can be supplied via YAML front matter, which takes precedence over this setting:
+
+    ```yaml
+    ---
+    math:
+      katex:
+        macros:
+          "\\RR": "\\mathbb{R}"
+    ---
+    ```
   - Default: {}
 
 ### Sanitize options

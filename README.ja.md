@@ -725,15 +725,33 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### math options
 
 #### `markdown-pdf.math.enabled`
-  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックの数式描画を KaTeX で有効化します。
-  - VS Code 標準の Markdown プレビューと同じ動作になります。
-  - `false` にすると `$`, `\(`, `\[`, ` ```math ` はそのままテキストとして残ります（`$X$` 形式のプレースホルダを数式として解釈させたくない場合はこちらを利用してください）。
-  - Default: true
+  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックを KaTeX で数式としてレンダリングするかを切り替えます。
+  - VS Code 標準の Markdown プレビューの挙動と一致します。
+  - `false` に設定すると `$` / `\(` / `\[` / ` ```math ` をそのままのテキストとして保持します（`$X$` のようなプレースホルダが文書内にあり、数式として解釈されてほしくない場合に使用）。
+  - 単一ドキュメントだけ数式を無効化したい場合は、該当箇所の `$` を `\$` にエスケープするか、YAML フロントマターで設定を上書きします:
+
+    ```yaml
+    ---
+    math:
+      enabled: false
+    ---
+    ```
+  - デフォルト: true
 
 #### `markdown-pdf.math.katex.macros`
-  - KaTeX に渡すユーザー定義 [KaTeX マクロ](https://katex.org/docs/options.html) です。
+  - KaTeX レンダラーに渡す、ユーザー定義の [KaTeX マクロ](https://katex.org/docs/options.html)。
   - 例: `{ "\\RR": "\\mathbb{R}" }`
-  - Default: {}
+  - ドキュメントごとのマクロは YAML フロントマターで指定でき、この設定より優先されます:
+
+    ```yaml
+    ---
+    math:
+      katex:
+        macros:
+          "\\RR": "\\mathbb{R}"
+    ---
+    ```
+  - デフォルト: {}
 
 ### Sanitize options
 
