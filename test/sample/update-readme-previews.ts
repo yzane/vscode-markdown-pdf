@@ -34,7 +34,11 @@ function waitForFile(filePath: string, maxWait = 30000): Promise<void> {
   });
 }
 
-async function exportDiagramPng(markdownSource: string, outputName: string): Promise<void> {
+async function exportDiagramPng(
+  markdownSource: string,
+  outputName: string,
+  extraStylesheets?: string[]
+): Promise<void> {
   fs.mkdirSync(TEMP_ROOT, { recursive: true });
   const tempDir = fs.mkdtempSync(path.join(TEMP_ROOT, 'preview-'));
   const markdownPath = path.join(tempDir, outputName + '.md');
@@ -50,6 +54,13 @@ async function exportDiagramPng(markdownSource: string, outputName: string): Pro
 
   fs.writeFileSync(markdownPath, markdownSource, 'utf-8');
 
+  const mdpdfConfig = vscode.workspace.getConfiguration('markdown-pdf');
+  const originalStyles = mdpdfConfig.get<string[]>('styles');
+  const stylesChanged = extraStylesheets !== undefined;
+  if (stylesChanged) {
+    await mdpdfConfig.update('styles', extraStylesheets, vscode.ConfigurationTarget.Global);
+  }
+
   try {
     const doc = await vscode.workspace.openTextDocument(markdownPath);
     await vscode.window.showTextDocument(doc);
@@ -61,8 +72,26 @@ async function exportDiagramPng(markdownSource: string, outputName: string): Pro
     assert.ok(fs.existsSync(finalPng), `${outputName}.png should exist in images/`);
     assert.ok(fs.statSync(finalPng).size > 0, `${outputName}.png should not be empty`);
   } finally {
+    if (stylesChanged) {
+      await mdpdfConfig.update('styles', originalStyles, vscode.ConfigurationTarget.Global);
+    }
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
+}
+
+function writeContainerStylesheet(): string {
+  const cssPath = path.join(TEMP_ROOT, 'container-preview.css');
+  const css = [
+    '.warning {',
+    '  border-left: 4px solid #f0ad4e;',
+    '  background: #fff8e1;',
+    '  padding: 12px 16px;',
+    '  margin: 8px 0;',
+    '}',
+  ].join('\n');
+  fs.mkdirSync(TEMP_ROOT, { recursive: true });
+  fs.writeFileSync(cssPath, css, 'utf-8');
+  return cssPath;
 }
 
 suite('Update README Preview Images', () => {
@@ -75,7 +104,7 @@ suite('Update README Preview Images', () => {
     await exportDiagramPng(plantuml, 'PlantUML');
     await exportDiagramPng('```mermaid\n' + mermaid + '\n```', 'mermaid');
     await exportDiagramPng(checkbox, 'checkbox');
-    await exportDiagramPng(container, 'container');
+    await exportDiagramPng(container, 'container', [writeContainerStylesheet()]);
     await exportDiagramPng(math, 'math');
   });
 });
