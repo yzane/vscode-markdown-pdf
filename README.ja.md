@@ -61,111 +61,89 @@
 
 ## 機能
 
-| 機能 | 説明 | 記法例 |
-|---|---|---|
-| [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
-| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
-| [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー生成 | `# 見出し` → `#見出し` |
-| [Container](#container) | 注記ブロック | `::: warning` |
-| [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
-| [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
-| [数式](#math) | KaTeX による LaTeX 数式 | `$E = mc^2$` |
-| [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
+Markdown PDF は、Markdown を PDF / HTML / PNG / JPEG に変換する際、標準の Markdown レンダラーに以下の機能を追加します。
 
-サンプルファイル
- * [pdf](sample/README.pdf)
- * [html](sample/README.html)
- * [png](sample/README.png)
- * [jpeg](sample/README.jpeg)
+### List
 
-### Heading IDs
+| カテゴリ | 機能 | 説明 | 記法例 |
+|---|---|---|---|
+| [Basic syntax extensions](#basic-syntax-extensions) | [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
+| | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
+| | [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
+| | [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー | `# Heading` → `#heading` |
+| [Content composition](#content-composition) | [Container](#container) | 注記ブロック | `::: warning` |
+| | [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
+| [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| | [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
+| | [Math](#math) | KaTeX による LaTeX 数式 | `$E = mc^2$` |
 
-見出しには GitHub 互換のアンカー ID が自動的に付与されます。例:
+### Basic syntax extensions
+
+#### Checkbox
+
+`- [ ]` / `- [x]` のタスクリスト項目を、GitHub と同様に無効化済みのチェックボックスとしてレンダリングします。エクスポート後の出力でステータスを視認できるようにしたい進捗表やチェックリストに有用です。
+
+Markdown
+```
+- [ ] Task A
+- [x] Task B
+```
+
+Preview
+
+![checkbox](images/checkbox.png)
+
+#### Heading IDs
+
+見出しには GitHub 互換のアンカー ID が自動的に付与されるため、`[Section](#section)` のような内部リンクが GitHub と同じ挙動になります。ASCII の見出しは小文字化され空白はハイフンに、非 ASCII の見出しは元の文字がそのまま使われます。
 
 | 見出し | 生成される ID |
 |---|---|
 | `# My Heading` | `#my-heading` |
-| `# API リファレンス` | `#api-リファレンス` |
+| `# API Reference` | `#api-reference` |
 | `# 日本語見出し` | `#日本語見出し` |
 
-詳細は FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change) を参照してください。
+See also: FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change)
 
-### Checkbox
+### Content composition
 
-INPUT
-```
-- [ ] タスク A
-- [x] タスク B
-```
+#### Container
 
-OUTPUT
-```html
-<ul>
-  <li><input type="checkbox" disabled> タスク A</li>
-  <li><input type="checkbox" disabled checked> タスク B</li>
-</ul>
-```
+[markdown-it-container](https://github.com/markdown-it/markdown-it-container) による注記風ブロック。`:::` の後ろに書いた識別子がブロックの CSS クラスになるため、[markdown-pdf.styles](#markdown-pdfstyles) と組み合わせて警告・ヒント・補足などのスタイルを与えられます。
 
-### Container
-
-[markdown-it-container](https://github.com/markdown-it/markdown-it-container) を使った注記ブロックです。
-
-INPUT
+Markdown
 ```
 ::: warning
-*here be dragons*
+**Warning:** here be dragons
 :::
 ```
 
-OUTPUT
-``` html
-<div class="warning">
-<p><em>here be dragons</em></p>
-</div>
+スタイルシート（例: `markdown-pdf.css`）
+```css
+.warning {
+  border-left: 4px solid #f0ad4e;
+  background: #fff8e1;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
 ```
 
-### PlantUML
-
-[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
-
-2 つの記法を対等にサポートします。どちらの記法でも同じ `<img>` タグにレンダリングされ、[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) 設定を共有します。
-
-#### フェンスドコードブロック記法
-
-```` ```plantuml ```` フェンスドコードブロック記法です。PlantUML エコシステムで一般的に使われる記法で、[GitLab では PlantUML 連携を有効化するとネイティブに描画されます](https://docs.gitlab.com/administration/integration/plantuml/)。
-
-INPUT
-
-````
-```plantuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-```
-````
-
-#### ブロックマーカー記法
-
-`@startuml` / `@enduml` ブロックマーカー記法です。マーカーは [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) / [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker) 設定でカスタマイズできます。
-
-INPUT
-
-```
-@startuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-@enduml
+設定
+```json
+"markdown-pdf.styles": ["markdown-pdf.css"]
 ```
 
-OUTPUT（どちらの記法でも同じ画像が生成されます）
+Preview
 
-![PlantUML](images/PlantUML.png)
+![container](images/container.png)
 
-### Include
+See also: [markdown-pdf.styles](#markdown-pdfstyles)
 
-Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+#### Include
 
-読み込みに失敗した場合（ファイルが存在しない・読み込み権限がない等）は、該当箇所にエラーを表示しつつエクスポートを継続します。フラグメントが欠けていてもドキュメントの残りは出力されます。
+`:[alternate-text](relative-path-to-file.md)` で別の Markdown ファイルの内容をインラインで埋め込みます。参照先のフラグメントを読み込めない場合（ファイルが存在しない、権限エラーなど）は、Include 記述位置にエラーを表示したうえで残りのドキュメントのエクスポートは継続されます。
+
+以下のディレクトリ構成（`README.md` がエクスポート対象のドキュメント）を例にします:
 
 ```
 ├── [plugins]
@@ -174,7 +152,7 @@ Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 └── README.md
 ```
 
-INPUT
+Markdown
 ```
 README Content
 
@@ -183,7 +161,7 @@ README Content
 :[Changelog](CHANGELOG.md)
 ```
 
-OUTPUT
+Preview
 ```
 Content of README.md
 
@@ -192,11 +170,52 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### Mermaid
+See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)
 
-[Mermaid](https://mermaid-js.github.io/mermaid/) のフェンスドコードブロックから図を生成します。
+### Diagrams & math
 
-INPUT
+#### PlantUML
+
+[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) で UML 図をレンダリングします。2 つの等価な記法をサポートし、いずれも同じ `<img>` タグを生成し、[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) 設定を共有します。
+
+##### Fenced code block
+
+```` ```plantuml ```` のフェンスドコードブロック記法です。これは PlantUML のエコシステムで一般的なフェンス記法（例: PlantUML 連携が有効なとき [GitLab はこの記法をネイティブにレンダリング](https://docs.gitlab.com/administration/integration/plantuml/) します）。
+
+Markdown
+
+````
+```plantuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+```
+````
+
+##### Block markers
+
+`@startuml` / `@enduml` ブロックマーカーです。マーカーは [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) / [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker) でカスタマイズ可能です。
+
+Markdown
+
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+Preview (either form produces the same image)
+
+![PlantUML](images/PlantUML.png)
+
+See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
+
+#### Mermaid
+
+[Mermaid](https://mermaid-js.github.io/mermaid/) によってフェンスドコードブロックから図をレンダリングします。Mermaid のライブラリは [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) で指定された URL から読み込まれます（既定値は CDN）。
+
+Markdown
+
 <pre>
 ```mermaid
 stateDiagram
@@ -208,18 +227,18 @@ stateDiagram
 ```
 </pre>
 
-OUTPUT
+Preview
 
 ![mermaid](images/mermaid.png)
 
-### Math
+#### Math
 
-[KaTeX](https://katex.org/) で LaTeX 数式を描画します。`$…$` / `$$…$$` / `\begin{env}…\end{env}` には [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)（VS Code 標準の Markdown プレビューと同じプラグイン）を使い、`\(…\)` / `\[…\]` のブラケット区切りには小さな自前プラグインを併用します。Node 側で描画するのでネットワーク接続は不要です。
+[KaTeX](https://katex.org/) による LaTeX 数式レンダリング。`$…$` / `$$…$$` / `\begin{env}…\end{env}` は [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)（VS Code 標準の Markdown プレビューと同じプラグイン）で、`\(…\)` / `\[…\]` のブラケット区切りは自前の小さなプラグインで処理します。レンダリングは Node 上で実行され、ネットワーク接続は不要です。
 
 対応記法:
 
 - インライン: `$E = mc^2$`, `\(E = mc^2\)`
-- ブロック: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
+- ディスプレイ: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
 - LaTeX 環境: `\begin{aligned}a &= b\\c &= d\end{aligned}`
 - フェンスドコードブロック:
 
@@ -229,15 +248,16 @@ OUTPUT
     ```
     ````
 
-INPUT
-<pre>
-インライン: $E = mc^2$
+Markdown
 
-ブロック:
+<pre>
+Inline: $E = mc^2$
+
+Display:
 
 $$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
 
-LaTeX 環境:
+LaTeX environment:
 
 \begin{aligned}
 x + y &= 10 \\
@@ -245,40 +265,23 @@ x - y &= 4
 \end{aligned}
 </pre>
 
-OUTPUT
+Preview
 
-インライン: $E = mc^2$
+![math](images/math.png)
 
-ブロック:
+See also:
 
-$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+- [markdown-pdf.math.enabled](#markdown-pdfmathenabled) — 数式レンダリングの無効化
+- [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) — KaTeX のユーザー定義マクロ
 
-LaTeX 環境:
+### Sample files
 
-\begin{aligned}
-x + y &= 10 \\
-x - y &= 4
-\end{aligned}
+この README を各形式に変換したサンプル:
 
-数式描画を無効化する場合（例: `$X$` 形式のプレースホルダをそのままテキストとして扱いたい場合）は、[markdown-pdf.math.enabled](#markdown-pdfmathenabled) を `false` に設定するか、フロントマターで `math.enabled` を `false` に設定するか、`$` を `\$` としてエスケープします。
-
-```yaml
----
-math:
-  enabled: false
----
-```
-
-KaTeX のユーザー定義マクロは [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) またはフロントマターで指定できます:
-
-```yaml
----
-math:
-  katex:
-    macros:
-      "\\RR": "\\mathbb{R}"
----
-```
+- [pdf](sample/README.pdf)
+- [html](sample/README.html)
+- [png](sample/README.png)
+- [jpeg](sample/README.jpeg)
 
 ## Chromium
 
@@ -733,14 +736,32 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### math options
 
 #### `markdown-pdf.math.enabled`
-  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックの数式描画を KaTeX で有効化します。
-  - VS Code 標準の Markdown プレビューと同じ動作になります。
-  - `false` にすると `$`, `\(`, `\[`, ` ```math ` はそのままテキストとして残ります（`$X$` 形式のプレースホルダを数式として解釈させたくない場合はこちらを利用してください）。
-  - Default: true
+  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックを KaTeX で数式としてレンダリングするかを切り替えます。
+  - VS Code 標準の Markdown プレビューの挙動と一致します。
+  - `false` に設定すると `$` / `\(` / `\[` / ` ```math ` をそのままのテキストとして保持します（`$X$` のようなプレースホルダが文書内にあり、数式として解釈されてほしくない場合に使用）。
+  - 単一ドキュメントだけ数式を無効化したい場合は、該当箇所の `$` を `\$` にエスケープするか、YAML フロントマターで設定を上書きします:
+
+    ```yaml
+    ---
+    math:
+      enabled: false
+    ---
+    ```
+  - boolean. Default: true
 
 #### `markdown-pdf.math.katex.macros`
-  - KaTeX に渡すユーザー定義 [KaTeX マクロ](https://katex.org/docs/options.html) です。
+  - KaTeX レンダラーに渡す、ユーザー定義の [KaTeX マクロ](https://katex.org/docs/options.html)。
   - 例: `{ "\\RR": "\\mathbb{R}" }`
+  - ドキュメントごとのマクロは YAML フロントマターで指定でき、この設定より優先されます:
+
+    ```yaml
+    ---
+    math:
+      katex:
+        macros:
+          "\\RR": "\\mathbb{R}"
+    ---
+    ```
   - Default: {}
 
 ### Sanitize options

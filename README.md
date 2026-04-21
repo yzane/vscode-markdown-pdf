@@ -63,27 +63,41 @@ Changes since v2 that may affect existing behavior. See the [FAQ](#faq) section 
 
 ## Features
 
-| Feature | Description | Example |
-|---|---|---|
-| [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
-| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
-| [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
-| [Container](#container) | Admonition-like blocks | `::: warning` |
-| [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
-| [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
-| [Math](#math) | LaTeX math via KaTeX | `$E = mc^2$` |
-| [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
+Markdown PDF adds the following authoring features on top of the default Markdown renderer when converting to PDF, HTML, PNG, or JPEG.
 
-Sample files
- * [pdf](sample/README.pdf)
- * [html](sample/README.html)
- * [png](sample/README.png)
- * [jpeg](sample/README.jpeg)
+### List
 
-### Heading IDs
+| Category | Feature | Description | Example |
+|---|---|---|---|
+| [Basic syntax extensions](#basic-syntax-extensions) | [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
+| | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
+| | [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
+| | [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
+| [Content composition](#content-composition) | [Container](#container) | Admonition-like blocks | `::: warning` |
+| | [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
+| [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| | [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
+| | [Math](#math) | LaTeX math via KaTeX | `$E = mc^2$` |
 
-Headings automatically receive GitHub-compatible anchor IDs. For example:
+### Basic syntax extensions
+
+#### Checkbox
+
+Render `- [ ]` / `- [x]` task-list items as disabled checkboxes, mirroring GitHub's task list rendering. Useful for status reports and checklists that should stay visible in the exported output.
+
+Markdown
+```
+- [ ] Task A
+- [x] Task B
+```
+
+Preview
+
+![checkbox](images/checkbox.png)
+
+#### Heading IDs
+
+Headings receive GitHub-compatible anchor IDs automatically, so internal links such as `[Section](#section)` resolve the same way they do on GitHub. ASCII headings are lowercased with spaces replaced by hyphens; non-ASCII headings keep their original characters.
 
 | Heading | Generated ID |
 |---|---|
@@ -91,83 +105,47 @@ Headings automatically receive GitHub-compatible anchor IDs. For example:
 | `# API Reference` | `#api-reference` |
 | `# 日本語見出し` | `#日本語見出し` |
 
-See [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ for details.
+See also: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ.
 
-### Checkbox
+### Content composition
 
-INPUT
-```
-- [ ] Task A
-- [x] Task B
-```
+#### Container
 
-OUTPUT
-```html
-<ul>
-  <li><input type="checkbox" disabled> Task A</li>
-  <li><input type="checkbox" disabled checked> Task B</li>
-</ul>
-```
+Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container). The identifier after `:::` becomes the block's CSS class, so you can style warnings, tips, and notes by pairing it with [markdown-pdf.styles](#markdown-pdfstyles).
 
-### Container
-
-Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container).
-
-INPUT
+Markdown
 ```
 ::: warning
-*here be dragons*
+**Warning:** here be dragons
 :::
 ```
 
-OUTPUT
-``` html
-<div class="warning">
-<p><em>here be dragons</em></p>
-</div>
+Stylesheet (for example `markdown-pdf.css`)
+```css
+.warning {
+  border-left: 4px solid #f0ad4e;
+  background: #fff8e1;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
 ```
 
-### PlantUML
-
-Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
-
-Two equivalent syntaxes are supported. Both produce the same `<img>` tag and share the same [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) setting.
-
-#### Fenced code block
-
-A ```` ```plantuml ```` fenced code block. This is the common fence convention used across the PlantUML ecosystem (for example, [GitLab renders this form natively](https://docs.gitlab.com/administration/integration/plantuml/) when the PlantUML integration is enabled).
-
-INPUT
-
-````
-```plantuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-```
-````
-
-#### Block markers
-
-`@startuml` / `@enduml` block markers. The markers can be customized via [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) and [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker).
-
-INPUT
-
-```
-@startuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-@enduml
+Settings
+```json
+"markdown-pdf.styles": ["markdown-pdf.css"]
 ```
 
-OUTPUT (either form produces the same image)
+Preview
 
-![PlantUML](images/PlantUML.png)
+![container](images/container.png)
 
-### Include
+See also: [markdown-pdf.styles](#markdown-pdfstyles).
 
-Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+#### Include
 
-If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error inline at the include site and continues exporting the rest of the document.
+Embed the content of another Markdown file inline using `:[alternate-text](relative-path-to-file.md)`. If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error at the include site and continues exporting the rest of the document.
+
+Given the following directory layout (where `README.md` is the document being exported):
 
 ```
 ├── [plugins]
@@ -176,7 +154,7 @@ If a referenced fragment cannot be read (missing file, permission error, etc.), 
 └── README.md
 ```
 
-INPUT
+Markdown
 ```
 README Content
 
@@ -185,7 +163,7 @@ README Content
 :[Changelog](CHANGELOG.md)
 ```
 
-OUTPUT
+Preview
 ```
 Content of README.md
 
@@ -194,11 +172,52 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### Mermaid
+See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable).
 
-Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/).
+### Diagrams & math
 
-INPUT
+#### PlantUML
+
+Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml). Two equivalent syntaxes are supported; both produce the same `<img>` tag and share the [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) setting.
+
+##### Fenced code block
+
+A ```` ```plantuml ```` fenced code block. This is the common fence convention used across the PlantUML ecosystem (for example, [GitLab renders this form natively](https://docs.gitlab.com/administration/integration/plantuml/) when the PlantUML integration is enabled).
+
+Markdown
+
+````
+```plantuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+```
+````
+
+##### Block markers
+
+`@startuml` / `@enduml` block markers. The markers can be customized via [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) and [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker).
+
+Markdown
+
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+Preview (either form produces the same image)
+
+![PlantUML](images/PlantUML.png)
+
+See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver).
+
+#### Mermaid
+
+Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/). The Mermaid library is loaded from the URL configured in [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) (defaults to a CDN).
+
+Markdown
+
 <pre>
 ```mermaid
 stateDiagram
@@ -210,13 +229,13 @@ stateDiagram
 ```
 </pre>
 
-OUTPUT
+Preview
 
 ![mermaid](images/mermaid.png)
 
-### Math
+#### Math
 
-Render LaTeX math via [KaTeX](https://katex.org/). Uses [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex) (the same plugin as VS Code's built-in Markdown preview) for `$…$`, `$$…$$`, and `\begin{env}…\end{env}`, plus a small in-house plugin for `\(…\)` and `\[…\]` bracket delimiters. Rendering runs in Node, so no network access is required.
+Render LaTeX math via [KaTeX](https://katex.org/). Uses [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex) (the same plugin VS Code's built-in Markdown preview ships) for `$…$`, `$$…$$`, and `\begin{env}…\end{env}`, plus a small in-house plugin for `\(…\)` and `\[…\]` bracket delimiters. Rendering runs in Node, so no network access is required.
 
 Supported notations:
 
@@ -231,7 +250,8 @@ Supported notations:
     ```
     ````
 
-INPUT
+Markdown
+
 <pre>
 Inline: $E = mc^2$
 
@@ -247,40 +267,23 @@ x - y &= 4
 \end{aligned}
 </pre>
 
-OUTPUT
+Preview
 
-Inline: $E = mc^2$
+![math](images/math.png)
 
-Display:
+See also:
 
-$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+- [markdown-pdf.math.enabled](#markdown-pdfmathenabled) — disable math rendering
+- [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) — custom KaTeX macros
 
-LaTeX environment:
+### Sample files
 
-\begin{aligned}
-x + y &= 10 \\
-x - y &= 4
-\end{aligned}
+This README converted to each output format:
 
-To disable math rendering (for example, when `$X$`-style placeholders should stay as plain text), set [markdown-pdf.math.enabled](#markdown-pdfmathenabled) to `false`, set `math.enabled` to `false` in the document front matter, or escape the `$` as `\$`.
-
-```yaml
----
-math:
-  enabled: false
----
-```
-
-User-defined KaTeX macros can be passed via [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) or in the front matter:
-
-```yaml
----
-math:
-  katex:
-    macros:
-      "\\RR": "\\mathbb{R}"
----
-```
+- [pdf](sample/README.pdf)
+- [html](sample/README.html)
+- [png](sample/README.png)
+- [jpeg](sample/README.jpeg)
 
 ## Chromium
 
@@ -739,11 +742,29 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ` ```math ` fenced code blocks.
   - Matches the behavior of VS Code's built-in Markdown preview.
   - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document contains `$X$`-style placeholders that should not be parsed as math).
-  - Default: true
+  - To disable math in a single document only, escape the `$` as `\$` at the call site, or override this setting via YAML front matter:
+
+    ```yaml
+    ---
+    math:
+      enabled: false
+    ---
+    ```
+  - boolean. Default: true
 
 #### `markdown-pdf.math.katex.macros`
   - User-defined [KaTeX macros](https://katex.org/docs/options.html) passed to the KaTeX renderer.
   - Example: `{ "\\RR": "\\mathbb{R}" }`
+  - Per-document macros can be supplied via YAML front matter, which takes precedence over this setting:
+
+    ```yaml
+    ---
+    math:
+      katex:
+        macros:
+          "\\RR": "\\mathbb{R}"
+    ---
+    ```
   - Default: {}
 
 ### Sanitize options
