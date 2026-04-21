@@ -63,13 +63,16 @@ async function exportDiagramPng(markdownSource: string, outputName: string): Pro
 }
 
 suite('Update README Preview Images', () => {
-  test('export README PlantUML and Mermaid snippets to images/', async function () {
-    this.timeout(180000);
+  test('export README preview snippets to images/', async function () {
+    this.timeout(300000);
 
     const markdown = fs.readFileSync(README_MD, 'utf-8');
-    const { plantuml, mermaid } = extractReadmePreviewSources(markdown);
+    const { plantuml, mermaid, checkbox, container, math } = extractReadmePreviewSources(markdown);
 
     await exportDiagramPng(plantuml, 'PlantUML');
     await exportDiagramPng('```mermaid\n' + mermaid + '\n```', 'mermaid');
+    await exportDiagramPng(checkbox, 'checkbox');
+    await exportDiagramPng(container, 'container');
+    await exportDiagramPng(math, 'math');
   });
 });
