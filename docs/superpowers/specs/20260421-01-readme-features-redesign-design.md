@@ -106,10 +106,11 @@ See also: <関連設定 / FAQ へのリンク 0〜2 本>
 - OUTPUT 表現は原則**画像**に統一（Checkbox / Container / Math は新規画像、PlantUML / Mermaid は既存画像を使用）。**Include のみ例外** として、連結されるテキスト構造を示すコードブロックを維持する。画像化すると「ただの通常 Markdown」に見えて機能の本質が伝わらないため。
 - `See also:` 行は関連設定や FAQ がない機能では省略可（例: Checkbox には Options / FAQ の関連項目がないため省略）。
 
-**テンプレートの許容される例外は 2 つ:**
+**テンプレートの許容される例外は 3 つ:**
 
 - **Math**: 対応記法 bullet リスト（4 項目）を説明と Markdown 例の間に挿入（詳細は次節）。
 - **PlantUML**: 2 構文（fenced code block / block markers）が等価に成立する仕様上、`#### PlantUML` の下に `##### Fenced code block` と `##### Block markers` の H5 を配置し、それぞれに Markdown 例を持つ。Preview（`images/PlantUML.png`）は 2 構文が同じ出力を生むため、PlantUML 直下に 1 枚だけ配置する。既存の見出し構造をレベルだけ 1 段下げる扱いで、アンカー `#fenced-code-block` / `#block-markers` は維持される。
+- **Heading IDs**: 「見出しテキスト → 生成されるアンカー ID」のマッピング表を現状踏襲。Heading IDs は ID 生成仕様であり、レンダリング結果を画像で示しても情報量が増えない（Preview 上でアンカー ID は視覚表示されない）。Markdown/Preview ペアを持たず、説明 + マッピング表 + See also の構成で他機能と並ぶ。
 
 ### 4. Math 節の例外許容と移管
 
@@ -223,7 +224,7 @@ README.md（英語）と README.ja.md（日本語）は**節構成・見出し�
 1. `README.md` の `## Features` 節が合計 11 見出しの骨格（カテゴリ H3 × 3 + 機能 H4 × 7 + Sample files H3 × 1）になっている。
 2. 概要テーブルが 3 カテゴリに分割された小テーブル 3 本になっている。
 3. 7 つの機能 H4 がすべて「説明 + Markdown/Preview + (任意の See also)」テンプレートに沿っている。Math のみ対応記法 bullet が追加で含まれる。
-4. Checkbox / Container / Math のサブセクションが `images/*.png` を Preview として参照している。Include は現状のコードブロック維持。
+4. Checkbox / Container / Math のサブセクションが `images/*.png` を Preview として参照している。Include は現状のコードブロック維持。Heading IDs は現状のマッピング表を維持。
 5. サンプルファイルリンクが `## Features` 節の末尾、`## Chromium` の直前に `### Sample files` として配置されている。
 6. Math 節から移管された内容（無効化方法・`\$` エスケープ・front matter 例・KaTeX マクロ front matter 例）が Options の該当設定項目の説明に含まれている。
 7. `README.ja.md` が README.md と同じ骨格・見出し・機能名構成になっている。説明プロズのみ日本語化されている。
