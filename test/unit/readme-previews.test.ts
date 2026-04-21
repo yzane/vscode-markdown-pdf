@@ -13,21 +13,51 @@ describe('readme-previews', function () {
   const README_SNIPPET = [
     '## Intro',
     '',
-    '### PlantUML',
+    '### Basic syntax extensions',
     '',
-    'INPUT',
+    '#### Checkbox',
+    '',
+    'Markdown',
+    '```',
+    '- [ ] Task A',
+    '- [x] Task B',
+    '```',
+    '',
+    '### Content composition',
+    '',
+    '#### Container',
+    '',
+    'Markdown',
+    '```',
+    '::: warning',
+    '*here be dragons*',
+    ':::',
+    '```',
+    '',
+    '### Diagrams & math',
+    '',
+    '#### PlantUML',
+    '',
+    'Markdown',
     '```',
     '@startuml',
     'Alice -> Bob: hello',
     '@enduml',
     '```',
     '',
-    '### Mermaid',
+    '#### Mermaid',
     '',
-    'INPUT',
+    'Markdown',
     '```mermaid',
     'graph TD',
     '  A-->B',
+    '```',
+    '',
+    '#### Math',
+    '',
+    'Markdown',
+    '```',
+    'Inline: $E = mc^2$',
     '```',
     '',
     '### next',
@@ -35,13 +65,13 @@ describe('readme-previews', function () {
   ].join('\n');
 
   it('extractReadmeSection should return heading body until next heading', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### PlantUML');
+    const section = extractReadmeSection(README_SNIPPET, '#### PlantUML');
     assert.ok(section.includes('@startuml'));
-    assert.ok(!section.includes('### Mermaid'));
+    assert.ok(!section.includes('#### Mermaid'));
   });
 
   it('extractFirstFencedBlock should return first fenced block content', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### PlantUML');
+    const section = extractReadmeSection(README_SNIPPET, '#### PlantUML');
     assert.strictEqual(
       extractFirstFencedBlock(section),
       '@startuml\nAlice -> Bob: hello\n@enduml'
@@ -49,14 +79,17 @@ describe('readme-previews', function () {
   });
 
   it('extractFirstFencedBlock should filter by language when specified', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### Mermaid');
+    const section = extractReadmeSection(README_SNIPPET, '#### Mermaid');
     assert.strictEqual(extractFirstFencedBlock(section, 'mermaid'), 'graph TD\n  A-->B');
   });
 
-  it('extractReadmePreviewSources should return plantuml and mermaid blocks', function () {
+  it('extractReadmePreviewSources should return all five preview sources', function () {
     assert.deepStrictEqual(extractReadmePreviewSources(README_SNIPPET), {
       plantuml: '@startuml\nAlice -> Bob: hello\n@enduml',
       mermaid: 'graph TD\n  A-->B',
+      checkbox: '- [ ] Task A\n- [x] Task B',
+      container: '::: warning\n*here be dragons*\n:::',
+      math: 'Inline: $E = mc^2$',
     });
   });
 

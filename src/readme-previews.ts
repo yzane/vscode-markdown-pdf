@@ -40,10 +40,19 @@ export function extractFirstFencedBlock(section: string, language?: string): str
   return match[1];
 }
 
-export function extractReadmePreviewSources(markdown: string): { plantuml: string; mermaid: string } {
+export function extractReadmePreviewSources(markdown: string): {
+  plantuml: string;
+  mermaid: string;
+  checkbox: string;
+  container: string;
+  math: string;
+} {
   return {
-    plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '### PlantUML')),
-    mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '### Mermaid'), 'mermaid'),
+    plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '#### PlantUML')),
+    mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Mermaid'), 'mermaid'),
+    checkbox: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Checkbox')),
+    container: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Container')),
+    math: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Math')),
   };
 }
 
