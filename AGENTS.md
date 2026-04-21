@@ -33,6 +33,7 @@ Rules:
 
 - Do not change this branching model. Do not use `hotfix/*`, and do not assume `main` exists.
 - Never delete `develop`. Never commit directly to `master` or `develop` — all changes arrive via merges. When changes need to be committed while on `develop`, ask the user which branch type (`feature/*`, `release/*`, or `bugfix/*`) to create first.
+- Working branches (`feature/*`, `release/*`, `bugfix/*`) are created as isolated `git worktree` under `.worktrees/`, not via `git checkout` on the main tree.
 - Update `master` only by merging from `develop` at Marketplace publish time. Never merge `release/*` or any other branch directly into `master`.
 - Before any merge operation (integration into another branch, including `git merge` and PR merges), show a confirmation message and wait for user approval — even in auto-accept mode.
 - When delegating to subagents, always pass the current branch name and require them to stay on it.
