@@ -301,7 +301,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
 
     // read mermaid javascripts
     // compile template
-    const katexCssPath = path.join(EXTENSION_ROOT, 'node_modules', 'katex', 'dist', 'katex.min.css');
+    const katexCssPath = path.join(EXTENSION_ROOT, 'styles', 'katex', 'katex.min.css');
     const view = utils.buildHtmlViewData({
       content: data as string,
       title: title,
