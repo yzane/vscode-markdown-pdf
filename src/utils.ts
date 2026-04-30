@@ -434,15 +434,22 @@ interface HtmlViewDataConfig {
   style: string;
   content: string;
   mermaidServer: string;
+  katexStylesheet?: string;
 }
 
 /** Builds the view model passed to the HTML template renderer. */
-export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; style: string; content: string; mermaid: string } {
+export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; style: string; content: string; mermaid: string; katex: string } {
+  let katexTag = '';
+  if (config.katexStylesheet) {
+    const href = 'file:///' + config.katexStylesheet.replace(/\\/g, '/');
+    katexTag = '<link rel="stylesheet" href="' + href + '">';
+  }
   return {
     title: config.title,
     style: config.style,
     content: config.content,
     mermaid: '<script src="' + config.mermaidServer + '"></script>',
+    katex: katexTag,
   };
 }
 

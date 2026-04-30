@@ -14,6 +14,8 @@ import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
 import { markdownItInclude } from './markdown-it-include';
+import markdownItTexmath from 'markdown-it-texmath';
+import katex from 'katex';
 import puppeteer from 'puppeteer-core';
 import * as PB from '@puppeteer/browsers';
 
@@ -243,6 +245,9 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       });
       md.use(markdownItPlantuml, plantumlOptions);
 
+      // KaTeX math: $...$ inline, $$...$$ display
+      md.use(markdownItTexmath, { engine: katex, delimiters: 'dollars' });
+
       // Include markdown fragment files with :[alt-text](relative-path-to-file.md) syntax
       // https://talk.commonmark.org/t/transclusion-or-including-sub-documents-for-reuse/270/13
       if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
@@ -296,11 +301,13 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
 
     // read mermaid javascripts
     // compile template
+    const katexCssPath = path.join(EXTENSION_ROOT, 'node_modules', 'katex', 'dist', 'katex.min.css');
     const view = utils.buildHtmlViewData({
       content: data as string,
       title: title,
       style: style,
-      mermaidServer: vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || ''
+      mermaidServer: vscode.workspace.getConfiguration('markdown-pdf')['mermaidServer'] || '',
+      katexStylesheet: katexCssPath,
     });
     return utils.renderTemplate(template as string, view);
   } catch (error) {
