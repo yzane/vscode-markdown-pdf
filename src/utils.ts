@@ -439,18 +439,21 @@ interface HtmlViewDataConfig {
 
 /** Builds the view model passed to the HTML template renderer. */
 export function buildHtmlViewData(config: HtmlViewDataConfig): { title: string; style: string; content: string; mermaid: string; katex: string } {
-  let katexTag = '';
-  if (config.katexStylesheet) {
-    const href = 'file:///' + config.katexStylesheet.replace(/\\/g, '/');
-    katexTag = '<link rel="stylesheet" href="' + href + '">';
-  }
   return {
     title: config.title,
     style: config.style,
     content: config.content,
     mermaid: '<script src="' + config.mermaidServer + '"></script>',
-    katex: katexTag,
+    katex: config.katexStylesheet ? makeKatexStyleTag(config.katexStylesheet) : '',
   };
+}
+
+function makeKatexStyleTag(katexCssPath: string): string {
+  const css = readFile(katexCssPath);
+  if (!css) return '';
+  const fontsDir = 'file:///' + path.join(path.dirname(katexCssPath), 'fonts').replace(/\\/g, '/') + '/';
+  const fixedCss = (css as string).replace(/url\(fonts\//g, 'url(' + fontsDir);
+  return '\n<style>\n' + fixedCss + '\n</style>\n';
 }
 
 /** Substitutes {{{key}}} placeholders in a template with matching values from view. */
