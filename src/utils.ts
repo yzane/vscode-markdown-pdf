@@ -314,6 +314,7 @@ interface PdfConfig {
   printBackground: boolean;
   pageRanges: string;
   margin: { top: string; right: string; bottom: string; left: string };
+  outline: boolean;
 }
 
 /** Builds the options object passed to Puppeteer's page.pdf() call. */
@@ -336,6 +337,7 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
     width: config.width,
     height: config.height,
     margin: config.margin,
+    outline: config.outline,
     timeout: 0,
   };
 }

@@ -385,6 +385,7 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
               bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
               left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
             },
+            outline: vscode.workspace.getConfiguration('markdown-pdf', uri)['outline'] !== false,
           };
           const pdfOptions = utils.buildPdfOptions(pdfConfig);
           await page.pdf(pdfOptions);

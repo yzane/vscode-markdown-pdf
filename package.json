@@ -899,6 +899,11 @@
           "type": "string",
           "default": "https://unpkg.com/mermaid/dist/mermaid.min.js",
           "description": "mermaid server."
+        },
+        "markdown-pdf.outline": {
+          "type": "boolean",
+          "default": true,
+          "description": "pdf only. Whether to generate a document outline (bookmarks) from the headings."
         }
       }
     }

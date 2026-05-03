@@ -841,10 +841,12 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: true,
       });
       assert.strictEqual(result.format, 'A4');
       assert.strictEqual(result.width, '');
       assert.strictEqual(result.height, '');
+      assert.strictEqual(result.outline, true);
     });
 
     it('should clear format when width is specified', function () {
@@ -861,9 +863,11 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.format, '');
       assert.strictEqual(result.width, '10cm');
+      assert.strictEqual(result.outline, false);
     });
 
     it('should clear format when height is specified', function () {
@@ -880,6 +884,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.format, '');
       assert.strictEqual(result.height, '15cm');
@@ -899,6 +904,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.landscape, true);
     });
@@ -917,6 +923,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.landscape, false);
     });
@@ -935,6 +942,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.ok((result.headerTemplate as string).match(/^\d{4}-\d{2}-\d{2}$/), 'headerTemplate should be a date: ' + result.headerTemplate);
       assert.ok((result.footerTemplate as string).match(/^\d{2}:\d{2}:\d{2}$/), 'footerTemplate should be a time: ' + result.footerTemplate);
@@ -1254,6 +1262,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: margin,
+        outline: false,
       });
       assert.deepStrictEqual(result.margin, margin);
     });
@@ -1272,6 +1281,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.headerTemplate, '');
       assert.strictEqual(result.footerTemplate, '');
