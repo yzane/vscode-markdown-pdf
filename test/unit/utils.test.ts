@@ -1756,4 +1756,48 @@ describe('utils', function () {
       assert.strictEqual(result.content, '');
     });
   });
+
+  describe('filterHeadingLevels', function () {
+    it('should replace headings outside the range with div tags', function () {
+      const html = '<h1>H1</h1><h2>H2</h2><h3>H3</h3><h4>H4</h4>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<div class="h1">H1</div><h2>H2</h2><h3>H3</h3><div class="h4">H4</div>');
+    });
+
+    it('should preserve attributes on headings', function () {
+      const html = '<h1 id="top" class="main">Title</h1>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<div class="h1" id="top" class="main">Title</div>');
+    });
+
+    it('should handle multiline headings', function () {
+      const html = '<h1>\nLine 1\nLine 2\n</h1>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<div class="h1">\nLine 1\nLine 2\n</div>');
+    });
+
+    it('should not change headings within the range', function () {
+      const html = '<h2>H2</h2>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<h2>H2</h2>');
+    });
+
+    it('should handle all headings being filtered out', function () {
+      const html = '<h1>H1</h1>';
+      const result = utils.filterHeadingLevels(html, 2, 2);
+      assert.strictEqual(result, '<div class="h1">H1</div>');
+    });
+
+    it('should handle none being filtered out', function () {
+      const html = '<h1>H1</h1>';
+      const result = utils.filterHeadingLevels(html, 1, 6);
+      assert.strictEqual(result, '<h1>H1</h1>');
+    });
+
+    it('should replace headings before the start marker with div tags', function () {
+      const html = '<h1>Before</h1><!-- /TOC --><h1>After</h1>';
+      const result = utils.filterHeadingLevels(html, 1, 6, '<!-- /TOC -->');
+      assert.strictEqual(result, '<div class="h1">Before</div><!-- /TOC --><h1>After</h1>');
+    });
+  });
 });

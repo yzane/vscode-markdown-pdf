@@ -111,7 +111,15 @@ async function markdownPdf(option_type: string): Promise<void> {
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
           const text = editor.document.getText();
-          const content = convertMarkdownToHtml(mdfilename, type, text);
+          let content = convertMarkdownToHtml(mdfilename, type, text);
+
+          if (type === 'pdf') {
+            const outlineDepthFrom = vscode.workspace.getConfiguration('markdown-pdf', uri)['outlineDepthFrom'] || 1;
+            const outlineDepthTo = vscode.workspace.getConfiguration('markdown-pdf', uri)['outlineDepthTo'] || 6;
+            const outlineStartMarker = vscode.workspace.getConfiguration('markdown-pdf', uri)['outlineStartMarker'] || '';
+            content = utils.filterHeadingLevels(content as string, outlineDepthFrom, outlineDepthTo, outlineStartMarker);
+          }
+
           const html = makeHtml(content, uri);
           await exportPdf(html, filename, type, uri);
         } else {
@@ -477,7 +485,7 @@ function readStyles(uri: vscode.Uri): string | undefined {
     const markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
     const markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
 
-    return utils.buildStyleTags({
+    let style = utils.buildStyleTags({
       includeDefaultStyles: includeDefaultStyles,
       highlight: highlight,
       highlightStyle: highlightStyle,
@@ -495,6 +503,20 @@ function readStyles(uri: vscode.Uri): string | undefined {
         return fixHref(uri, href) || '';
       },
     });
+
+    // Add CSS shim for filtered headings (div.h1, etc.)
+    style += `
+<style>
+  div.h1, div.h2, div.h3, div.h4, div.h5, div.h6 { display: block; font-weight: bold; }
+  div.h1 { font-size: 2em; margin: .67em 0; }
+  div.h2 { font-size: 1.5em; margin: .83em 0; }
+  div.h3 { font-size: 1.17em; margin: 1em 0; }
+  div.h4 { font-size: 1em; margin: 1.33em 0; }
+  div.h5 { font-size: .83em; margin: 1.67em 0; }
+  div.h6 { font-size: .67em; margin: 2.33em 0; }
+</style>`;
+
+    return style;
   } catch (error) {
     showErrorMessage('readStyles()', error);
   }

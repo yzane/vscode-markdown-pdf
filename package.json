@@ -904,6 +904,25 @@
           "type": "boolean",
           "default": true,
           "description": "pdf only. Whether to generate a document outline (bookmarks) from the headings."
+        },
+        "markdown-pdf.outlineDepthFrom": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 6,
+          "description": "pdf only. Start level of headings to be included in the bookmarks."
+        },
+        "markdown-pdf.outlineDepthTo": {
+          "type": "integer",
+          "default": 6,
+          "minimum": 1,
+          "maximum": 6,
+          "description": "pdf only. End level of headings to be included in the bookmarks."
+        },
+        "markdown-pdf.outlineStartMarker": {
+          "type": "string",
+          "default": "",
+          "description": "pdf only. Any headings before this marker string in the HTML will be excluded from the bookmarks. (e.g. '<!-- /TOC -->')"
         }
       }
     }

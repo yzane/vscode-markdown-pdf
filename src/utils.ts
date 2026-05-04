@@ -378,6 +378,33 @@ export function buildImageOptions(config: ImageConfig): Record<string, unknown> 
   };
 }
 
+/**
+ * Replaces heading tags (h1-h6) with div tags if they are outside the specified range
+ * or before the specified start marker.
+ * This is used to exclude certain heading levels from the PDF outline.
+ */
+export function filterHeadingLevels(html: string, from: number, to: number, startMarker?: string): string {
+  let startIndex = 0;
+  if (startMarker) {
+    const markerIndex = html.indexOf(startMarker);
+    if (markerIndex !== -1) {
+      startIndex = markerIndex + startMarker.length;
+    }
+  }
+
+  const headingRegex = /<h([1-6])(.*?)>([\s\S]*?)<\/h\1>/gi;
+  return html.replace(headingRegex, (match, level, attrs, content, offset) => {
+    const l = parseInt(level);
+    const isOutOfRange = l < from || l > to;
+    const isBeforeStart = offset < startIndex;
+
+    if (isOutOfRange || isBeforeStart) {
+      return `<div class="h${l}"${attrs}>${content}</div>`;
+    }
+    return match;
+  });
+}
+
 /** Returns a markdown-it highlight callback that renders mermaid blocks as <div> and other languages via highlight.js. */
 export function buildHighlightCallback(hljs: HLJSApi, escapeHtml: (str: string) => string): (str: string, lang: string) => string {
   return function (str: string, lang: string): string {
