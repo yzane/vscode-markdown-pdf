@@ -289,7 +289,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 1. [markdown-pdf.executablePath](#markdown-pdfexecutablepath) で指定されたパス
 2. システムにインストール済みの Google Chrome / Microsoft Edge / Chromium
-3. 初回使用時に自動ダウンロードされる管理済み Chromium（最新の Chrome Stable。[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) で無効化可能）
+3. 初回使用時に自動ダウンロードされ、以降は VS Code 起動ごとに最新の Chrome Stable に追従して更新される管理済み Chromium（[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) で無効化可能）
 
 詳細は FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) および [Where is Chromium downloaded?](#where-is-chromium-downloaded) を参照してください。
 
@@ -955,7 +955,9 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 
 **ダウンロードされる Chromium のビルド**
 
-Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable の build id を取得しようとします。API に到達できない場合は、以下の順にフォールバックします:
+Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable の build id を取得しようとします。最新 build id の確認は VS Code セッションごとに 1 回実行され、Chrome Stable の新版がリリースされていれば次回エクスポート時に新しいビルドをダウンロードし、以前のキャッシュ済みビルドは削除されます。同一セッション内では取得した build id がメモ化されるため、リリース直後の新版を取り込むには VS Code を再起動してください。
+
+API に到達できない場合は、以下の順にフォールバックします:
 
 1. 上表のグローバルストレージディレクトリに残る最新のキャッシュ済みビルド
 2. バンドルされた `puppeteer-core` に固定された build id（最終フォールバック）

@@ -291,7 +291,7 @@ Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the
 
 1. The path specified in [markdown-pdf.executablePath](#markdown-pdfexecutablepath)
 2. An installed Google Chrome, Microsoft Edge, or Chromium on your system
-3. A managed Chromium automatically downloaded on first use (latest Chrome Stable; can be disabled with [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload))
+3. A managed Chromium automatically downloaded on first use and refreshed to track the latest Chrome Stable on subsequent VS Code launches (can be disabled with [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload))
 
 See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) and [Where is Chromium downloaded?](#where-is-chromium-downloaded) in the FAQ for details.
 
@@ -946,7 +946,9 @@ During the download, `Installing Chromium` is shown in the status bar.
 
 **Which Chromium build is downloaded?**
 
-Markdown PDF tries to fetch the latest Chrome Stable build id from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json). If the API is unreachable, it falls back in this order:
+Markdown PDF tries to fetch the latest Chrome Stable build id from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json). The latest build id is checked once per VS Code session: when a newer Chrome Stable has been released, Markdown PDF downloads the new build at the next export and removes the previously cached build. Within the same VS Code session the build id is memoized — restart VS Code to pick up a freshly released build.
+
+If the API is unreachable, it falls back in this order:
 
 1. The most recently cached build under the global storage directory shown above
 2. The build id pinned by the bundled `puppeteer-core` (last-resort fallback)
