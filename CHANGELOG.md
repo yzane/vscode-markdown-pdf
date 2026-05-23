@@ -4,7 +4,7 @@
 
 ### Breaking Changes
 
-* Raw HTML in Markdown is now sanitized by default according to the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). The following are removed from Markdown body content:
+* Security hardening: Raw HTML in Markdown is now sanitized by default according to the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). The following are removed from Markdown body content:
   * Tags: `<script>`, `<iframe>`, `<style>`, `<textarea>`, `<title>`, `<xmp>`, `<noembed>`, `<noframes>`, `<plaintext>` (opening `<` is escaped to `&lt;`, content is preserved as visible text)
   * `on*` event handler attributes (`onclick`, `onload`, etc.)
   * `href` / `src` attributes whose value begins with `javascript:`
