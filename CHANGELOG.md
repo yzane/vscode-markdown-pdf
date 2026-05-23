@@ -1,6 +1,6 @@
 # Change Log
 
-## X.Y.Z (YYYY/MM/DD)
+## 2.1.0 (2026/05/24)
 
 ### Breaking Changes
 
