@@ -33,7 +33,7 @@
 
 バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
 
-### X.Y.Z
+### 2.1.0
 
 - `` ```plantuml `` フェンスドコードブロック記法のサポートを追加（[詳細](#plantuml)）
 - KaTeX による数式描画のサポートを追加（[詳細](#math)）
@@ -43,7 +43,7 @@
 
 バージョン 2 以降で既存動作に影響する変更です。詳細は [FAQ](#faq) セクションを参照してください。
 
-### X.Y.Z
+### 2.1.0
 
 - セキュリティ強化: XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい [markdown-pdf.sanitize](#markdown-pdfsanitize) 設定で制御できます。
     - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
@@ -864,7 +864,7 @@ BOM 付きファイルは引き続きサポートされます。
 
 以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
 
-バージョン X.Y.Z から、Markdown 本文内の Raw HTML は既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズが適用されます。挙動は `markdown-pdf.sanitize` で制御します:
+バージョン 2.1.0 から、Markdown 本文内の Raw HTML は既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズが適用されます。挙動は `markdown-pdf.sanitize` で制御します:
 
 | モード | 挙動 |
 | --- | --- |

@@ -35,7 +35,7 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
 
-### X.Y.Z
+### 2.1.0
 
 - Add PlantUML fenced code block support ([details](#plantuml))
 - Add math rendering via KaTeX ([details](#math))
@@ -45,7 +45,7 @@ Highlights of new features and improvements since v2. See [Breaking Changes](#br
 
 Changes since v2 that may affect existing behavior. See the [FAQ](#faq) section for details.
 
-### X.Y.Z
+### 2.1.0
 
 - Security hardening: To mitigate XSS-like risk ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)), raw HTML in Markdown is now sanitized by default following the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Tags such as `<script>`, `<iframe>`, `<style>`, and `on*` / `javascript:` attributes are stripped from Markdown body content. The behavior is controlled by the new [markdown-pdf.sanitize](#markdown-pdfsanitize) setting.
     - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
@@ -859,7 +859,7 @@ BOM-prefixed files are still supported.
 
 Earlier versions of this extension passed all raw HTML in Markdown through to the renderer without validation. Tags such as `<script>` and `<iframe>` could therefore execute during preview or PDF rendering, creating XSS-like risk when opening untrusted Markdown files ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)).
 
-Starting with X.Y.Z, raw HTML inside the Markdown body is sanitized by default per the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Behavior is controlled by `markdown-pdf.sanitize`:
+Starting with 2.1.0, raw HTML inside the Markdown body is sanitized by default per the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Behavior is controlled by `markdown-pdf.sanitize`:
 
 | Mode | Behavior |
 | --- | --- |
