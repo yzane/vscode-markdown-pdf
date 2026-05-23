@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
