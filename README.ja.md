@@ -23,6 +23,7 @@
 - [既知の問題](#既知の問題)
 - [Change Log](#change-log)
 - [License](#license)
+- [Sponsor](#sponsor)
 - [Special thanks](#special-thanks)
 
 <!-- /TOC -->
@@ -981,6 +982,11 @@ API に到達できない場合は、以下の順にフォールバックしま�
 ## License
 
 MIT
+
+
+## Sponsor
+
+Markdown PDF が役に立ったら、[GitHub Sponsors](https://github.com/sponsors/yzane) で開発を支援いただけます。
 
 
 ## Special thanks
