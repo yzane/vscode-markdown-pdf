@@ -27,23 +27,65 @@ export function extractReadmeSection(markdown: string, heading: string): string 
   return match[1].trim();
 }
 
+// Scans a section line by line, returning the first fenced block that matches the
+// caller's intent. Without a language filter, the function returns the first
+// simple 3-backtick fence and skips past 4+-backtick wrappers entirely (they are
+// used in the README as meta-demos of fenced syntax). With a language filter,
+// the function returns the first fence whose info string equals the requested
+// language, regardless of fence length.
 export function extractFirstFencedBlock(section: string, language?: string): string {
-  const blockPattern = language
-    ? new RegExp('^```' + escapeRegExp(language) + '[^\\r\\n]*\\r?\\n([\\s\\S]*?)\\r?\\n```', 'm')
-    : /^```[^\r\n]*\r?\n([\s\S]*?)\r?\n```/m;
-  const match = section.match(blockPattern);
-
-  if (!match) {
-    throw new Error('Fenced block not found');
+  const lines = section.split(/\r?\n/);
+  let i = 0;
+  while (i < lines.length) {
+    const openMatch = /^(`{3,})([^\r\n]*)$/.exec(lines[i]);
+    if (!openMatch) {
+      i++;
+      continue;
+    }
+    const fenceLen = openMatch[1].length;
+    const fenceLang = openMatch[2].trim();
+    const closePattern = new RegExp('^`{' + fenceLen + ',}\\s*$');
+    let closeIdx = -1;
+    for (let j = i + 1; j < lines.length; j++) {
+      if (closePattern.test(lines[j])) {
+        closeIdx = j;
+        break;
+      }
+    }
+    if (closeIdx === -1) {
+      i++;
+      continue;
+    }
+    const matchesLanguage = language ? fenceLang === language : fenceLen === 3;
+    if (matchesLanguage) {
+      return lines.slice(i + 1, closeIdx).join('\n');
+    }
+    i = closeIdx + 1;
   }
+  throw new Error('Fenced block not found');
+}
 
+export function extractFirstPreBlock(section: string): string {
+  const match = section.match(/^<pre>\r?\n([\s\S]*?)\r?\n<\/pre>\s*$/m);
+  if (!match) {
+    throw new Error('<pre> block not found');
+  }
   return match[1];
 }
 
-export function extractReadmeDiagramSources(markdown: string): { plantuml: string; mermaid: string } {
+export function extractReadmePreviewSources(markdown: string): {
+  plantuml: string;
+  mermaid: string;
+  checkbox: string;
+  container: string;
+  math: string;
+} {
   return {
-    plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '### PlantUML')),
-    mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '### Mermaid'), 'mermaid'),
+    plantuml: extractFirstFencedBlock(extractReadmeSection(markdown, '#### PlantUML')),
+    mermaid: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Mermaid'), 'mermaid'),
+    checkbox: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Checkbox')),
+    container: extractFirstFencedBlock(extractReadmeSection(markdown, '#### Container')),
+    math: extractFirstPreBlock(extractReadmeSection(markdown, '#### Math')),
   };
 }
 
@@ -79,7 +121,7 @@ export function buildMermaidRenderHtml(mermaidSource: string, mermaidScriptUrl: 
   ].join('');
 }
 
-export function resolveReadmeDiagramExportPath(
+export function resolveReadmePreviewExportPath(
   filename: string,
   resourceFsPath: string,
   outputDirectory: string | undefined | null,

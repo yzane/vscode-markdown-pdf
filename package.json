@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -166,6 +166,16 @@
           "type": "boolean",
           "default": false,
           "description": "If markdown-pdf.outputDirectoryRelativePathFile option is set to true, the relative path set with markdown-pdf.outputDirectory is interpreted as relative from the file"
+        },
+        "markdown-pdf.sanitize": {
+          "type": "string",
+          "enum": [
+            "gfm",
+            "gfm-allow-style",
+            "none"
+          ],
+          "default": "gfm",
+          "description": "Sanitize raw HTML in Markdown to mitigate XSS-like risks. 'gfm' removes dangerous tags (script, iframe, style, etc.) per GitHub Flavored Markdown. 'gfm-allow-style' keeps <style> for PDF layout customization (CSS can still exfiltrate data via url()/@import — use only with trusted content). 'none' disables sanitization (legacy behavior, not recommended)."
         },
         "markdown-pdf.styles": {
           "type": "array",
@@ -728,6 +738,11 @@
           "default": "",
           "description": "Path to a Chromium or Chrome executable to run instead of the bundled Chromium."
         },
+        "markdown-pdf.chromium.autoDownload": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically download the latest Chrome Stable when no system Chromium/Edge is found and no executable path is specified. Disable to prevent any Chromium download (system or user-specified Chromium must be available)."
+        },
         "markdown-pdf.scale": {
           "type": "number",
           "default": 1,
@@ -899,6 +914,19 @@
           "type": "string",
           "default": "https://unpkg.com/mermaid/dist/mermaid.min.js",
           "description": "mermaid server."
+        },
+        "markdown-pdf.math.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable math rendering via KaTeX for $...$, $$...$$, \\(...\\), \\[...\\], and ```math fenced code blocks. Matches the behavior of VS Code's built-in Markdown preview. Set to false to keep the raw $ / \\( / \\[ / ```math text."
+        },
+        "markdown-pdf.math.katex.macros": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          },
+          "markdownDescription": "User-defined KaTeX macros passed to the KaTeX renderer. Example: `{ \"\\\\RR\": \"\\\\mathbb{R}\" }`. See https://katex.org/docs/options.html for details."
         }
       }
     }
@@ -910,8 +938,8 @@
     "package": "npm run build && vsce package",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "tsx --test test/unit/**/*.test.ts",
-    "preupdate-readme-diagrams": "npm run build",
-    "update-readme-diagrams": "vscode-test --config .vscode-test.mjs --label readme-diagrams",
+    "preupdate-readme-previews": "npm run build",
+    "update-readme-previews": "vscode-test --config .vscode-test.mjs --label readme-previews",
     "pretest:integration": "npm run build",
     "test:integration": "vscode-test --config .vscode-test.mjs --label integration",
     "presample": "npm run build",
@@ -930,13 +958,16 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
+    "@vscode/markdown-it-katex": "^1.1.2",
     "emoji-images": "^0.1.1",
     "highlight.js": "^11.11.1",
     "js-yaml": "^4.1.1",
+    "katex": "^0.16.45",
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-plantuml": "^1.4.1",
+    "plantuml-encoder": "^1.4.0",
     "puppeteer-core": "^24.40.0"
   }
 }

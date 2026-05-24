@@ -13,9 +13,12 @@ import { full as markdownItEmojiFull } from 'markdown-it-emoji';
 import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
+import markdownItKatex from '@vscode/markdown-it-katex';
+import { mathFencePlugin } from './markdown-it-math-fence';
+import { mathBracketsPlugin } from './markdown-it-math-brackets';
+import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
 import puppeteer from 'puppeteer-core';
-import * as PB from '@puppeteer/browsers';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
 let INSTALL_CHECK = false;
@@ -35,6 +38,15 @@ function getExtensionCacheDir(): string {
   }
 
   return '';
+}
+
+/** Reads markdown-pdf.chromium.autoDownload (default: true). */
+function getAutoDownload(): boolean {
+  const chromium = vscode.workspace.getConfiguration('markdown-pdf')['chromium'];
+  if (chromium && typeof chromium === 'object' && typeof chromium.autoDownload === 'boolean') {
+    return chromium.autoDownload;
+  }
+  return true;
 }
 
 /** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
@@ -164,6 +176,14 @@ function getFrontMatterString(data: Record<string, unknown>, key: string): strin
   return typeof value === 'string' ? value : undefined;
 }
 
+function getFrontMatterRecord(data: Record<string, unknown>, key: string): Record<string, unknown> | undefined {
+  const value = data[key];
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return undefined;
+}
+
 /*
  * convert markdown to html (markdown-it)
  */
@@ -194,11 +214,16 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
         return defaultRender!(tokens, idx, options, env, self);
       };
 
-      if (type !== 'html') {
-        md.renderer.rules.html_block = function (tokens, idx) {
-          return utils.transformHtmlBlock(tokens[idx].content, filename);
-        };
-      }
+      const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
+
+      md.renderer.rules.html_block = function (tokens, idx) {
+        const sanitized = utils.sanitizeRawHtml(tokens[idx].content, sanitizeMode);
+        return type !== 'html' ? utils.transformHtmlBlock(sanitized, filename) : sanitized;
+      };
+
+      md.renderer.rules.html_inline = function (tokens, idx) {
+        return utils.sanitizeRawHtml(tokens[idx].content, sanitizeMode);
+      };
 
       // checkbox
       md.use(markdownItCheckbox);
@@ -243,6 +268,57 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       });
       md.use(markdownItPlantuml, plantumlOptions);
 
+      // Math rendering via KaTeX
+      // https://github.com/microsoft/vscode-markdown-it-katex (same plugin as VS Code's built-in Markdown Math)
+      const mathFrontmatter = getFrontMatterRecord(matterParts.data, 'math') || {};
+      const mathFrontmatterKatex = getFrontMatterRecord(mathFrontmatter, 'katex') || {};
+      const mathSettings = vscode.workspace.getConfiguration('markdown-pdf').get<{ enabled?: boolean; katex?: { macros?: Record<string, string> } }>('math') || {};
+      const mathEnabled = utils.setBooleanValue(
+        typeof mathFrontmatter['enabled'] === 'boolean' ? (mathFrontmatter['enabled'] as boolean) : undefined,
+        mathSettings.enabled,
+      ) ?? true;
+      const mathMacrosFrontmatter = getFrontMatterRecord(mathFrontmatterKatex, 'macros');
+      const mathMacrosSettings = (mathSettings.katex && mathSettings.katex.macros) || {};
+      const mathMacros: Record<string, string> = {};
+      for (const [k, v] of Object.entries(mathMacrosSettings)) {
+        if (typeof v === 'string') { mathMacros[k] = v; }
+      }
+      if (mathMacrosFrontmatter) {
+        for (const [k, v] of Object.entries(mathMacrosFrontmatter)) {
+          if (typeof v === 'string') { mathMacros[k] = v; }
+        }
+      }
+      if (mathEnabled) {
+        md.use(markdownItKatex, { enableBareBlocks: true, enableMathBlockInHtml: false });
+        md.use(mathBracketsPlugin);
+        // Route delimiter-path math tokens through renderMath(). Inline \[...\]
+        // tokens carry markup '\\[' and must render as display math; all other
+        // math_inline tokens render inline.
+        md.renderer.rules.math_inline = function (tokens, idx) {
+          const token = tokens[idx];
+          const displayMode = token.markup === '\\[';
+          return renderMath(token.content, displayMode, { macros: mathMacros });
+        };
+        md.renderer.rules.math_block = function (tokens, idx) {
+          return renderMath(tokens[idx].content, true, { macros: mathMacros });
+        };
+        md.use(mathFencePlugin, { macros: mathMacros });
+      }
+
+      // ```plantuml fenced code blocks render as PlantUML diagrams alongside the
+      // @startuml/@enduml block syntax handled by markdown-it-plantuml above.
+      const defaultFenceRenderer = md.renderer.rules.fence;
+      md.renderer.rules.fence = function (tokens, idx, options, env, self) {
+        const token = tokens[idx];
+        if (token.info.trim().toLowerCase() === 'plantuml') {
+          return utils.buildPlantumlImgTag(token.content, plantumlOptions.server);
+        }
+        if (defaultFenceRenderer) {
+          return defaultFenceRenderer(tokens, idx, options, env, self);
+        }
+        return self.renderToken(tokens, idx, options);
+      };
+
       // Include markdown fragment files with :[alt-text](relative-path-to-file.md) syntax
       // https://talk.commonmark.org/t/transclusion-or-including-sub-documents-for-reuse/270/13
       if (vscode.workspace.getConfiguration('markdown-pdf')['markdown-it-include']['enable']) {
@@ -285,7 +361,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
   try {
     // read styles
     let style = '';
-    style += readStyles(uri);
+    style += readStyles(uri, data);
 
     // get title
     const title = path.basename(uri.fsPath);
@@ -345,13 +421,23 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
         exportHtml(data as string, tmpfilename);
         const cacheDir = getExtensionCacheDir();
         const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
-        const resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir);
+        const resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
+          autoDownload: getAutoDownload()
+        });
         if (!resolvedExecPath) {
           if (utils.isExistsPath(tmpfilename)) {
             deleteFile(tmpfilename);
           }
-          showErrorMessage('Chromium or Chrome does not exist! \
-      See https://github.com/yzane/vscode-markdown-pdf#install');
+          if (!getAutoDownload()) {
+            showErrorMessage(
+              'Chromium not found. Automatic download is disabled (markdown-pdf.chromium.autoDownload = false). ' +
+              'Install Google Chrome / Chromium / Microsoft Edge, set markdown-pdf.executablePath, ' +
+              'or enable markdown-pdf.chromium.autoDownload. ' +
+              'See https://github.com/yzane/vscode-markdown-pdf#install'
+            );
+          } else {
+            showErrorMessage('Chromium or Chrome does not exist! See https://github.com/yzane/vscode-markdown-pdf#install');
+          }
           return;
         }
         const launchOptions = {
@@ -468,7 +554,7 @@ function mkdir(dirPath: string): void {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function readStyles(uri: vscode.Uri): string | undefined {
+function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | undefined {
   try {
     const includeDefaultStyles = vscode.workspace.getConfiguration('markdown-pdf')['includeDefaultStyles'];
     const highlightStyle = vscode.workspace.getConfiguration('markdown-pdf')['highlightStyle'] || '';
@@ -476,7 +562,7 @@ function readStyles(uri: vscode.Uri): string | undefined {
     const markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
     const markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
 
-    return utils.buildStyleTags({
+    let style = utils.buildStyleTags({
       includeDefaultStyles: includeDefaultStyles,
       highlight: highlight,
       highlightStyle: highlightStyle,
@@ -493,7 +579,16 @@ function readStyles(uri: vscode.Uri): string | undefined {
       resolveHrefFn: function (href: string) {
         return fixHref(uri, href) || '';
       },
-    });
+    }) || '';
+
+    // Inline KaTeX CSS with data: URI fonts only when the body actually
+    // contains KaTeX output. This keeps unrelated documents small and avoids
+    // regenerating every existing snapshot just because math support shipped.
+    if (htmlBody && htmlBody.includes('class="katex')) {
+      style += utils.buildKatexStyleTag(EXTENSION_ROOT);
+    }
+
+    return style;
   } catch (error) {
     showErrorMessage('readStyles()', error);
   }
@@ -543,17 +638,7 @@ function checkPuppeteerBinary(): boolean | undefined {
       if (!cacheDir) {
         return false;
       }
-      const cachedPath = PB.computeExecutablePath({
-        browser: PB.Browser.CHROME,
-        buildId: chromiumResolver.getExpectedBuildId(),
-        cacheDir: cacheDir,
-        platform: PB.detectBrowserPlatform()
-      });
-      try {
-        fs.accessSync(cachedPath);
-        return true;
-      } catch (accessError) {
-      }
+      return chromiumResolver.hasAnyCachedChromiumSync(cacheDir);
     }
 
     return false;
@@ -569,6 +654,11 @@ function checkPuppeteerBinary(): boolean | undefined {
 async function installChromium(): Promise<void> {
   let statusbarmessage: vscode.Disposable | undefined;
   try {
+    if (!getAutoDownload()) {
+      // autoDownload disabled: defer error to actual export attempt.
+      return;
+    }
+
     vscode.window.showInformationMessage('[Markdown PDF] Installing Chromium ...');
     statusbarmessage = vscode.window.setStatusBarMessage('$(markdown) Installing Chromium ...');
 
@@ -579,13 +669,19 @@ async function installChromium(): Promise<void> {
     if (!cacheDir) {
       throw new Error('Extension storage path is unavailable.');
     }
-    const executablePath = await chromiumResolver.ensureChromiumDownloaded(cacheDir, onProgress);
 
-    if (executablePath && checkPuppeteerBinary()) {
+    const executablePath = await chromiumResolver.resolveChromiumPath('', cacheDir, {
+      autoDownload: true,
+      onProgress: onProgress
+    });
+
+    if (executablePath) {
       INSTALL_CHECK = true;
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
       vscode.window.showInformationMessage('[Markdown PDF] Chromium installation succeeded.');
+    } else {
+      throw new Error('resolveChromiumPath returned null');
     }
   } catch (error) {
     try {

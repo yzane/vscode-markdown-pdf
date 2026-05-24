@@ -102,12 +102,92 @@ export function getExpectedBuildId(): string {
   return puppeteerModule.PUPPETEER_REVISIONS.chrome;
 }
 
-/** Ensures a managed Chromium matching the expected build id exists in cacheDir, downloading it if necessary. */
+const CHROME_FOR_TESTING_LATEST_URL =
+  'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json';
+const FETCH_TIMEOUT_MS = 10_000;
+const BUILD_ID_PATTERN = /^\d+\.\d+\.\d+\.\d+$/;
+
+type JsonFetcher = (url: string) => Promise<unknown>;
+
+const defaultJsonFetcher: JsonFetcher = async function (url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error('HTTP ' + response.status);
+    }
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+let jsonFetcher: JsonFetcher = defaultJsonFetcher;
+let cachedLatestBuildId: string | null = null;
+let cachedLatestFetchFailed: boolean = false;
+
+/** Replaces the JSON fetcher used by fetchLatestStableBuildId; intended for unit tests. */
+export function setJsonFetcherForTesting(fetcher: JsonFetcher): void {
+  jsonFetcher = fetcher;
+}
+
+/** Clears the in-memory cache of the latest stable build id; intended for unit tests and module reload. */
+export function resetLatestBuildIdCache(): void {
+  cachedLatestBuildId = null;
+  cachedLatestFetchFailed = false;
+  jsonFetcher = defaultJsonFetcher;
+}
+
+/** Fetches the latest Chrome Stable build id from Chrome for Testing API. Memoizes per session. */
+export async function fetchLatestStableBuildId(): Promise<string | null> {
+  if (cachedLatestBuildId) {
+    return cachedLatestBuildId;
+  }
+  if (cachedLatestFetchFailed) {
+    return null;
+  }
+
+  try {
+    const json = await jsonFetcher(CHROME_FOR_TESTING_LATEST_URL);
+    const version = extractStableVersion(json);
+    if (!version || !BUILD_ID_PATTERN.test(version)) {
+      cachedLatestFetchFailed = true;
+      console.warn('[Markdown PDF] Latest Chromium version response had unexpected shape');
+      return null;
+    }
+    cachedLatestBuildId = version;
+    return version;
+  } catch (error) {
+    cachedLatestFetchFailed = true;
+    const msg = error && (error as Error).message ? (error as Error).message : String(error);
+    console.warn('[Markdown PDF] Failed to fetch latest Chromium version: ' + msg);
+    return null;
+  }
+}
+
+function extractStableVersion(json: unknown): string | null {
+  if (!json || typeof json !== 'object') {
+    return null;
+  }
+  const channels = (json as { channels?: unknown }).channels;
+  if (!channels || typeof channels !== 'object') {
+    return null;
+  }
+  const stable = (channels as { Stable?: unknown }).Stable;
+  if (!stable || typeof stable !== 'object') {
+    return null;
+  }
+  const version = (stable as { version?: unknown }).version;
+  return typeof version === 'string' ? version : null;
+}
+
+/** Downloads the specified Chrome build into cacheDir if not already present, and returns its executable path. */
 export async function ensureChromiumDownloaded(
   cacheDir: string,
+  buildId: string,
   onProgress?: (downloadedBytes: number, totalBytes: number) => void
 ): Promise<string> {
-  const buildId = getExpectedBuildId();
   const platform = PB.detectBrowserPlatform();
   let executablePath: string;
 
@@ -169,12 +249,78 @@ export async function cleanupOldChromium(cacheDir: string, keepBuildId: string):
   }
 }
 
-/** Resolves a usable Chromium path by trying user setting, system install, and managed download in order. */
+/** Compares two version strings of the form "MAJOR.MINOR.BUILD.PATCH"; returns negative/zero/positive like Array.sort. */
+function compareBuildIds(a: string, b: string): number {
+  const partsA = a.split('.').map(function (s) { return parseInt(s, 10) || 0; });
+  const partsB = b.split('.').map(function (s) { return parseInt(s, 10) || 0; });
+  const len = Math.max(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const diff = (partsA[i] || 0) - (partsB[i] || 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Sync best-effort check: does the cache directory contain any Chrome build subdirectory?
+ * Only counts real subdirectories (ignoring dotfiles and non-directory entries) so that
+ * partial downloads, stray files, or interrupted uninstalls do not falsely report that a
+ * Chromium build is installed. Returns false on any I/O error (fail-closed).
+ */
+export function hasAnyCachedChromiumSync(cacheDir: string): boolean {
+  try {
+    const chromeDir = path.join(cacheDir, PB.Browser.CHROME);
+    const entries = fs.readdirSync(chromeDir, { withFileTypes: true });
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+        return true;
+      }
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+/** Returns the executable path of the newest Chrome build cached under cacheDir, or null if none. */
+export async function findLatestCachedChromium(cacheDir: string): Promise<string | null> {
+  try {
+    const installedBrowsers = await PB.getInstalledBrowsers({ cacheDir: cacheDir });
+    const chromeBuilds = installedBrowsers.filter(function (b) {
+      return b.browser === PB.Browser.CHROME;
+    });
+
+    if (chromeBuilds.length === 0) {
+      return null;
+    }
+
+    chromeBuilds.sort(function (a, b) {
+      return compareBuildIds(b.buildId, a.buildId);
+    });
+
+    return chromeBuilds[0].executablePath;
+  } catch (error) {
+    return null;
+  }
+}
+
+export interface ResolveChromiumPathOptions {
+  autoDownload?: boolean;
+  onProgress?: (downloadedBytes: number, totalBytes: number) => void;
+}
+
+/** Resolves a usable Chromium path: user setting → system → (auto)download or cached. */
 export async function resolveChromiumPath(
   userExecutablePath: string,
   cacheDir: string,
-  onProgress?: (downloadedBytes: number, totalBytes: number) => void
+  options?: ResolveChromiumPathOptions
 ): Promise<string | null> {
+  const autoDownload = options?.autoDownload !== false;
+  const onProgress = options?.onProgress;
+
   let executablePath: string | null = findChromiumFromUserSetting(userExecutablePath);
   if (executablePath) {
     return executablePath;
@@ -185,10 +331,33 @@ export async function resolveChromiumPath(
     return executablePath;
   }
 
+  if (!autoDownload) {
+    return await findLatestCachedChromium(cacheDir);
+  }
+
+  const latestBuildId = await fetchLatestStableBuildId();
+  if (latestBuildId) {
+    try {
+      return await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+    } catch (error) {
+      console.error('[Markdown PDF] Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+      return null;
+    }
+  }
+
+  // JSON fetch failed: prefer existing cache, then fall back to bundled puppeteer-core build id.
+  const cachedPath = await findLatestCachedChromium(cacheDir);
+  if (cachedPath) {
+    console.warn('[Markdown PDF] Falling back to cached Chromium build');
+    return cachedPath;
+  }
+
+  const fallbackBuildId = getExpectedBuildId();
+  console.warn('[Markdown PDF] Falling back to bundled Chromium build: ' + fallbackBuildId);
   try {
-    return await ensureChromiumDownloaded(cacheDir, onProgress);
+    return await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
   } catch (error) {
-    console.error('[Markdown PDF] Failed to download Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+    console.error('[Markdown PDF] All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
     return null;
   }
 }

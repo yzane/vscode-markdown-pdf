@@ -59,8 +59,8 @@ export default defineConfig([
     ...installationOption,
   },
   {
-    label: 'readme-diagrams',
-    files: 'test/sample/update-readme-diagrams.ts',
+    label: 'readme-previews',
+    files: 'test/sample/update-readme-previews.ts',
     mocha: { ui: 'tdd', timeout: 120000, require: ['tsx'] },
     skipExtensionDependencies: true,
     launchArgs,

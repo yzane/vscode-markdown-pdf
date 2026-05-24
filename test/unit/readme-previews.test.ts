@@ -4,44 +4,86 @@ import {
   buildMermaidRenderHtml,
   buildPlantumlImageUrl,
   extractFirstFencedBlock,
-  extractReadmeDiagramSources,
+  extractFirstPreBlock,
+  extractReadmePreviewSources,
   extractReadmeSection,
-  resolveReadmeDiagramExportPath,
-} from '../../src/readme-diagrams';
+  resolveReadmePreviewExportPath,
+} from '../../src/readme-previews';
 
-describe('readme-diagrams', function () {
+describe('readme-previews', function () {
   const README_SNIPPET = [
     '## Intro',
     '',
-    '### PlantUML',
+    '### Basic syntax extensions',
     '',
-    'INPUT',
+    '#### Checkbox',
+    '',
+    'Markdown',
+    '```',
+    '- [ ] Task A',
+    '- [x] Task B',
+    '```',
+    '',
+    '### Content composition',
+    '',
+    '#### Container',
+    '',
+    'Markdown',
+    '```',
+    '::: warning',
+    '*here be dragons*',
+    ':::',
+    '```',
+    '',
+    '### Diagrams & math',
+    '',
+    '#### PlantUML',
+    '',
+    'Markdown',
+    '',
+    '````',
+    '```plantuml',
+    'Bob -> Alice: hello',
+    '```',
+    '````',
+    '',
     '```',
     '@startuml',
     'Alice -> Bob: hello',
     '@enduml',
     '```',
     '',
-    '### Mermaid',
+    '#### Mermaid',
     '',
-    'INPUT',
+    'Markdown',
+    '',
+    '<pre>',
     '```mermaid',
     'graph TD',
     '  A-->B',
     '```',
+    '</pre>',
+    '',
+    '#### Math',
+    '',
+    'Markdown',
+    '',
+    '<pre>',
+    'Inline: $E = mc^2$',
+    '</pre>',
     '',
     '### next',
     'done',
   ].join('\n');
 
   it('extractReadmeSection should return heading body until next heading', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### PlantUML');
+    const section = extractReadmeSection(README_SNIPPET, '#### PlantUML');
     assert.ok(section.includes('@startuml'));
-    assert.ok(!section.includes('### Mermaid'));
+    assert.ok(!section.includes('#### Mermaid'));
   });
 
-  it('extractFirstFencedBlock should return first fenced block content', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### PlantUML');
+  it('extractFirstFencedBlock should skip 4-backtick meta wrappers and return the next 3-backtick block', function () {
+    const section = extractReadmeSection(README_SNIPPET, '#### PlantUML');
     assert.strictEqual(
       extractFirstFencedBlock(section),
       '@startuml\nAlice -> Bob: hello\n@enduml'
@@ -49,14 +91,22 @@ describe('readme-diagrams', function () {
   });
 
   it('extractFirstFencedBlock should filter by language when specified', function () {
-    const section = extractReadmeSection(README_SNIPPET, '### Mermaid');
+    const section = extractReadmeSection(README_SNIPPET, '#### Mermaid');
     assert.strictEqual(extractFirstFencedBlock(section, 'mermaid'), 'graph TD\n  A-->B');
   });
 
-  it('extractReadmeDiagramSources should return plantuml and mermaid blocks', function () {
-    assert.deepStrictEqual(extractReadmeDiagramSources(README_SNIPPET), {
+  it('extractFirstPreBlock should return the <pre> block body', function () {
+    const section = extractReadmeSection(README_SNIPPET, '#### Math');
+    assert.strictEqual(extractFirstPreBlock(section), 'Inline: $E = mc^2$');
+  });
+
+  it('extractReadmePreviewSources should return all five preview sources', function () {
+    assert.deepStrictEqual(extractReadmePreviewSources(README_SNIPPET), {
       plantuml: '@startuml\nAlice -> Bob: hello\n@enduml',
       mermaid: 'graph TD\n  A-->B',
+      checkbox: '- [ ] Task A\n- [x] Task B',
+      container: '::: warning\n*here be dragons*\n:::',
+      math: 'Inline: $E = mc^2$',
     });
   });
 
@@ -78,9 +128,9 @@ describe('readme-diagrams', function () {
     assert.ok(html.includes('mermaid.initialize({ startOnLoad: true })'));
   });
 
-  it('resolveReadmeDiagramExportPath should use workspace-relative output when workspace exists', function () {
+  it('resolveReadmePreviewExportPath should use workspace-relative output when workspace exists', function () {
     assert.strictEqual(
-      resolveReadmeDiagramExportPath(
+      resolveReadmePreviewExportPath(
         '/tmp/PlantUML.png',
         '/tmp/PlantUML.md',
         'sample',
@@ -91,9 +141,9 @@ describe('readme-diagrams', function () {
     );
   });
 
-  it('resolveReadmeDiagramExportPath should fall back to file-relative output without a workspace', function () {
+  it('resolveReadmePreviewExportPath should fall back to file-relative output without a workspace', function () {
     assert.strictEqual(
-      resolveReadmeDiagramExportPath(
+      resolveReadmePreviewExportPath(
         '/tmp/PlantUML.png',
         '/tmp/PlantUML.md',
         'sample',
@@ -104,9 +154,9 @@ describe('readme-diagrams', function () {
     );
   });
 
-  it('resolveReadmeDiagramExportPath should keep adjacent output when outputDirectory is empty', function () {
+  it('resolveReadmePreviewExportPath should keep adjacent output when outputDirectory is empty', function () {
     assert.strictEqual(
-      resolveReadmeDiagramExportPath(
+      resolveReadmePreviewExportPath(
         '/tmp/PlantUML.png',
         '/tmp/PlantUML.md',
         '',

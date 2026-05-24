@@ -6,6 +6,7 @@ import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
+import plantumlEncoder from 'plantuml-encoder';
 import { githubSlugify } from './markdown-it-named-headers';
 
 /** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
@@ -108,6 +109,53 @@ export function makeCss(filename: string): string {
   } else {
     return '';
   }
+}
+
+const KATEX_FONT_MIME: Record<string, string> = {
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+};
+
+/**
+ * Builds an inline <style> tag for KaTeX CSS with every url(fonts/...)
+ * reference rewritten to a base64 data: URI. Produces a fully self-contained
+ * stylesheet so the generated HTML stays portable when copied or moved.
+ * Returns '' when the KaTeX CSS file is not present at the expected location.
+ */
+export function buildKatexStyleTag(baseDir: string): string {
+  const cssPath = path.join(baseDir, 'styles', 'katex', 'katex.min.css');
+  const rawCss = readFile(cssPath);
+  if (typeof rawCss !== 'string' || !rawCss) {
+    return '';
+  }
+  const katexDir = path.join(baseDir, 'styles', 'katex');
+  const urlRe = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
+  const inlined = rawCss.replace(urlRe, function (match, _quote, href: string) {
+    // Skip URLs that are already absolute or data: URIs.
+    if (/^(data:|https?:|file:)/i.test(href)) {
+      return match;
+    }
+    const normalized = href.replace(/^\.\//, '').split('?')[0].split('#')[0];
+    const fontPath = path.join(katexDir, normalized);
+    // Guard against path traversal: only allow files below styles/katex/.
+    const relative = path.relative(katexDir, fontPath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      return match;
+    }
+    if (!isExistsPath(fontPath)) {
+      return match;
+    }
+    const ext = path.extname(fontPath).toLowerCase();
+    const mime = KATEX_FONT_MIME[ext];
+    if (!mime) {
+      return match;
+    }
+    const buffer = fs.readFileSync(fontPath);
+    const base64 = buffer.toString('base64');
+    return 'url(data:' + mime + ';base64,' + base64 + ')';
+  });
+  return '\n<style>\n' + inlined + '\n</style>\n';
 }
 
 /** Resolves an image src to an absolute file:// URL, or returns the original src for remote URLs. */
@@ -746,4 +794,203 @@ export function buildContainerRenderer(): { validate: (name: string) => number; 
 export function generateTmpHtmlFilename(filename: string): string {
   const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
+}
+
+/**
+ * Builds an <img> tag for a PlantUML source string. Produces the same
+ * structural <img> format as markdown-it-plantuml (same server, /svg/
+ * endpoint, alt="uml diagram") so that both the @startuml/@enduml path
+ * and the ```plantuml fence path render equivalent diagrams.
+ */
+export function buildPlantumlImgTag(source: string, server: string): string {
+  const encoded = plantumlEncoder.encode(source);
+  return '<img src="' + server + '/svg/' + encoded + '" alt="uml diagram">';
+}
+
+// Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per
+// GitHub Flavored Markdown; 'gfm-allow-style' keeps <style>; 'none' disables.
+export type SanitizeMode = 'gfm' | 'gfm-allow-style' | 'none';
+
+/**
+ * Removes dangerous attributes from a single HTML opening/closing tag string.
+ * - on* event handlers (onclick, onload, etc.), case-insensitive
+ * - href/src whose value begins with 'javascript:' (ignoring leading whitespace), case-insensitive
+ *
+ * The input `tag` must be the full tag including '<' and '>'. Closing tags
+ * ('</tagname>') are returned unchanged. Comments are not handled here.
+ */
+function stripDangerousAttributes(tag: string): string {
+  // Skip closing tags and bail out cheaply on malformed input.
+  if (tag.length < 2 || tag[1] === '/') {
+    return tag;
+  }
+
+  // Find where the tag name ends.
+  let nameEnd = 1;
+  while (nameEnd < tag.length && /[a-z0-9-]/i.test(tag[nameEnd])) {
+    nameEnd++;
+  }
+
+  let result = tag.slice(0, nameEnd);
+  let i = nameEnd;
+  while (i < tag.length) {
+    // Capture any whitespace leading to the next token.
+    const wsStart = i;
+    while (i < tag.length && /\s/.test(tag[i])) {
+      i++;
+    }
+    const ws = tag.slice(wsStart, i);
+
+    if (i >= tag.length) {
+      result += ws;
+      break;
+    }
+
+    // Tag-closing delimiters ('/' or '>'): preserve the leading whitespace.
+    if (tag[i] === '/' || tag[i] === '>') {
+      result += ws;
+      result += tag[i];
+      i++;
+      continue;
+    }
+
+    // Parse attribute name.
+    const attrStart = i;
+    while (i < tag.length && !/[\s=/>]/.test(tag[i])) {
+      i++;
+    }
+    const attrName = tag.slice(attrStart, i);
+
+    // Skip whitespace between attribute name and optional '='.
+    let afterName = i;
+    while (afterName < tag.length && /\s/.test(tag[afterName])) {
+      afterName++;
+    }
+
+    // Parse optional value.
+    let attrEnd = afterName;
+    let attrValue: string | null = null;
+    if (afterName < tag.length && tag[afterName] === '=') {
+      let valueStart = afterName + 1;
+      while (valueStart < tag.length && /\s/.test(tag[valueStart])) {
+        valueStart++;
+      }
+      if (valueStart < tag.length && (tag[valueStart] === '"' || tag[valueStart] === "'")) {
+        const quote = tag[valueStart];
+        const close = tag.indexOf(quote, valueStart + 1);
+        if (close === -1) {
+          // Malformed: consume rest of tag.
+          attrValue = tag.slice(valueStart + 1);
+          attrEnd = tag.length;
+        } else {
+          attrValue = tag.slice(valueStart + 1, close);
+          attrEnd = close + 1;
+        }
+      } else {
+        // Unquoted value: read until whitespace, '/', or '>'.
+        let valueEnd = valueStart;
+        while (valueEnd < tag.length && !/[\s/>]/.test(tag[valueEnd])) {
+          valueEnd++;
+        }
+        attrValue = tag.slice(valueStart, valueEnd);
+        attrEnd = valueEnd;
+      }
+    }
+
+    const lowerName = attrName.toLowerCase();
+    // Strip inline event handler attributes (onclick, onload, onmouseover, ...).
+    // The regex requires 'on' + at least 3 more letters because every real HTML
+    // event handler name has at least three characters after 'on' (the shortest
+    // being oncut/oncopy/ondrag). This intentionally excludes short non-handler
+    // names that also start with 'on', such as 'one' or 'only' used in custom
+    // data-like attributes, so they pass through unchanged.
+    const dangerous =
+      /^on[a-z]{3}/i.test(lowerName) ||
+      ((lowerName === 'href' || lowerName === 'src') &&
+        attrValue !== null &&
+        /^\s*javascript:/i.test(attrValue));
+
+    if (!dangerous) {
+      // Emit the leading whitespace and this safe attribute verbatim.
+      result += ws;
+      result += attrName;
+      if (attrEnd > afterName) {
+        // Include the '=' and value section verbatim.
+        result += tag.slice(i, attrEnd);
+      }
+    }
+    // If dangerous: drop both ws AND the attribute span (emit nothing).
+    i = attrEnd;
+  }
+  return result;
+}
+
+/**
+ * Returns the set of lowercase tag names to strip for the given sanitize mode.
+ * See GFM 6.11 Disallowed Raw HTML extension:
+ * https://github.github.com/gfm/#disallowed-raw-html-extension-
+ */
+export function getDisallowedTags(mode: SanitizeMode): Set<string> {
+  if (mode === 'none') {
+    return new Set();
+  }
+  const tags = new Set(['title', 'textarea', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'script', 'plaintext']);
+  if (mode === 'gfm-allow-style') {
+    tags.delete('style');
+  }
+  return tags;
+}
+
+/**
+ * Sanitizes raw HTML per GFM's disallowed raw HTML extension.
+ * - Escapes the leading '<' of disallowed tags to '&lt;' (both opening and closing forms)
+ * - Removes on* event handler attributes from non-disallowed tags
+ * - Removes href/src attributes whose value starts with 'javascript:'
+ *
+ * Returns the input unchanged when mode is 'none' or input is empty.
+ * Operates on the raw HTML string only; does not parse CSS or attribute content
+ * beyond what is required for the rules above.
+ */
+export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
+  if (mode === 'none' || !html) {
+    return html;
+  }
+  const disallowed = getDisallowedTags(mode);
+  let result = '';
+  let index = 0;
+  while (index < html.length) {
+    // Preserve HTML comments verbatim.
+    if (html.startsWith('<!--', index)) {
+      const commentEnd = html.indexOf('-->', index + 4);
+      if (commentEnd === -1) {
+        return result + html.slice(index);
+      }
+      result += html.slice(index, commentEnd + 3);
+      index = commentEnd + 3;
+      continue;
+    }
+
+    if (html[index] !== '<') {
+      result += html[index];
+      index++;
+      continue;
+    }
+
+    const tagEnd = findHtmlTagEnd(html, index + 1);
+    if (tagEnd === -1) {
+      return result + html.slice(index);
+    }
+
+    const tag = html.slice(index, tagEnd + 1);
+    const tagName = getTagName(tag);
+    if (tagName && disallowed.has(tagName)) {
+      // GFM rule: replace leading '<' with '&lt;'. Preserves tag content so the
+      // user still sees what was in the source as visible text.
+      result += '&lt;' + tag.slice(1);
+    } else {
+      result += stripDangerousAttributes(tag);
+    }
+    index = tagEnd + 1;
+  }
+  return result;
 }
