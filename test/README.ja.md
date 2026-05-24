@@ -5,6 +5,14 @@
 このディレクトリには、リポジトリのテスト構成を説明する開発者向けドキュメントを置きます。
 テストは補助ロジック向けのユニットテスト、VS Code のコマンド経由における統合テスト、および統合テストと同じ VS Code ハーネスで走るサンプル／プレビュー生成タスクに分かれます。
 
+## 実行方法
+
+- `npm run test:unit` — ユニットテストのみ（`tsx --test`）。
+- `npm run test:integration` — 統合テストのみ（VS Code テストハーネス。先に `npm run build` を実行）。
+- `npm test` — `test:unit` の後に `test:integration` を実行。
+- `npm run sample` — `sample/README.{pdf,html,png,jpeg}` を再生成。
+- `npm run update-readme-previews` — README が参照する `images/` 配下のプレビュー PNG を再生成。
+
 ## テスト構成
 
 - `test/unit/chromium-resolver.test.ts` は Chromium/Chrome 実行ファイルの解決ロジックを検証し、設定値、システム検索、ビルド ID のフォーマット、キャッシュのクリーンアップをカバーします。
@@ -52,14 +60,6 @@ PlantUML 系 fixture は例外フィルターを使い、ローカルに Java VM
 - `npm run update-readme-previews` は `test/sample/update-readme-previews.ts` を呼び、README 内の各プレビュー元（Mermaid ブロック / PlantUML ブロック / 数式ブロック / Checkbox サンプル / Container サンプルなど）を抽出して `.tmp-readme-previews/` の一時ワークスペースで PNG 化し、README が参照している `images/` 配下に書き出します。機能セクションのプレビュー画像を更新したいときに使用します。
 
 どちらのタスクも実行時拡張と同じ解決ロジックで Chromium/Chrome 実行ファイルを必要とし、`dist/` のバンドルを通して動くため、`pretest:*` / `presample` の npm script から自動的に `npm run build` が先行します。
-
-## 実行方法
-
-- `npm run test:unit` — ユニットテストのみ（`tsx --test`）。
-- `npm run test:integration` — 統合テストのみ（VS Code テストハーネス。先に `npm run build` を実行）。
-- `npm test` — `test:unit` の後に `test:integration` を実行。
-- `npm run sample` — `sample/README.{pdf,html,png,jpeg}` を再生成。
-- `npm run update-readme-previews` — README が参照する `images/` 配下のプレビュー PNG を再生成。
 
 ## 注意点と制約
 
