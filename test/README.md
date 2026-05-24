@@ -5,6 +5,14 @@
 This directory contains developer-facing documentation for the repository test suite.
 The tests are split into unit tests for helper behavior, integration tests for VS Code command-driven export behavior, and sample/preview generation tasks that run on the same VS Code test harness.
 
+## How to Run
+
+- `npm run test:unit` — unit tests only (`tsx --test`).
+- `npm run test:integration` — integration tests only (VS Code test harness; runs `npm run build` first).
+- `npm test` — `test:unit` followed by `test:integration`.
+- `npm run sample` — regenerate `sample/README.{pdf,html,png,jpeg}`.
+- `npm run update-readme-previews` — regenerate preview PNGs under `images/` referenced by the README.
+
 ## Test Structure
 
 - `test/unit/chromium-resolver.test.ts` verifies the Chromium/Chrome executable resolver helpers, including configuration lookup, system probing, build-id derivation, and cache cleanup.
@@ -52,14 +60,6 @@ Two helper tasks run on the same VS Code test harness as the integration suite. 
 - `npm run update-readme-previews` invokes `test/sample/update-readme-previews.ts`, which extracts each preview source from the README (Mermaid block, PlantUML block, math block, checkbox sample, container sample, etc.), exports it as a standalone PNG under a transient `.tmp-readme-previews/` workspace, and writes the result into `images/` where the README references it. Use this whenever a feature section's preview asset needs to be refreshed.
 
 Both tasks require a working Chromium/Chrome executable (the same resolution path as the runtime extension) and run through the bundled `dist/` build, so a `npm run build` precedes them automatically via the `pretest:*` / `presample` npm scripts.
-
-## How to Run
-
-- `npm run test:unit` — unit tests only (`tsx --test`).
-- `npm run test:integration` — integration tests only (VS Code test harness; runs `npm run build` first).
-- `npm test` — `test:unit` followed by `test:integration`.
-- `npm run sample` — regenerate `sample/README.{pdf,html,png,jpeg}`.
-- `npm run update-readme-previews` — regenerate preview PNGs under `images/` referenced by the README.
 
 ## Notes and Limitations
 
