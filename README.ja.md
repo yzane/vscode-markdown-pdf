@@ -1,10 +1,7 @@
 # Markdown PDF
 
 <p>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.png">
-    <img src="images/banner.png" alt="Markdown PDF" width="400">
-  </picture>
+  <img src="images/banner.png" alt="Markdown PDF" width="400">
 </p>
 
 この VS Code 拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
