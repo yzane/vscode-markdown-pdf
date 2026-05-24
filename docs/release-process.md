@@ -60,7 +60,7 @@ npm test
 Then get user approval and merge into `develop`:
 
 ```bash
-cd /home/z/dev/github/vscode-markdown-pdf
+cd ../..   # back to the main tree (repository root)
 git checkout develop
 git merge --no-ff release/x.x.x -m "Merge branch 'release/x.x.x' into develop"
 ```
@@ -95,7 +95,7 @@ This is the first irreversible publication step. Confirm with the user before ev
 
 ```bash
 # Merge develop into master
-cd /home/z/dev/github/vscode-markdown-pdf
+cd ../..   # back to the main tree (repository root)
 git checkout master
 git merge --no-ff develop -m "Merge branch 'develop' into master for x.x.x release"
 
