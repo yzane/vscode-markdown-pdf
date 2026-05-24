@@ -983,3 +983,5 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
+* [KaTeX/KaTeX](https://github.com/KaTeX/KaTeX)
+* [microsoft/vscode-markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)
