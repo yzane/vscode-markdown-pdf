@@ -14,9 +14,10 @@ docs/**
 work/**
 sample/**
 
-# Image editing sources (PNG/GIF in images/ are referenced at runtime)
-images/*.svg
-images/*.af
+# images/ — VS Code extensions view fetches README images from GitHub (via
+# vsce's URL rewriting). Only icon.png (extension logo) is read from the vsix.
+images/**
+!images/icon.png
 
 # Test
 test/**
