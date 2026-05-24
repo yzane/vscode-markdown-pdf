@@ -394,7 +394,7 @@ code {
 <div class="page"/>
 <h2 id="whats-new">What's New</h2>
 <p>Highlights of new features and improvements since v2. See <a href="#breaking-changes">Breaking Changes</a> for changes that may affect existing behavior.</p>
-<h3 id="xyz">X.Y.Z</h3>
+<h3 id="210">2.1.0</h3>
 <ul>
 <li>Add PlantUML fenced code block support (<a href="#plantuml">details</a>)</li>
 <li>Add math rendering via KaTeX (<a href="#math">details</a>)</li>
@@ -402,9 +402,9 @@ code {
 </ul>
 <h2 id="breaking-changes">Breaking Changes</h2>
 <p>Changes since v2 that may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
-<h3 id="xyz-1">X.Y.Z</h3>
+<h3 id="210-1">2.1.0</h3>
 <ul>
-<li>To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
+<li>Security hardening: To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
 <ul>
 <li>Details: <a href="#why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</a></li>
 </ul>
@@ -674,7 +674,7 @@ x - y &= 4
 <ol>
 <li>The path specified in <a href="#markdown-pdfexecutablepath">markdown-pdf.executablePath</a></li>
 <li>An installed Google Chrome, Microsoft Edge, or Chromium on your system</li>
-<li>A managed Chromium automatically downloaded on first use (latest Chrome Stable; can be disabled with <a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a>)</li>
+<li>A managed Chromium automatically downloaded on first use and refreshed to track the latest Chrome Stable on subsequent VS Code launches (can be disabled with <a href="#markdown-pdfchromiumautodownload">markdown-pdf.chromium.autoDownload</a>)</li>
 </ol>
 <p>See <a href="#how-is-the-chromium-browser-selected">How is the Chromium browser selected?</a> and <a href="#where-is-chromium-downloaded">Where is Chromium downloaded?</a> in the FAQ for details.</p>
 <p>If you are behind a proxy, set the <code>http.proxy</code> option in settings.json and restart Visual Studio Code.</p>
@@ -1396,7 +1396,7 @@ x - y &= 4
 <p>BOM-prefixed files are still supported.</p>
 <h3 id="why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</h3>
 <p>Earlier versions of this extension passed all raw HTML in Markdown through to the renderer without validation. Tags such as <code>&lt;script&gt;</code> and <code>&lt;iframe&gt;</code> could therefore execute during preview or PDF rendering, creating XSS-like risk when opening untrusted Markdown files (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>).</p>
-<p>Starting with X.Y.Z, raw HTML inside the Markdown body is sanitized by default per the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Behavior is controlled by <code>markdown-pdf.sanitize</code>:</p>
+<p>Starting with 2.1.0, raw HTML inside the Markdown body is sanitized by default per the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Behavior is controlled by <code>markdown-pdf.sanitize</code>:</p>
 <table>
 <thead>
 <tr>
@@ -1411,7 +1411,7 @@ x - y &= 4
 </tr>
 <tr>
 <td><code>&quot;gfm-allow-style&quot;</code></td>
-<td>Same as <code>&quot;gfm&quot;</code> but keeps <code>&lt;style&gt;</code> so you can embed CSS directly in a Markdown file to produce a self-contained PDF. <strong>Use only with content you trust</strong> — CSS itself can still exfiltrate data.</td>
+<td>Same as <code>&quot;gfm&quot;</code> but keeps <code>&lt;style&gt;</code> so you can embed CSS directly in a Markdown file to produce a self-contained PDF. <strong>Use only with content you trust</strong> — even without <code>&lt;script&gt;</code>, CSS can issue requests to attacker-controlled URLs via <code>url(...)</code> / <code>@import</code> / <code>@font-face</code> and leak information (known as CSS exfiltration).</td>
 </tr>
 <tr>
 <td><code>&quot;none&quot;</code></td>
@@ -1505,7 +1505,8 @@ x - y &= 4
 <p>If you use VS Code Insiders or VSCodium, the base path changes accordingly (for example <code>Code - Insiders</code> or <code>VSCodium</code> instead of <code>Code</code>).</p>
 <p>During the download, <code>Installing Chromium</code> is shown in the status bar.</p>
 <p><strong>Which Chromium build is downloaded?</strong></p>
-<p>Markdown PDF tries to fetch the latest Chrome Stable build id from the <a href="https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json">Chrome for Testing API</a>. If the API is unreachable, it falls back in this order:</p>
+<p>Markdown PDF tries to fetch the latest Chrome Stable build id from the <a href="https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json">Chrome for Testing API</a>. The latest build id is checked once per VS Code session: when a newer Chrome Stable has been released, Markdown PDF downloads the new build at the next export and removes the previously cached build. Within the same VS Code session the build id is memoized — restart VS Code to pick up a freshly released build.</p>
+<p>If the API is unreachable, it falls back in this order:</p>
 <ol>
 <li>The most recently cached build under the global storage directory shown above</li>
 <li>The build id pinned by the bundled <code>puppeteer-core</code> (last-resort fallback)</li>
