@@ -14,6 +14,10 @@ docs/**
 work/**
 sample/**
 
+# Image editing sources (PNG/GIF in images/ are referenced at runtime)
+images/*.svg
+images/*.af
+
 # Test
 test/**
 tmp/

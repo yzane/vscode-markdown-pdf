@@ -2,8 +2,8 @@
 
 <p>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.svg">
-    <img src="images/banner.svg" alt="Markdown PDF" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.png">
+    <img src="images/banner.png" alt="Markdown PDF" width="400">
   </picture>
 </p>
 
