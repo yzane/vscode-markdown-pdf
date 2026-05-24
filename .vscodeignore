@@ -8,6 +8,8 @@ tsconfig.json
 .vscode-test/**
 .cocoindex_code/**
 .claude/**
+.worktrees/**
+.superpowers/**
 
 # Documentation and samples
 docs/**
