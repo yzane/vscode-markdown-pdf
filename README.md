@@ -864,7 +864,7 @@ Starting with 2.1.0, raw HTML inside the Markdown body is sanitized by default p
 | Mode | Behavior |
 | --- | --- |
 | `"gfm"` (default) | Strip GFM's disallowed tags and dangerous attributes. Recommended when opening Markdown files authored by others. |
-| `"gfm-allow-style"` | Same as `"gfm"` but keeps `<style>` so you can embed CSS directly in a Markdown file to produce a self-contained PDF. **Use only with content you trust** — CSS itself can still exfiltrate data. |
+| `"gfm-allow-style"` | Same as `"gfm"` but keeps `<style>` so you can embed CSS directly in a Markdown file to produce a self-contained PDF. **Use only with content you trust** — even without `<script>`, CSS can issue requests to attacker-controlled URLs via `url(...)` / `@import` / `@font-face` and leak information (known as CSS exfiltration). |
 | `"none"` | Disable sanitization. Legacy behavior. Not recommended. |
 
 **What `"gfm"` removes**
