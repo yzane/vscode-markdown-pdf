@@ -935,7 +935,7 @@
     "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --format=cjs --platform=node --external:vscode",
     "check": "tsc --noEmit",
     "watch": "npm run build -- --watch",
-    "package": "npm run build && vsce package --no-rewrite-relative-links",
+    "package": "npm run build && vsce package",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "tsx --test test/unit/**/*.test.ts",
     "preupdate-readme-previews": "npm run build",
