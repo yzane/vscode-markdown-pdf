@@ -1,0 +1,3 @@
+# Integration test fixtures must stay LF so the snapshot comparison
+# matches the LF output produced by the extension on all platforms.
+test/integration/expected/*.html text eol=lf
