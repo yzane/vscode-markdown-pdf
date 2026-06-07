@@ -442,7 +442,7 @@ describe('utils', function () {
     it('should handle relative path with spaces', function () {
       assert.strictEqual(
         utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
-        'file:///workspace/my styles/custom.css'
+        'file://' + path.join('/workspace', 'my styles/custom.css')
       );
     });
 
