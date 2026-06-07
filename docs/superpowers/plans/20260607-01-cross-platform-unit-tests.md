@@ -28,21 +28,43 @@
 
 ---
 
-## Task 0: 環境準備（worktree の依存導入）
+## Task 0: 環境準備（git preflight・依存導入・ベースライン）
 
-**Files:** なし（依存導入のみ）
+**Files:** なし（環境確認のみ）
 
-- [ ] **Step 1: worktree に依存が入っているか確認**
+- [ ] **Step 1: worktree で git が動作するか preflight 確認**
+
+Run: `git status`
+Expected: 通常の status 出力。
+- もし `fatal: detected dubious ownership in repository ...` で失敗する場合（実行ユーザーが worktree 所有者と異なる Codex/CI 等の環境）、次を実行してから再度 `git status`:
+  `git config --global --add safe.directory "C:/work/github/yzane/vscode-markdown-pdf/.worktrees/cross-platform-unit-tests"`
+  さらに共有元リポジトリ参照のため、必要なら本体パスも追加:
+  `git config --global --add safe.directory "C:/work/github/yzane/vscode-markdown-pdf"`
+  Expected: 再実行で `git status` が成功する。
+- 現在のブランチが `bugfix/cross-platform-unit-tests` であることを `git branch --show-current` で確認（このブランチから離れない）。
+
+- [ ] **Step 2: 設計書・計画書がコミット済みであることを確認（未コミットならコミット）**
+
+Run: `git status --short -- docs/superpowers`
+Expected: 出力なし（設計書 `docs/superpowers/specs/20260607-01-cross-platform-unit-tests-design.md` と本計画 `docs/superpowers/plans/20260607-01-cross-platform-unit-tests.md` は既にコミット済み）。
+- もし未追跡/未コミットの差分が出る場合は、テスト修正に入る前にコミットする:
+  ```bash
+  git add docs/superpowers/specs/20260607-01-cross-platform-unit-tests-design.md docs/superpowers/plans/20260607-01-cross-platform-unit-tests.md
+  git commit -m "docs(superpowers): クロスプラットフォーム対応ユニットテストの設計書・実装計画"
+  ```
+- 念のため `git log --oneline develop..HEAD` に設計書・計画のコミットが含まれることを確認。Task 6 の最終ログ期待（docs + ヘルパ + テスト修正が並ぶ）と整合させるため。
+
+- [ ] **Step 3: worktree に依存が入っているか確認**
 
 Run: `npm ls tsx`
 Expected: tsx のバージョンが表示される。`(empty)` や `npm error` の場合は次のステップで install。
 
-- [ ] **Step 2: 必要なら依存をインストール**
+- [ ] **Step 4: 必要なら依存をインストール**
 
 Run: `npm install`
 Expected: 正常終了（既に入っていれば up to date）。
 
-- [ ] **Step 3: 現状の失敗を確認（ベースライン）**
+- [ ] **Step 5: 現状の失敗を確認（ベースライン）**
 
 Run: `npm run test:unit`
 Expected: FAIL。18 件が `✖` で失敗する（`file:///C:/...` 対 `file:///...` 等の差分）。これが修正対象のベースライン。
