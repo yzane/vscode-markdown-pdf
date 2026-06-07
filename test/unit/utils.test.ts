@@ -2,6 +2,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'assert';
 import path from 'path';
 import * as utils from '../../src/utils';
+import { fileUri } from './helpers/path-platform';
 
 describe('utils', function () {
   describe('setBooleanValue', function () {
@@ -251,11 +252,11 @@ describe('utils', function () {
 
   describe('convertImgPath', function () {
     it('should convert a relative path to a file URI', function () {
-      assert.strictEqual(utils.convertImgPath('image.png', '/home/user/doc.md'), 'file:///home/user/image.png');
+      assert.strictEqual(utils.convertImgPath('image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'image.png')));
     });
 
     it('should convert an absolute path to a file URI', function () {
-      assert.strictEqual(utils.convertImgPath('/images/photo.png', '/home/user/doc.md'), 'file:///images/photo.png');
+      assert.strictEqual(utils.convertImgPath('/images/photo.png', '/home/user/doc.md'), fileUri(path.resolve('/images/photo.png')));
     });
 
     it('should return https URLs unchanged', function () {
@@ -286,11 +287,11 @@ describe('utils', function () {
     });
 
     it('should handle path with spaces', function () {
-      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'my image.png')));
     });
 
     it('should resolve ../ in relative path', function () {
-      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), 'file:///home/user/assets/img.png');
+      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), fileUri(path.resolve('/home/user/docs/sub', '../../assets/img.png')));
     });
 
     it('should return data: URL unchanged', function () {
@@ -298,9 +299,7 @@ describe('utils', function () {
     });
 
     it('should handle empty string src', function () {
-      const path = require('path');
-      const expected = 'file://' + path.resolve('/home/user', '');
-      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), expected);
+      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), fileUri(path.resolve('/home/user', '')));
     });
 
     (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
@@ -308,7 +307,7 @@ describe('utils', function () {
     });
 
     it('should decode %20 encoded spaces in path', function () {
-      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'my image.png')));
     });
 
     it('should return https URL with query string unchanged', function () {
@@ -320,7 +319,7 @@ describe('utils', function () {
     });
 
     it('should convert Unicode relative path to file URI', function () {
-      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), 'file:///home/user/画像/テスト.png');
+      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', '画像/テスト.png')));
     });
 
     it('should escape all # characters in path', function () {
