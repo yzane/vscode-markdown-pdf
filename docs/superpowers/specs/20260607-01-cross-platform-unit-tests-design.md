@@ -26,20 +26,27 @@ Windows では `path.resolve('/doc', ...)` の結果ドライブは **テスト�
 
 ## ゴール（成功条件）
 
-**両 OS（Windows / WSL・Linux）で `npm run test` が同一に全パスする**こと。テストをクロスプラットフォーム対応へ書き換える。実装（`src/`）は変更しない。
+テストをクロスプラットフォーム対応へ書き換え、実装（`src/`）は変更しない。成功条件は段階的に定義する。
+
+- **主要成功条件（必達）**: 両 OS（Windows / WSL・Linux）で `npm run test:unit` が同一に全パスする。今回の直接原因はすべてユニットテストにあり、これが本対応の確定スコープ。
+- **副次確認（Windows 実行環境）**: 修正後に `npm run test`（`test:unit && test:integration`）まで実行する。`test:integration` は `vscode-test` による VS Code バイナリのダウンロードと GUI/Electron 実行を要するため、環境によっては起動・完走しない可能性がある。その場合は「ユニットは全パス、integration は環境要因で未検証」と明示し、integration の検証は別途扱いとする（本対応は integration テスト自体を変更しない）。
 
 ## 失敗テストの内訳（全 18 件）
 
 | スイート | 件数 | 契約ファミリー |
 |---|---|---|
+| `utils` → `convertImgPath` | 7 | file URI 変換（pathToFileURL 契約） |
+| `utils` → `resolveHref` | 1 | `'file://' + path.join(...)` |
+| `utils` → `transformHtmlBlock` | 8 | file URI 変換（pathToFileURL 契約） |
 | `readme-previews` → `resolveReadmePreviewExportPath` | 2 | プレーンパス結合 |
-| `utils` → `convertImgPath` | 8 | file URI 変換 |
-| `utils` → `transformHtmlBlock` | 8 | file URI 変換 |
 
-失敗テストには **2 つの契約ファミリー**が存在する。
+失敗テストには **3 つの契約ファミリー**が存在する。
 
-1. **file URI 変換**（`convertImgPath` / `transformHtmlBlock`）: 期待値は `file:///...` 形式。
-2. **プレーンなパス結合**（`resolveReadmePreviewExportPath` → `resolveOutputDir`、内部で `path.join` 使用）: 期待値は `/workspace/sample/PlantUML.png`（Windows では `\workspace\sample\...`）。
+1. **file URI 変換（pathToFileURL 契約）**（`convertImgPath` / `transformHtmlBlock`）: 期待値は `file:///...` 形式。空白・Unicode はリテラル保持、`#` は `%23`。
+2. **`'file://' + path.join(...)`**（`resolveHref`）: 実装は `file:///` 正規化や encode を行わず、単に `'file://'` へ `path.join(...)` を連結する。隣接する resolveHref テスト群（419〜440 行、既にクロスプラットフォーム対応済み）と同じ形で期待値を導出する。`fileUri` ヘルパは使わない。
+3. **プレーンなパス結合**（`resolveReadmePreviewExportPath` → `resolveOutputDir`、内部で `path.join` 使用）: 期待値は `/workspace/sample/PlantUML.png`（Windows では `\workspace\sample\...`）。
+
+> 補足: `utils → resolveOutputDir` の `should handle relative path with spaces`（573 行）など、既に `path.join(...)` で期待値を導出しているテストはクロスプラットフォーム対応済みで失敗しない。失敗していた `should handle relative path with spaces` は `resolveHref` ブロック（443 行）の 1 件のみ。
 
 ## アプローチ
 
@@ -80,10 +87,10 @@ export function fileUri(absPath: string): string {
 設計上の根拠:
 
 - ドライブレターの有無・スラッシュ方向の処理を実装の手書き文字列処理ではなく標準ライブラリ `pathToFileURL` に委ねるため、別ドライブ実行でも正しい。
-- Linux では `decodeURIComponent` は実質 no-op、ドライブ付与もないため、書き換え後の期待値は**従来の POSIX 期待文字列に縮退**する（Linux 挙動は構造的に保存）。
+- Linux でも `pathToFileURL` は空白や Unicode を `%20` などにエンコードするため `decodeURIComponent` は no-op ではない。エンコードを `decodeURIComponent` が打ち消し（往復の相殺）、かつドライブ付与もないため、最終的な期待値は**従来の POSIX 期待文字列に一致**する（Linux 挙動が保存される）。
 - 実装の手書きフォーマットと標準 `pathToFileURL` を突き合わせる形になり、トートロジーを回避（フォーマット退行も検出できる）。
 
-プレーンパス結合（契約ファミリー 2）には `fileUri` は使わず、テスト内で `path.join` を直接利用する（`join` はドライブを付与しないため決定的）。
+契約ファミリー 2（`resolveHref`）・3（プレーンパス結合）には `fileUri` は使わず、テスト内で `path.join` を直接利用する（`join` はドライブを付与しないため決定的）。`resolveHref` は結果に `'file://'` を前置するため、期待値も `'file://' + path.join(...)` とする。
 
 ### 2. テスト書き換え方針
 
@@ -115,6 +122,23 @@ assert.strictEqual(result, `<img alt="look src=bad.png" src="${uri}">`);
 
 `indexOf('src="file:///doc/photo.png"')` 形式のアサーションも `` `src="${fileUri(path.resolve('/doc', 'photo.png'))}"` `` へ置換。
 
+#### `test/unit/utils.test.ts` — `resolveHref`（1 件）
+
+`should handle relative path with spaces`（443 行）のみ期待値が POSIX 固定（`'file:///workspace/my styles/custom.css'`）。隣接テスト群（419〜440 行）と同じ `'file://' + path.join(...)` 形式へ揃える。`fileUri` は使わない（`resolveHref` は `file:///` 正規化や encode を行わないため）。
+
+```ts
+// before
+assert.strictEqual(
+  utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
+  'file:///workspace/my styles/custom.css'
+);
+// after
+assert.strictEqual(
+  utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
+  'file://' + path.join('/workspace', 'my styles/custom.css')  // win: file://\workspace\my styles\custom.css
+);
+```
+
 #### `test/unit/readme-previews.test.ts` — `resolveReadmePreviewExportPath`（2 件）
 
 file URI ではなくプレーンパス。実装が `path.join` を使うため期待値も `path.join` で導出。
@@ -136,19 +160,20 @@ assert.strictEqual(
 
 ### Windows（実行環境）で実行可能な検証
 
-1. `npm run test:unit` を実行し、失敗していた 18 件すべてがパスすることを確認。
-2. ヘルパ自体の妥当性は既存スイートのグリーン化で担保（テスト支援コードのため専用テストは追加しない）。
+1. `npm run test:unit` を実行し、失敗していた 18 件すべてがパスすること（＝主要成功条件）を確認。
+2. 続けて `npm run test` を実行し、`test:unit` 通過後に `test:integration` まで到達することを確認する。`test:integration` が `vscode-test` の VS Code バイナリ取得・Electron 実行で完走しない場合は、その結果（未検証）を記録する。integration テスト自体は本対応で変更しない。
+3. ヘルパ自体の妥当性は既存スイートのグリーン化で担保（テスト支援コードのため専用テストは追加しない）。
 
 ### Linux（WSL）側の担保 — コード実行なしで構造的に保証
 
-- `fileUri('/posix/abs/path')` は `decodeURIComponent(pathToFileURL(...).href)` により元の POSIX リテラルと一致（decode は実質 no-op、ドライブ付与なし）。
+- `fileUri('/posix/abs/path')` は、`pathToFileURL` がエンコードした空白/Unicode を `decodeURIComponent` が打ち消す（往復の相殺）こと、かつドライブ付与がないことから、元の POSIX リテラルと一致する。
 - `path.join('/workspace', 'sample', ...)` は POSIX では `/workspace/sample/...` のまま。
-- よって書き換え後の期待値は Linux では従来の期待文字列に縮退し、回帰しない。
+- よって書き換え後の期待値は Linux では従来の期待文字列に一致し、回帰しない。
 
 ### 回帰防止の補足
 
 - `git diff` で `src/` に変更が入っていないこと（テストのみの変更）を確認。
-- `npm run test:integration` は `vscode-test` のダウンロード等を要するため、本対応の検証対象はユニットまでとする。
+- 検証の確定スコープはユニット（主要成功条件）まで。`npm run test` 全体の実行は副次確認として行い、integration が環境要因で走らない場合はリスクとして明示する。
 
 ## スコープ外（明示）
 
