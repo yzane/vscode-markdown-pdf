@@ -2,6 +2,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'assert';
 import path from 'path';
 import * as utils from '../../src/utils';
+import { fileUri } from './helpers/path-platform';
 
 describe('utils', function () {
   describe('setBooleanValue', function () {
@@ -251,11 +252,11 @@ describe('utils', function () {
 
   describe('convertImgPath', function () {
     it('should convert a relative path to a file URI', function () {
-      assert.strictEqual(utils.convertImgPath('image.png', '/home/user/doc.md'), 'file:///home/user/image.png');
+      assert.strictEqual(utils.convertImgPath('image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'image.png')));
     });
 
     it('should convert an absolute path to a file URI', function () {
-      assert.strictEqual(utils.convertImgPath('/images/photo.png', '/home/user/doc.md'), 'file:///images/photo.png');
+      assert.strictEqual(utils.convertImgPath('/images/photo.png', '/home/user/doc.md'), fileUri(path.resolve('/images/photo.png')));
     });
 
     it('should return https URLs unchanged', function () {
@@ -286,11 +287,11 @@ describe('utils', function () {
     });
 
     it('should handle path with spaces', function () {
-      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'my image.png')));
     });
 
     it('should resolve ../ in relative path', function () {
-      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), 'file:///home/user/assets/img.png');
+      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), fileUri(path.resolve('/home/user/docs/sub', '../../assets/img.png')));
     });
 
     it('should return data: URL unchanged', function () {
@@ -298,9 +299,7 @@ describe('utils', function () {
     });
 
     it('should handle empty string src', function () {
-      const path = require('path');
-      const expected = 'file://' + path.resolve('/home/user', '');
-      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), expected);
+      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), fileUri(path.resolve('/home/user', '')));
     });
 
     (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
@@ -308,7 +307,7 @@ describe('utils', function () {
     });
 
     it('should decode %20 encoded spaces in path', function () {
-      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'my image.png')));
     });
 
     it('should return https URL with query string unchanged', function () {
@@ -320,7 +319,7 @@ describe('utils', function () {
     });
 
     it('should convert Unicode relative path to file URI', function () {
-      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), 'file:///home/user/画像/テスト.png');
+      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', '画像/テスト.png')));
     });
 
     it('should escape all # characters in path', function () {
@@ -443,7 +442,7 @@ describe('utils', function () {
     it('should handle relative path with spaces', function () {
       assert.strictEqual(
         utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
-        'file:///workspace/my styles/custom.css'
+        'file://' + path.join('/workspace', 'my styles/custom.css')
       );
     });
 
@@ -1401,19 +1400,20 @@ describe('utils', function () {
 
     it('should rewrite the real src attribute and preserve data-src', function () {
       const result = utils.transformHtmlBlock('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
+      const realUri = fileUri(path.resolve('/doc', 'real.png'));
       assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
-      assert.ok(result.indexOf('data-src="lazy.png" src="file:///doc/real.png"') >= 0);
+      assert.ok(result.indexOf('src="' + realUri + '"') >= 0);
+      assert.ok(result.indexOf('data-src="lazy.png" src="' + realUri + '"') >= 0);
     });
 
     it('should handle spacing around src equals', function () {
       const result = utils.transformHtmlBlock('<img src = "photo.png">', '/doc/test.md');
-      assert.strictEqual(result, '<img src = "file:///doc/photo.png">');
+      assert.strictEqual(result, '<img src = "' + fileUri(path.resolve('/doc', 'photo.png')) + '">');
     });
 
     it('should handle unquoted src attributes', function () {
       const result = utils.transformHtmlBlock('<img src=photo.png>', '/doc/test.md');
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.ok(result.indexOf('src="' + fileUri(path.resolve('/doc', 'photo.png')) + '"') >= 0);
     });
 
     it('should handle multiple images with mixed attribute ordering', function () {
@@ -1421,9 +1421,11 @@ describe('utils', function () {
         '<img data-src="lazy.png" src="real.png"><img alt="desc" src = "photo.png">',
         '/doc/test.md',
       );
+      const realUri = fileUri(path.resolve('/doc', 'real.png'));
+      const photoUri = fileUri(path.resolve('/doc', 'photo.png'));
       assert.strictEqual(
         result,
-        '<img data-src="lazy.png" src="file:///doc/real.png"><img alt="desc" src = "file:///doc/photo.png">',
+        '<img data-src="lazy.png" src="' + realUri + '"><img alt="desc" src = "' + photoUri + '">',
       );
     });
 
@@ -1437,18 +1439,18 @@ describe('utils', function () {
       const result = utils.transformHtmlBlock('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
       assert.ok(result.indexOf('alt="desc"') >= 0);
       assert.ok(result.indexOf('width="100"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.ok(result.indexOf('src="' + fileUri(path.resolve('/doc', 'photo.png')) + '"') >= 0);
     });
 
     it('should handle quotes that contain a greater-than sign', function () {
       const result = utils.transformHtmlBlock('<img alt="a > b" src="photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('alt="a > b"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.ok(result.indexOf('src="' + fileUri(path.resolve('/doc', 'photo.png')) + '"') >= 0);
     });
 
     it('should preserve quoted non-src attributes that contain src text', function () {
       const result = utils.transformHtmlBlock('<img alt="look src=bad.png" src="real.png">', '/doc/test.md');
-      assert.strictEqual(result, '<img alt="look src=bad.png" src="file:///doc/real.png">');
+      assert.strictEqual(result, '<img alt="look src=bad.png" src="' + fileUri(path.resolve('/doc', 'real.png')) + '">');
     });
 
     it('should ignore img text inside comments', function () {
@@ -1483,7 +1485,7 @@ describe('utils', function () {
 
     it('should handle whitespace before the closing raw-text tag', function () {
       const result = utils.transformHtmlBlock('<script>const html = "<img src=x.png>";</script ><img src=real.png>', '/doc/test.md');
-      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="file:///doc/real.png">');
+      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="' + fileUri(path.resolve('/doc', 'real.png')) + '">');
     });
 
     it('should preserve surrounding html', function () {
