@@ -119,10 +119,10 @@ Expected: FAIL（`src/logger.ts` が存在せず import 解決に失敗）。
 `src/logger.ts` を新規作成:
 
 ```ts
-// Lightweight logging facade. Stays free of any 'vscode' import so that modules
+// Lightweight logging facade. Stays free of any editor API import so that modules
 // importing it (utils, math-renderer, chromium-resolver) remain unit-testable
-// under tsx without a real VS Code runtime. The concrete sink is injected by
-// extension.ts (the only vscode-aware module) at activation time.
+// under tsx without a real editor runtime. The concrete sink is injected by
+// extension.ts (the only host-aware module) at activation time.
 
 export interface LogSink {
   info(message: string, ...args: unknown[]): void;
@@ -286,8 +286,8 @@ Expected: FAIL（`logger.initializeLogger is not a function`）。
 `src/logger.ts` の `LogSink` interface 直後（`let sink ...` の前）に `LoggerHost` を追加:
 
 ```ts
-// Minimal host shape needed for initialization. VS Code's ExtensionContext
-// satisfies this structurally (no 'vscode' import required here).
+// Minimal host shape needed for initialization. The editor's ExtensionContext
+// satisfies this structurally (no editor API import required here).
 export interface LoggerHost {
   subscriptions: { push(disposable: { dispose(): void }): void };
 }
