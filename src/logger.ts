@@ -10,10 +10,28 @@ export interface LogSink {
   show(preserveFocus?: boolean): void;
 }
 
+// Minimal host shape needed for initialization. The editor's ExtensionContext
+// satisfies this structurally (no editor API import required here).
+export interface LoggerHost {
+  subscriptions: { push(disposable: { dispose(): void }): void };
+}
+
 let sink: LogSink | undefined;
 
 export function setLogSink(s: LogSink | undefined): void {
   sink = s;
+}
+
+// Build the concrete channel via the injected factory, register it for disposal
+// on the host lifecycle, and wire it as the active sink. Injecting the
+// factory keeps this unit-testable with a fake host and fake factory.
+export function initializeLogger(
+  host: LoggerHost,
+  createChannel: () => LogSink & { dispose(): void }
+): void {
+  const channel = createChannel();
+  host.subscriptions.push(channel);
+  setLogSink(channel);
 }
 
 export function logInfo(message: string, ...args: unknown[]): void {
