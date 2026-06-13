@@ -47,10 +47,26 @@ export interface LogSink {
   show(preserveFocus?: boolean): void;
 }
 
+// 初期化に必要な host の最小形（vscode.ExtensionContext を構造的に満たす）
+export interface LoggerHost {
+  subscriptions: { push(disposable: { dispose(): void }): void };
+}
+
 let sink: LogSink | undefined;
 
 export function setLogSink(s: LogSink | undefined): void {
   sink = s;
+}
+
+// 実体生成（createChannel）と登録を 1 関数に集約。
+// createChannel を注入にすることで、fake host / fake factory でユニットテスト可能。
+export function initializeLogger(
+  host: LoggerHost,
+  createChannel: () => LogSink & { dispose(): void }
+): void {
+  const channel = createChannel();
+  host.subscriptions.push(channel);   // 破棄は host(VS Code) のライフサイクルに委譲
+  setLogSink(channel);
 }
 
 export function logInfo(message: string, ...args: unknown[]): void {
@@ -68,24 +84,36 @@ export function logError(message: string, ...args: unknown[]): void {
 export function showLog(): void {
   sink?.show(true);
 }
+
+// unknown を決定論的に文字列化する純粋関数（P3 対応）。
+// Error はスタックを優先、無ければ name+message。非 Error は String()。
+export function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? `${error.name}: ${error.message}`;
+  }
+  return String(error);
+}
 ```
 
 ポイント:
 
-- `LogSink` は自前の型定義のみ。`logger.ts` に `vscode` の語は一切登場しない → import の鎖がここで止まる。
-- `vscode.LogOutputChannel` は `info / warn / error / show` を互換シグネチャで持つため、TypeScript の構造的型付け（structural typing）により、明示的な `implements` なしでそのまま `LogSink` として渡せる。
+- `LogSink` / `LoggerHost` は自前の型定義のみ。`logger.ts` に `vscode` の語は一切登場しない → import の鎖がここで止まる。
+- `vscode.LogOutputChannel` は `info / warn / error / show` を互換シグネチャで持つため、TypeScript の構造的型付け（structural typing）により、明示的な `implements` なしでそのまま `LogSink` として渡せる。同様に `vscode.ExtensionContext` は `LoggerHost` を構造的に満たす。
 - 実体が注入されていない場合（ユニットテスト等）、`sink?.` のオプショナルチェーンにより各関数は no-op となり安全に無視される。
 
 ### `src/extension.ts`（唯一の vscode 依存箇所）が実体を注入
+
+`vscode` を触るのは「チャネル生成の factory」と「context の受け渡し」だけ。生成・登録・注入のロジックは `initializeLogger` 側に閉じる。
 
 ```ts
 import * as vscode from 'vscode';
 import * as logger from './logger';
 
 export function activate(context: vscode.ExtensionContext) {
-  const channel = vscode.window.createOutputChannel('Markdown PDF', { log: true });
-  context.subscriptions.push(channel);   // 破棄は VS Code に委譲
-  logger.setLogSink(channel);
+  logger.initializeLogger(
+    context,
+    () => vscode.window.createOutputChannel('Markdown PDF', { log: true })
+  );
   // ... 既存の activate 処理 ...
 }
 ```
@@ -100,8 +128,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 ```
 [VS Code 実行時]
-  extension.activate() が LogOutputChannel を生成
-        ↓ logger.setLogSink(channel)
+  extension.activate() が logger.initializeLogger(context, factory) を呼ぶ
+        ↓ factory が LogOutputChannel を生成 → subscriptions 登録 → setLogSink
   logger の sink に実体が入る
         ↓
   各モジュールが logWarn(...) 等を呼ぶ → sink.warn(...) → 「出力: Markdown PDF」パネルへ
@@ -122,49 +150,99 @@ export function activate(context: vscode.ExtensionContext) {
 
 | 箇所 | 現状 | 移行後 | 理由 |
 |---|---|---|---|
-| `extension.ts` `showErrorMessage` 内 | `console.log` ×2 | `logError` | エラー詳細。既存のトースト表示は残し、二重で届ける |
-| `utils.ts` `readFile` | `console.warn` | `logWarn` | CSS/テンプレート等のファイル読込失敗＝ユーザー影響あり |
+| `extension.ts` `showErrorMessage` 内 | `console.log` ×2 | `logError`（error は `formatError` で整形）| エラー詳細。既存のトースト表示は残し、二重で届ける |
+| `utils.ts` `readFile`（**要ロジック変更**）| 読込例外時のみ `console.warn` | 読込例外時と「ファイル未検出」時の双方を文脈付きで `logWarn` | 後述の P1 対応。CSS/テンプレート等の読込失敗＝ユーザー影響あり |
 | `math-renderer.ts` KaTeX fallback | `console.warn` | `logWarn` | 数式が `<code>` に劣化＝ユーザーが視認できる影響 |
-| `chromium-resolver.ts` 全9箇所 | `console.warn/log/error` | `logWarn/logInfo/logError` | Chromium 取得の成否＝出力可否に直結。既存の `[Markdown PDF]` プレフィックスはチャネル名と重複するため除去 |
+| `chromium-resolver.ts` 全10箇所（行: 23, 156, 164, 242, 244, 248, 343, 351, 356, 360）| `console.warn/log/error` | `logWarn/logInfo/logError` | Chromium 取得の成否＝出力可否に直結。既存の `[Markdown PDF]` プレフィックスはチャネル名と重複するため除去 |
 
-`chromium-resolver.ts` のレベル対応の目安:
+`chromium-resolver.ts` の行ごとのレベル対応:
 
-- 設定 executablePath 不在 / 最新版取得失敗 / 旧版削除失敗 / キャッシュ・バンドルへのフォールバック → `logWarn`
-- 旧 Chromium 削除成功（保守情報） → `logInfo`
-- 最新版ダウンロード失敗 / 全取得手段の失敗 → `logError`
+| 行 | 内容 | 移行後 |
+|---|---|---|
+| 23 | Configured executablePath not found | `logWarn` |
+| 156 | Latest version response had unexpected shape | `logWarn` |
+| 164 | Failed to fetch latest version | `logWarn` |
+| 242 | Removed old Chromium（成功時の保守情報）| `logInfo` |
+| 244 | Failed to remove old Chromium | `logWarn` |
+| 248 | Failed to cleanup old Chromium | `logWarn` |
+| 343 | Failed to download latest Chromium | `logError` |
+| 351 | Falling back to cached build | `logWarn` |
+| 356 | Falling back to bundled build | `logWarn` |
+| 360 | All acquisition attempts failed | `logError` |
+
+### P1: `readFile` のロジック変更（重要）
+
+現状の `readFile()` は実読込の前に `isExistsPath()` を呼び、存在しなければ早期 return する。そのため CSS/テンプレートの「ファイルが見つからない」ケースは `readFile` の catch に到達せず、`isExistsPath` 側の低レベル `console.warn` にしか残らない。`isExistsPath` を console に残す方針のままだと、ユーザー影響のある読込失敗が新ロガーに乗らない。
+
+対応として `readFile` 自身が両方の失敗経路で文脈付きに `logWarn` する:
+
+```ts
+if (isExistsPath(filename)) {
+  try {
+    return fs.readFileSync(filename, encode);
+  } catch (error: unknown) {
+    logWarn(`Failed to read file: ${filename}`, formatError(error));
+    return '';
+  }
+} else {
+  logWarn(`File not found: ${filename}`);
+  return '';
+}
+```
+
+`readFile` の呼び出し元（`makeCss` の CSS、`buildKatexStyleTag`、emoji.json、テンプレート等）はいずれも「存在が前提」のファイルであり、未検出は異常系。よって not-found 分岐のログは通常運用でノイズにならない。`isExistsPath` 自体の `console.warn` は低レベルプローブとして据え置く（文脈は `readFile` 側のログが供給する）。
 
 ### `console` のまま残す（開発デバッグ）
 
 | 箇所 | 理由 |
 |---|---|
-| `utils.ts` `isExistsPath` | 存在チェックのプローブ。失敗は正常系（`readFile` のガードでも発火）でノイズ |
+| `utils.ts` `isExistsPath` | 存在チェックのプローブ。失敗が正常系でノイズ。ユーザー文脈は呼び出し元（`readFile`）の `logWarn` が供給する |
 | `utils.ts` `isExistsDir` ×2 | 同上 |
 
 ## エラーハンドリング
 
 - logger 関数は実体未注入時も例外を投げず no-op（`sink?.`）。呼び出し側はログ可否を気にせず呼べる。
 - `setLogSink` は冪等的に上書き可能。テストでの注入・リセットに用いる。
-- チャネルの破棄は `context.subscriptions` 登録により VS Code のライフサイクルに委譲し、明示的な dispose 管理を持たない。
+- チャネルの破棄は `initializeLogger` 内で `host.subscriptions` に登録し、VS Code のライフサイクルに委譲。明示的な dispose 管理は持たない。
+
+### Error の文字列化（P3 対応）
+
+`showErrorMessage` の `console.log(error)`（raw error object）を `logError` に移すと、整形を決めないと現状よりデバッグ情報が減りうる。`formatError(error: unknown)` で決定論的に整形する:
+
+- `Error` インスタンス → `error.stack`（あれば。スタックを保持してデバッグ情報を最大化）、無ければ `${name}: ${message}`
+- 非 `Error` 値 → `String(error)`
+
+`LogOutputChannel` はタイムスタンプとログレベルを自動付与するため、チャネルへ渡すメッセージに手動の `ERROR:` プレフィックスは付けない（トースト側の `'ERROR: ' + msg` は従来どおり維持）。移行後の `showErrorMessage`:
+
+```ts
+function showErrorMessage(msg: string, error?: unknown): void {
+  vscode.window.showErrorMessage('ERROR: ' + msg);
+  logger.logError(msg);
+  if (error) {
+    vscode.window.showErrorMessage(String(error));
+    logger.logError(logger.formatError(error));
+  }
+}
+```
 
 ## テスト戦略
 
 ### ユニットテスト（tsx, 実 VS Code 不要）
 
-`test/unit/logger.test.ts` を新規作成。
+`test/unit/logger.test.ts` を新規作成。logger.ts は vscode 非依存なので全て tsx で完結する。
 
-- 呼び出しを記録する fake `LogSink`（`{calls: [...], info/warn/error/show}`）を `setLogSink` で注入。
-- `logInfo/logWarn/logError` が対応する sink メソッドへ正しく転送されること、引数（可変長含む）がそのまま渡ることを検証。
-- `showLog()` が `sink.show(true)` を呼ぶこと。
-- 未注入時（`setLogSink(undefined)`）に各関数が例外を投げず no-op になること。
+- **転送**: 呼び出しを記録する fake `LogSink`（`{calls: [...], info/warn/error/show}`）を `setLogSink` で注入し、`logInfo/logWarn/logError` が対応する sink メソッドへ正しく転送されること、引数（可変長含む）がそのまま渡ることを検証。
+- **showLog**: `showLog()` が `sink.show(true)` を呼ぶこと。
+- **no-op**: 未注入時（`setLogSink(undefined)`）に各関数が例外を投げず no-op になること。
+- **initializeLogger（P2 対応）**: fake host（`{subscriptions:{push}}`）と fake factory（`LogSink & {dispose}` を返す）を渡し、(1) factory が 1 回呼ばれ、(2) 生成物が `host.subscriptions.push` に渡され、(3) 以降 `logInfo` 等がその生成物へ転送されることを検証。実 VS Code・実 OutputChannel 一覧 API（非公開）に依存しない。
+- **formatError（P3 対応）**: `Error`（stack あり / stack なし）と非 Error 値（文字列・数値・null 等）それぞれの整形結果を検証。
 - 各テスト後に `setLogSink(undefined)` でグローバル状態をリセット（テスト分離）。
 
-移行先モジュール（`utils.test.ts` / `math-renderer.test.ts` / `chromium-resolver.test.ts`）は、logger 非注入時に no-op となるため**既存テストがそのまま通過する**ことを回帰確認する。
+移行先モジュール（`utils.test.ts` / `math-renderer.test.ts` / `chromium-resolver.test.ts`）は、logger 非注入時に no-op となるため**既存テストがそのまま通過する**ことを回帰確認する。`readFile` のロジック変更（P1）については、fake sink を注入して「未検出時に `File not found:` を含む `logWarn` が出る」「読込例外時に `Failed to read file:` を含む `logWarn` が出る」を `utils.test.ts` に追加する。
 
 ### 統合テスト（実 VS Code）
 
-`test/integration/extension.test.ts` に追加。
-
-- `activate()` 後にチャネル名 `Markdown PDF` の OutputChannel が生成され、`context.subscriptions` に登録されていること。
+OutputChannel の生成検証は VS Code が作成済みチャネル一覧を公開していないため統合テストでは確実に行えない（P2 指摘）。上記の `initializeLogger` ユニットテストで factory 呼び出しと subscriptions 登録を fake で検証する方式に置き換える。統合テストには本基盤専用の新規ケースは追加しない（既存の `extension.test.ts` が activation 時にエラーを起こさないことが間接的な回帰確認となる）。
 
 ## 採用済みデフォルト（レビューで異議があれば再検討）
 
