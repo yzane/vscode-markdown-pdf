@@ -114,12 +114,14 @@ git commit -m "feat: add Show Output action to error toast and drop redundant ra
 
 - [ ] **Step 6: 手動検証（dev host、2ケース必須）**
 
-dev host を起動（worktree フォルダを開いて F5「Run Extension」）。ビルド済み `dist/extension.js` が使われる。「表示 → 出力」で「Markdown PDF」チャネルを開いておく。デモ用に任意の `.md`（例: `C:\work\mdpdf-demo\demo.md`）を開く。
+dev host を起動（worktree フォルダを開いて F5「Run Extension」）。ビルド済み `dist/extension.js` が使われる。デモ用に任意の `.md`（例: `C:\work\mdpdf-demo\demo.md`）を開く。
 
-- **ケースA（error 引数なし）**: `markdown-pdf.outputDirectory` に存在しない絶対パス `C:\nope\output` を設定 → コマンドパレット「Markdown PDF: Export (pdf)」。
-  - 確認: トーストに **「Show Output」** ボタンが出る／押下で「Markdown PDF」チャネルが前面に出る。
-- **ケースB（error 引数あり）**: `markdown-pdf.outputDirectory` を空に戻し、`markdown-pdf.executablePath` に実在フォルダ `C:\Windows` を設定 → 「Markdown PDF: Export (pdf)」。`puppeteer.launch` 失敗で `exportPdf()` catch → `showErrorMessage('exportPdf()', error)` 経路。
-  - 確認: **トーストが1つだけ**（`ERROR: exportPdf()`＋「Show Output」）で、**生エラーの2つ目トーストが出ない**。「Show Output」押下でチャネルが開き、`formatError` 整形済みのエラー詳細＋スタックが記録されている。
+**重要（検証の前提）**: 「Show Output」押下で**開く/前面化する**ことを確認するため、各ケースの実行前に**出力パネルを閉じる**（または「ターミナル」「問題」など別パネルへ切り替える／出力ドロップダウンを「Markdown PDF」以外にしておく）。チャネルを開いたまま始めると、押下の効果を検証できない。
+
+- **ケースA（error 引数なし）**: 出力パネルを閉じた状態にする → `markdown-pdf.outputDirectory` に存在しない絶対パス `C:\nope\output` を設定 → コマンドパレット「Markdown PDF: Export (pdf)」。
+  - 確認: トーストに **「Show Output」** ボタンが出る／押下で（閉じていた）「Markdown PDF」チャネルが開いて前面に出る。
+- **ケースB（error 引数あり）**: 再び出力パネルを閉じる（または別パネルへ）→ `markdown-pdf.outputDirectory` を空に戻し、`markdown-pdf.executablePath` に実在フォルダ `C:\Windows` を設定 → 「Markdown PDF: Export (pdf)」。`puppeteer.launch` 失敗で `exportPdf()` catch → `showErrorMessage('exportPdf()', error)` 経路。
+  - 確認: **トーストが1つだけ**（`ERROR: exportPdf()`＋「Show Output」）で、**生エラーの2つ目トーストが出ない**。「Show Output」押下で（閉じていた）チャネルが開いて前面化し、`formatError` 整形済みのエラー詳細＋スタックが記録されている。
 - 検証後、`markdown-pdf.outputDirectory` と `markdown-pdf.executablePath` を空に戻す。
 
 > 手動検証は人手で行うステップ。サブエージェント実行時は Step 1〜5 を実施し、Step 6 はチェックリストとして残し、ユーザーに手動確認を促す。
