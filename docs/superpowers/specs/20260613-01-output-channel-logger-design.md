@@ -47,7 +47,7 @@ export interface LogSink {
   show(preserveFocus?: boolean): void;
 }
 
-// 初期化に必要な host の最小形（vscode.ExtensionContext を構造的に満たす）
+// 初期化に必要な host の最小形（VS Code の ExtensionContext 相当が構造的に満たす）
 export interface LoggerHost {
   subscriptions: { push(disposable: { dispose(): void }): void };
 }
@@ -97,7 +97,7 @@ export function formatError(error: unknown): string {
 
 ポイント:
 
-- `LogSink` / `LoggerHost` は自前の型定義のみ。`logger.ts` に `vscode` の語は一切登場しない → import の鎖がここで止まる。
+- `LogSink` / `LoggerHost` は自前の型定義のみ。`logger.ts` のコード本体（コメント含む）に `vscode` の語・import は一切登場しない → import の鎖がここで止まる。なお本設計書の散文中で `vscode.LogOutputChannel` 等に言及するのは説明のためであり、`logger.ts` のソースには含めない。
 - `vscode.LogOutputChannel` は `info / warn / error / show` を互換シグネチャで持つため、TypeScript の構造的型付け（structural typing）により、明示的な `implements` なしでそのまま `LogSink` として渡せる。同様に `vscode.ExtensionContext` は `LoggerHost` を構造的に満たす。
 - 実体が注入されていない場合（ユニットテスト等）、`sink?.` のオプショナルチェーンにより各関数は no-op となり安全に無視される。
 
@@ -151,7 +151,7 @@ export function activate(context: vscode.ExtensionContext) {
 | 箇所 | 現状 | 移行後 | 理由 |
 |---|---|---|---|
 | `extension.ts` `showErrorMessage` 内 | `console.log` ×2 | `logError`（error は `formatError` で整形）| エラー詳細。既存のトースト表示は残し、二重で届ける |
-| `utils.ts` `readFile`（**要ロジック変更**）| 読込例外時のみ `console.warn` | 読込例外時と「ファイル未検出」時の双方を文脈付きで `logWarn` | 後述の P1 対応。CSS/テンプレート等の読込失敗＝ユーザー影響あり |
+| `utils.ts` `readFile`（**要ロジック変更**）| `isExistsPath` ガード＋読込例外時のみ `console.warn` | `isExistsPath` を外し単一 `try/catch` 化。`ENOENT`＝`File not found:`、他＝`Failed to read file:` を `logWarn` | 後述の P1/P3 対応。CSS/テンプレート等の読込失敗＝ユーザー影響あり |
 | `math-renderer.ts` KaTeX fallback | `console.warn` | `logWarn` | 数式が `<code>` に劣化＝ユーザーが視認できる影響 |
 | `chromium-resolver.ts` 全10箇所（行: 23, 156, 164, 242, 244, 248, 343, 351, 356, 360）| `console.warn/log/error` | `logWarn/logInfo/logError` | Chromium 取得の成否＝出力可否に直結。既存の `[Markdown PDF]` プレフィックスはチャネル名と重複するため除去 |
 
@@ -174,29 +174,29 @@ export function activate(context: vscode.ExtensionContext) {
 
 現状の `readFile()` は実読込の前に `isExistsPath()` を呼び、存在しなければ早期 return する。そのため CSS/テンプレートの「ファイルが見つからない」ケースは `readFile` の catch に到達せず、`isExistsPath` 側の低レベル `console.warn` にしか残らない。`isExistsPath` を console に残す方針のままだと、ユーザー影響のある読込失敗が新ロガーに乗らない。
 
-対応として `readFile` 自身が両方の失敗経路で文脈付きに `logWarn` する:
+対応として **`readFile` から `isExistsPath` 経由のガードを外し、単一の `try/catch` で読込を行う**。これにより「未検出（`ENOENT`）」と「その他の読込エラー」を `error.code` で判別しつつ、`isExistsPath` の低レベル `console.warn` との二重ログも回避できる:
 
 ```ts
-if (isExistsPath(filename)) {
-  try {
-    return fs.readFileSync(filename, encode);
-  } catch (error: unknown) {
+try {
+  return fs.readFileSync(filename, encode);
+} catch (error: unknown) {
+  const code = (error as NodeJS.ErrnoException).code;
+  if (code === 'ENOENT') {
+    logWarn(`File not found: ${filename}`);
+  } else {
     logWarn(`Failed to read file: ${filename}`, formatError(error));
-    return '';
   }
-} else {
-  logWarn(`File not found: ${filename}`);
   return '';
 }
 ```
 
-`readFile` の呼び出し元（`makeCss` の CSS、`buildKatexStyleTag`、emoji.json、テンプレート等）はいずれも「存在が前提」のファイルであり、未検出は異常系。よって not-found 分岐のログは通常運用でノイズにならない。`isExistsPath` 自体の `console.warn` は低レベルプローブとして据え置く（文脈は `readFile` 側のログが供給する）。
+`readFile` の呼び出し元（`makeCss` の CSS、`buildKatexStyleTag`、emoji.json、テンプレート等）はいずれも「存在が前提」のファイルであり、未検出は異常系。よって not-found 分岐のログは通常運用でノイズにならない。`readFile` はもう `isExistsPath` を呼ばないため、未検出ケースは OutputChannel にのみ記録され、`console.warn` との二重出力は発生しない（P3 対応）。空文字列の早期 return（先頭の `filename.length === 0` ガード）は従来どおり維持する。`isExistsPath` 自体は他の呼び出し元（`buildKatexStyleTag` のフォント存在確認等）で引き続き使われるため、その `console.warn` は低レベルプローブとして据え置く。
 
 ### `console` のまま残す（開発デバッグ）
 
 | 箇所 | 理由 |
 |---|---|
-| `utils.ts` `isExistsPath` | 存在チェックのプローブ。失敗が正常系でノイズ。ユーザー文脈は呼び出し元（`readFile`）の `logWarn` が供給する |
+| `utils.ts` `isExistsPath` | 存在チェックのプローブ。失敗が正常系でノイズ。ユーザー影響のあるファイル読込失敗は `readFile` 側の `logWarn` が単独で供給する（`readFile` はもう `isExistsPath` を経由しない） |
 | `utils.ts` `isExistsDir` ×2 | 同上 |
 
 ## エラーハンドリング
