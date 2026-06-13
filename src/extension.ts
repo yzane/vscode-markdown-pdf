@@ -723,8 +723,7 @@ function showErrorMessage(msg: string, error?: unknown): void {
   if (error) {
     logger.logError(logger.formatError(error));
   }
-  // Single toast with an action button. The raw error detail lives in the
-  // channel, so we no longer show a second toast for String(error).
+  // Single toast with an action button; the raw error detail lives in the output channel.
   vscode.window.showErrorMessage('ERROR: ' + msg, SHOW_OUTPUT_ACTION).then(function (selection) {
     if (selection === SHOW_OUTPUT_ACTION) {
       logger.showLog();
