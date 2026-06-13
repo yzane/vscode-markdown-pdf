@@ -96,7 +96,10 @@ VS Code 標準の表現に合わせ英語 **「Show Output」**。拡張のユ�
 `showErrorMessage` は `vscode` 依存の `extension.ts` 内にあり、`tsx --test` のユニットテスト対象外（要素③ Task 4 と同じ事情）。
 
 - **自動検証**: `npm run check`（型エラーなし）/ `npm run build`（esbuild バンドル成功）。
-- **手動検証**: dev host（F5）でエラーを発生させ（例: `markdown-pdf.outputDirectory` に存在しない絶対パスを設定して Export）、(1) トーストに「Show Output」が表示される、(2) 押下で「Markdown PDF」チャネルが開く、(3) 生エラーの2つ目トーストが出ない、ことを確認。
+- **手動検証（2ケース必須）**: dev host（F5）で以下の両方を確認する。`showErrorMessage` には「error 引数なし」経路と「error 引数あり」経路があり、2つ目トースト廃止は後者でしか検証できないため、両方を踏む。
+  - **ケースA（error 引数なし）**: `markdown-pdf.outputDirectory` に存在しない絶対パス（例 `C:\nope\output`）を設定して Export。`getOutputDir` が `showErrorMessage(msg)` を error 引数なしで呼ぶ経路。確認: (1) トーストに「Show Output」が表示される、(2) 押下で「Markdown PDF」チャネルが開く。
+  - **ケースB（error 引数あり）**: `markdown-pdf.executablePath` に実在するフォルダ（例 `C:\Windows`）を設定して Export。`puppeteer.launch` が失敗し `exportPdf()` の catch → `showErrorMessage('exportPdf()', error)` を error 付きで呼ぶ経路。確認: (1) **トーストが1つだけ**（`ERROR: exportPdf()`＋「Show Output」）で、**生エラーの2つ目トーストが出ない**こと（＝廃止の検証）、(2) 「Show Output」押下でチャネルが開き、`formatError` 整形済みのエラー詳細＋スタックが記録されていること。
+  - 検証後は両設定を空に戻す。
 - ボタン押下後の分岐は `selection === 'Show Output'` のみの自明な処理のため、専用のユニットテスト抽出はしない（YAGNI）。`logger.showLog()` 自体は要素③でユニットテスト済み。
 
 ## 採用済みデフォルト（レビューで異議があれば再検討）
