@@ -238,7 +238,11 @@ function showErrorMessage(msg: string, error?: unknown): void {
 - **formatError（P3 対応）**: `Error`（stack あり / stack なし）と非 Error 値（文字列・数値・null 等）それぞれの整形結果を検証。
 - 各テスト後に `setLogSink(undefined)` でグローバル状態をリセット（テスト分離）。
 
-移行先モジュール（`utils.test.ts` / `math-renderer.test.ts` / `chromium-resolver.test.ts`）は、logger 非注入時に no-op となるため**既存テストがそのまま通過する**ことを回帰確認する。`readFile` のロジック変更（P1）については、fake sink を注入して「未検出時に `File not found:` を含む `logWarn` が出る」「読込例外時に `Failed to read file:` を含む `logWarn` が出る」を `utils.test.ts` に追加する。
+移行先モジュール（`utils.test.ts` / `math-renderer.test.ts` / `chromium-resolver.test.ts`）は、logger 非注入時に no-op となるため**既存テストがそのまま通過する**ことを回帰確認する。`readFile` のロジック変更（P1/P3）については、fake sink を注入して以下を `utils.test.ts` に追加する:
+
+- 未検出（`ENOENT`）時に `File not found:` を含む `logWarn` が出て、戻り値が `''` であること。
+- ディレクトリを渡した場合（既存テストの `readFile(__dirname)` 相当、`EISDIR`）に戻り値が従来どおり `''` で、ログは `Failed to read file:` 側に入ること。
+- その他の読込例外時に `Failed to read file:` を含む `logWarn` が出ること。
 
 ### 統合テスト（実 VS Code）
 
