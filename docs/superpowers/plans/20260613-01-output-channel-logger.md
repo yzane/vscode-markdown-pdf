@@ -39,6 +39,17 @@
 
 ---
 
+## Task 0: ブランチ / worktree の確認（プリフライト）
+
+**Files:** （変更なし。確認のみ。）
+
+- [ ] **Step 1: 正しいブランチ・worktree にいることを確認**
+
+Run: `git branch --show-current && git status --short`
+Expected: ブランチが `feature/output-channel-logger` であること。`git status` はクリーン（または spec/plan 以外の未コミット変更がないこと）。異なるブランチの場合は worktree `.worktrees/feature-output-channel-logger` で作業しているか確認し、誤っていれば中断して報告する。
+
+---
+
 ## Task 1: logger.ts のファサード（転送・no-op・showLog）
 
 **Files:**
@@ -297,7 +308,7 @@ export interface LoggerHost {
 
 ```ts
 // Build the concrete channel via the injected factory, register it for disposal
-// on the host (VS Code) lifecycle, and wire it as the active sink. Injecting the
+// on the host lifecycle, and wire it as the active sink. Injecting the
 // factory keeps this unit-testable with a fake host and fake factory.
 export function initializeLogger(
   host: LoggerHost,
