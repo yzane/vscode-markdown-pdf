@@ -6,6 +6,7 @@ import fs from 'fs';
 import os from 'os';
 import * as utils from './utils';
 import * as chromiumResolver from './chromium-resolver';
+import * as logger from './logger';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
 import { markdownItCheckbox } from './markdown-it-checkbox';
@@ -52,6 +53,10 @@ function getAutoDownload(): boolean {
 /** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context;
+  logger.initializeLogger(
+    context,
+    () => vscode.window.createOutputChannel('Markdown PDF', { log: true })
+  );
   init();
 
   const commands = [
@@ -710,10 +715,10 @@ async function installChromium(): Promise<void> {
 
 function showErrorMessage(msg: string, error?: unknown): void {
   vscode.window.showErrorMessage('ERROR: ' + msg);
-  console.log('ERROR: ' + msg);
+  logger.logError(msg);
   if (error) {
     vscode.window.showErrorMessage(String(error));
-    console.log(error);
+    logger.logError(logger.formatError(error));
   }
 }
 
