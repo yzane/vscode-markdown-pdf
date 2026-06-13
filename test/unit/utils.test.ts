@@ -2,6 +2,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'assert';
 import path from 'path';
 import * as utils from '../../src/utils';
+import * as logger from '../../src/logger';
 import { fileUri } from './helpers/path-platform';
 
 describe('utils', function () {
@@ -221,6 +222,32 @@ describe('utils', function () {
       const result = utils.readFile(tmpFileWithBom) as string;
       assert.strictEqual(result.charCodeAt(0), 0xFEFF, 'Expected BOM at start of file');
       assert.ok(result.indexOf('hello BOM') !== -1, 'Expected content after BOM');
+    });
+
+    it('logs "File not found" via logWarn for a non-existent file', function () {
+      const calls: unknown[][] = [];
+      logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+      try {
+        const result = utils.readFile('/nonexistent/file.txt');
+        assert.strictEqual(result, '');
+        assert.strictEqual(calls.length, 1);
+        assert.match(String(calls[0][0]), /^File not found:/);
+      } finally {
+        logger.setLogSink(undefined);
+      }
+    });
+
+    it('logs "Failed to read file" via logWarn when given a directory', function () {
+      const calls: unknown[][] = [];
+      logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+      try {
+        const result = utils.readFile(__dirname);
+        assert.strictEqual(result, '');
+        assert.strictEqual(calls.length, 1);
+        assert.match(String(calls[0][0]), /^Failed to read file:/);
+      } finally {
+        logger.setLogSink(undefined);
+      }
     });
   });
 

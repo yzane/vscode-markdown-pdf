@@ -8,6 +8,7 @@ import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import plantumlEncoder from 'plantuml-encoder';
 import { githubSlugify } from './markdown-it-named-headers';
+import { logWarn, formatError } from './logger';
 
 /** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
 export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
@@ -89,14 +90,15 @@ export function readFile(filename: string, encode?: BufferEncoding | null): stri
       filename = filename.replace(/^file:\/\//, '');
     }
   }
-  if (isExistsPath(filename)) {
-    try {
-      return fs.readFileSync(filename, encode);
-    } catch (error: unknown) {
-      console.warn((error as Error).message);
-      return '';
+  try {
+    return fs.readFileSync(filename, encode);
+  } catch (error: unknown) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      logWarn(`File not found: ${filename}`);
+    } else {
+      logWarn(`Failed to read file: ${filename}`, formatError(error));
     }
-  } else {
     return '';
   }
 }
