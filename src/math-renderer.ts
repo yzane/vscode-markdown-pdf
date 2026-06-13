@@ -1,4 +1,5 @@
 import katex, { KatexOptions } from 'katex';
+import { logWarn } from './logger';
 
 export interface RenderMathOptions extends Pick<KatexOptions, 'macros'> {}
 
@@ -23,8 +24,7 @@ export function renderMath(tex: string, displayMode: boolean, options: RenderMat
     // Coerce to string defensively: tex may be undefined when called with invalid
     // types (e.g. undefined as unknown as string), so String() avoids a secondary throw.
     const escaped = escapeHtml(String(tex ?? ''));
-    // eslint-disable-next-line no-console
-    console.warn('[markdown-pdf] KaTeX render failure, falling back to <code>:', (error as Error).message);
+    logWarn('KaTeX render failure, falling back to <code>: ' + (error as Error).message);
     return '<code>' + escaped + '</code>';
   }
 }
