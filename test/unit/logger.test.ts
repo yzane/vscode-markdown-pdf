@@ -54,4 +54,23 @@ describe('logger', () => {
       logger.showLog();
     });
   });
+
+  describe('formatError', () => {
+    it('returns the stack for an Error that has one', () => {
+      const err = new Error('boom');
+      assert.equal(logger.formatError(err), err.stack);
+    });
+
+    it('falls back to "name: message" when stack is absent', () => {
+      const err = new Error('boom');
+      err.stack = undefined;
+      assert.equal(logger.formatError(err), 'Error: boom');
+    });
+
+    it('stringifies non-Error values', () => {
+      assert.equal(logger.formatError('plain'), 'plain');
+      assert.equal(logger.formatError(42), '42');
+      assert.equal(logger.formatError(null), 'null');
+    });
+  });
 });

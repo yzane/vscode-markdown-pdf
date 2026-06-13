@@ -31,3 +31,12 @@ export function logError(message: string, ...args: unknown[]): void {
 export function showLog(): void {
   sink?.show(true);
 }
+
+// Deterministically stringify an unknown error for logging. Prefer the stack
+// (richest debug info); fall back to "name: message"; non-Error values via String().
+export function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? `${error.name}: ${error.message}`;
+  }
+  return String(error);
+}
