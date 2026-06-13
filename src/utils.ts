@@ -73,7 +73,7 @@ export function transformTemplate(templateText: string): string {
 
 /**
  * Reads a file synchronously, stripping file:// URI prefixes beforehand.
- * Returns '' on any I/O failure; warnings are logged to console and errors are never re-thrown.
+ * Returns '' on any I/O failure; warnings are logged via logWarn (not-found vs read-error) and errors are never re-thrown.
  */
 export function readFile(filename: string, encode?: BufferEncoding | null): string | Buffer {
   if (filename.length === 0) {
