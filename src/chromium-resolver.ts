@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as PB from '@puppeteer/browsers';
+import { logInfo, logWarn, logError } from './logger';
 
 // PUPPETEER_REVISIONS is a named export on the CJS module but not on the default export type.
 // Use require() to access it reliably at runtime.
@@ -20,7 +21,7 @@ export function findChromiumFromUserSetting(executablePath: string): string | nu
     fs.accessSync(executablePath);
     return executablePath;
   } catch (error) {
-    console.warn('[Markdown PDF] Configured executablePath not found: ' + executablePath);
+    logWarn('Configured executablePath not found: ' + executablePath);
     return null;
   }
 }
@@ -153,7 +154,7 @@ export async function fetchLatestStableBuildId(): Promise<string | null> {
     const version = extractStableVersion(json);
     if (!version || !BUILD_ID_PATTERN.test(version)) {
       cachedLatestFetchFailed = true;
-      console.warn('[Markdown PDF] Latest Chromium version response had unexpected shape');
+      logWarn('Latest Chromium version response had unexpected shape');
       return null;
     }
     cachedLatestBuildId = version;
@@ -161,7 +162,7 @@ export async function fetchLatestStableBuildId(): Promise<string | null> {
   } catch (error) {
     cachedLatestFetchFailed = true;
     const msg = error && (error as Error).message ? (error as Error).message : String(error);
-    console.warn('[Markdown PDF] Failed to fetch latest Chromium version: ' + msg);
+    logWarn('Failed to fetch latest Chromium version: ' + msg);
     return null;
   }
 }
@@ -239,13 +240,13 @@ export async function cleanupOldChromium(cacheDir: string, keepBuildId: string):
           cacheDir: cacheDir,
           platform: installedBrowser.platform
         });
-        console.log('[Markdown PDF] Removed old Chromium: ' + installedBrowser.buildId);
+        logInfo('Removed old Chromium: ' + installedBrowser.buildId);
       } catch (error) {
-        console.warn('[Markdown PDF] Failed to remove old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+        logWarn('Failed to remove old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
       }
     }
   } catch (error) {
-    console.warn('[Markdown PDF] Failed to cleanup old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+    logWarn('Failed to cleanup old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
   }
 }
 
@@ -340,7 +341,7 @@ export async function resolveChromiumPath(
     try {
       return await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
     } catch (error) {
-      console.error('[Markdown PDF] Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+      logError('Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
       return null;
     }
   }
@@ -348,16 +349,16 @@ export async function resolveChromiumPath(
   // JSON fetch failed: prefer existing cache, then fall back to bundled puppeteer-core build id.
   const cachedPath = await findLatestCachedChromium(cacheDir);
   if (cachedPath) {
-    console.warn('[Markdown PDF] Falling back to cached Chromium build');
+    logWarn('Falling back to cached Chromium build');
     return cachedPath;
   }
 
   const fallbackBuildId = getExpectedBuildId();
-  console.warn('[Markdown PDF] Falling back to bundled Chromium build: ' + fallbackBuildId);
+  logWarn('Falling back to bundled Chromium build: ' + fallbackBuildId);
   try {
     return await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
   } catch (error) {
-    console.error('[Markdown PDF] All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
+    logError('All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
     return null;
   }
 }
