@@ -713,13 +713,23 @@ async function installChromium(): Promise<void> {
   }
 }
 
+// Action label shown on the error toast; selecting it reveals the output channel.
+const SHOW_OUTPUT_ACTION = 'Show Output';
+
 function showErrorMessage(msg: string, error?: unknown): void {
-  vscode.window.showErrorMessage('ERROR: ' + msg);
+  // Log first so the detail (incl. stack via formatError) is in the channel
+  // by the time the user clicks "Show Output".
   logger.logError(msg);
   if (error) {
-    vscode.window.showErrorMessage(String(error));
     logger.logError(logger.formatError(error));
   }
+  // Single toast with an action button. The raw error detail lives in the
+  // channel, so we no longer show a second toast for String(error).
+  vscode.window.showErrorMessage('ERROR: ' + msg, SHOW_OUTPUT_ACTION).then(function (selection) {
+    if (selection === SHOW_OUTPUT_ACTION) {
+      logger.showLog();
+    }
+  });
 }
 
 function setProxy(): void {
