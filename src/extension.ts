@@ -7,6 +7,7 @@ import os from 'os';
 import * as utils from './utils';
 import * as chromiumResolver from './chromium-resolver';
 import * as logger from './logger';
+import { installSanitizeRules } from './markdown-it-sanitize';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
 import { markdownItCheckbox } from './markdown-it-checkbox';
@@ -83,7 +84,7 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
 }
 
-async function markdownPdf(option_type: string): Promise<void> {
+async function markdownPdf(option_type: string, isOnSave = false): Promise<void> {
 
   try {
 
@@ -123,19 +124,27 @@ async function markdownPdf(option_type: string): Promise<void> {
 
     // convert and export markdown to pdf, html, png, jpeg
     if (types && Array.isArray(types) && types.length > 0) {
+      const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
+      let sanitizeReport: utils.SanitizeReport = { removedElements: [], strippedAttributes: [] };
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
           const text = editor.document.getText();
-          const content = convertMarkdownToHtml(mdfilename, type, text);
-          const html = makeHtml(content, uri);
+          const converted = convertMarkdownToHtml(mdfilename, type, text);
+          if (converted) {
+            // Report is identical across export types (same source + mode); keep the latest.
+            sanitizeReport = converted.report;
+          }
+          const html = makeHtml(converted ? converted.html : undefined, uri);
           await exportPdf(html, filename, type, uri);
         } else {
           showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
           return;
         }
       }
+      // One notification per invocation, after all export types are processed.
+      notifySanitize(sanitizeReport, sanitizeMode, isOnSave);
     } else {
       showErrorMessage('markdownPdf().3 Supported formats: html, pdf, png, jpeg.');
       return;
@@ -153,7 +162,7 @@ function markdownPdfOnSave(): void {
       return;
     }
     if (!isMarkdownPdfOnSaveExclude()) {
-      markdownPdf('settings');
+      markdownPdf('settings', true);
     }
   } catch (error) {
     showErrorMessage('markdownPdfOnSave()', error);
@@ -192,7 +201,7 @@ function getFrontMatterRecord(data: Record<string, unknown>, key: string): Recor
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename: string, type: string, text: string): string | undefined {
+function convertMarkdownToHtml(filename: string, type: string, text: string): { html: string; report: utils.SanitizeReport } | undefined {
   const matterParts = utils.parseFrontMatter(text);
   let statusbarmessage: vscode.Disposable | undefined;
 
@@ -220,15 +229,13 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
       };
 
       const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
-
-      md.renderer.rules.html_block = function (tokens, idx) {
-        const sanitized = utils.sanitizeRawHtml(tokens[idx].content, sanitizeMode);
-        return type !== 'html' ? utils.transformHtmlBlock(sanitized, filename) : sanitized;
-      };
-
-      md.renderer.rules.html_inline = function (tokens, idx) {
-        return utils.sanitizeRawHtml(tokens[idx].content, sanitizeMode);
-      };
+      const sanitizeReport: utils.SanitizeReport = { removedElements: [], strippedAttributes: [] };
+      installSanitizeRules(
+        md,
+        sanitizeMode,
+        sanitizeReport,
+        type !== 'html' ? function (h: string) { return utils.transformHtmlBlock(h, filename); } : undefined,
+      );
 
       // checkbox
       md.use(markdownItCheckbox);
@@ -343,7 +350,7 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): st
         vscode.window.showWarningMessage(match[1]);
       }
 
-      return html;
+      return { html: html, report: sanitizeReport };
 
     } catch (error) {
       if (statusbarmessage) {
@@ -729,6 +736,22 @@ function showErrorMessage(msg: string, error?: unknown): void {
       logger.showLog();
     }
   });
+}
+
+function notifySanitize(report: utils.SanitizeReport, mode: utils.SanitizeMode, isOnSave: boolean): void {
+  if (report.removedElements.length === 0 && report.strippedAttributes.length === 0) {
+    return;
+  }
+  // Always record details to the output channel (manual and on-save).
+  logger.logWarn(utils.buildSanitizeLogDetail(report, mode));
+  // Toast only on explicit/manual export to avoid spamming on convertOnSave.
+  if (!isOnSave) {
+    vscode.window.showWarningMessage(utils.buildSanitizeSummary(report), SHOW_OUTPUT_ACTION).then(function (selection) {
+      if (selection === SHOW_OUTPUT_ACTION) {
+        logger.showLog();
+      }
+    });
+  }
 }
 
 function setProxy(): void {
