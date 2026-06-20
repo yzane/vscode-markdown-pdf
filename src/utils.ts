@@ -999,6 +999,8 @@ export function sanitizeRawHtml(
           continue;
         }
         // Opening tag: remove through the matching closing tag (inclusive).
+        // tagName comes from REMOVE_WITH_CONTENT (style/script/iframe) — no regex
+        // metacharacters, so interpolating it directly is safe.
         const closeRe = new RegExp('</' + tagName + '\\s*>', 'i');
         const match = closeRe.exec(html.slice(tagEnd + 1));
         if (match) {
@@ -1018,9 +1020,7 @@ export function sanitizeRawHtml(
 
     const stripResult = stripDangerousAttributes(tag);
     result += stripResult.tag;
-    for (let s = 0; s < stripResult.stripped.length; s++) {
-      report.strippedAttributes.push(stripResult.stripped[s]);
-    }
+    report.strippedAttributes.push(...stripResult.stripped);
     index = tagEnd + 1;
   }
   return { html: result, report };

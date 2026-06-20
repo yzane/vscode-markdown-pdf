@@ -1999,6 +1999,18 @@ describe('utils', function () {
         assert.strictEqual(r.html, '<style>body{}</style>');
         assert.deepEqual(r.report.removedElements, []);
       });
+
+      it('accumulates one report entry per removed element, in order', function () {
+        const r = utils.sanitizeRawHtml('<script>a</script><style>b</style><script>c</script>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '');
+        assert.deepEqual(r.report.removedElements, ['script', 'style', 'script']);
+      });
+
+      it('drops a stray closing tag of a remove-set element without recording it', function () {
+        const r = utils.sanitizeRawHtml('text</style>more', 'gfm', BLOCK);
+        assert.strictEqual(r.html, 'textmore');
+        assert.deepEqual(r.report.removedElements, []);
+      });
     });
 
     describe('inline context (removeWithContent omitted = escape)', function () {
