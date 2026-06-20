@@ -78,7 +78,7 @@ export function sanitizeRawHtml(html: string, mode: SanitizeMode, options?: Sani
 
 - 内部関数 `stripDangerousAttributes(tag)` を `{ tag: string; stripped: string[] }` を返す形にリファクタ（`on*` は属性名、`href`/`src` の `javascript:` は `name(javascript:)` 形式で記録）。`sanitizeRawHtml` が集約。
 - `mode === 'none'` または空入力時は `{ html, report: { removedElements: [], strippedAttributes: [] } }` を返す。
-- `options` 省略時は `removeWithContent: false`（＝エスケープ動作）。既存の「除去なし」呼び出しと後方互換。
+- `options` 省略時は `removeWithContent: false`。このとき `style`/`script`/`iframe` は（除去ではなく）従来どおり `&lt;` エスケープされる。なお戻り値型は `string` から `{ html, report }` に変わるため API としては破壊的変更で、全呼び出し元（`installSanitizeRules` 内）を更新する。
 
 ### レンダラ配線モジュール（`markdown-it-sanitize.ts`、vscode 非依存・新規）
 
