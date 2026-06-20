@@ -36,19 +36,26 @@
 
 **Files:** （変更なし）
 
-- [ ] **Step 1: ブランチ確認**
+- [ ] **Step 1: git の dubious ownership を回避（必要時のみ）**
+
+一部の agentic worker 実行環境では、worktree 配下の `git` 操作が `detected dubious ownership` で失敗する。`git status` 等が止まる場合のみ、当該 worktree を安全ディレクトリに登録してから続行する:
+
+Run（エラーが出る場合のみ）: `git config --global --add safe.directory C:/work/github/yzane/vscode-markdown-pdf/.worktrees/bugfix-sanitize-removal`
+（このセッションのように `git` が問題なく動く環境では本ステップは不要。実行しても冪等で無害。）
+
+- [ ] **Step 2: ブランチ確認**
 
 Run: `git branch --show-current && git status --short`
 Expected: `bugfix/sanitize-removal`。未コミット変更は spec/plan のみ（または無し）。異なれば中断して報告。
 
-- [ ] **Step 2: 依存インストール（新規 worktree のため）**
+- [ ] **Step 3: 依存インストール（新規 worktree のため）**
 
 Run: `npm ci`
 Expected: 完了（`node_modules` 生成）。
 
-- [ ] **Step 3: ベースライン確認**
+- [ ] **Step 4: ベースライン確認**
 
-Run: `npm run test:unit 2>&1 | grep -iE "ℹ (tests|pass|fail)"`
+Run: `npm run test:unit`（`node --test` は失敗時に非0終了するので、**終了コード**でゲートする。要約だけ見たい場合は別途 `npm run test:unit 2>&1 | tail -5` を使う）
 Expected: 既存テストが全 pass（0 fail）。
 
 ---
@@ -829,7 +836,7 @@ Expected: 双方エラーなし（Task 1 由来の型エラーが解消し、`di
 
 - [ ] **Step 7: ユニットテスト（回帰）**
 
-Run: `npm run test:unit 2>&1 | grep -iE "ℹ (tests|pass|fail)"`
+Run: `npm run test:unit`（`node --test` は失敗時に非0終了するので、**終了コード**でゲートする。要約だけ見たい場合は別途 `npm run test:unit 2>&1 | tail -5` を使う）
 Expected: 0 fail。
 
 - [ ] **Step 8: コミット**
@@ -847,7 +854,7 @@ git commit -m "feat: aggregate sanitize report and notify once per export (toast
 
 - [ ] **Step 1: ユニット全実行**
 
-Run: `npm run test:unit 2>&1 | grep -iE "ℹ (tests|pass|fail)"`
+Run: `npm run test:unit`（`node --test` は失敗時に非0終了するので、**終了コード**でゲートする。要約だけ見たい場合は別途 `npm run test:unit 2>&1 | tail -5` を使う）
 Expected: 全 PASS（0 fail）。utils / markdown-it-sanitize / 既存全て。
 
 - [ ] **Step 2: 型チェック＋バンドル**
