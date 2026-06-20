@@ -40,8 +40,8 @@
 
 一部の agentic worker 実行環境では、worktree 配下の `git` 操作が `detected dubious ownership` で失敗する。`git status` 等が止まる場合のみ、当該 worktree を安全ディレクトリに登録してから続行する:
 
-Run（エラーが出る場合のみ）: `git config --global --add safe.directory C:/work/github/yzane/vscode-markdown-pdf/.worktrees/bugfix-sanitize-removal`
-（このセッションのように `git` が問題なく動く環境では本ステップは不要。実行しても冪等で無害。）
+Run（`git` がエラーなく動く環境では不要、出る場合のみ）: `git config --global --add safe.directory C:/work/github/yzane/vscode-markdown-pdf/.worktrees/bugfix-sanitize-removal`
+（このコマンドは冪等で無害。）
 
 - [ ] **Step 2: ブランチ確認**
 
