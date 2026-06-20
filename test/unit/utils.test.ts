@@ -2053,6 +2053,18 @@ describe('utils', function () {
       assert.match(summary, /<iframe>/);
       assert.doesNotMatch(summary, /attribute/i);
     });
+
+    it('handles attributes only (no removals)', function () {
+      const summary = utils.buildSanitizeSummary({ removedElements: [], strippedAttributes: ['onclick'] });
+      assert.match(summary, /attribute/i);
+      assert.doesNotMatch(summary, /</);
+    });
+
+    it('stays well-formed for an empty report (no double space)', function () {
+      const summary = utils.buildSanitizeSummary({ removedElements: [], strippedAttributes: [] });
+      assert.doesNotMatch(summary, /  /);
+      assert.match(summary, /See output for details\.$/);
+    });
   });
 
   describe('buildSanitizeLogDetail', function () {

@@ -1037,7 +1037,8 @@ function tallyOccurrences(items: string[]): Array<{ name: string; count: number 
     counts.set(item, (counts.get(item) || 0) + 1);
   }
   return order.map(function (name) {
-    return { name: name, count: counts.get(name) || 0 };
+    // name is always present in counts here (it was added to `order` on first sight).
+    return { name: name, count: counts.get(name)! };
   });
 }
 
@@ -1053,7 +1054,10 @@ export function buildSanitizeSummary(report: SanitizeReport): string {
   if (report.strippedAttributes.length > 0) {
     parts.push('stripped unsafe attribute(s)');
   }
-  return 'Markdown PDF: ' + parts.join('; ') + ' for security. See output for details.';
+  // Fall back to a generic phrase for an empty report so the sentence stays well-formed
+  // (the only caller guards against empty, but keep the function safe in isolation).
+  const body = parts.length > 0 ? parts.join('; ') : 'sanitized raw HTML';
+  return 'Markdown PDF: ' + body + ' for security. See output for details.';
 }
 
 // Detailed line(s) for the output channel, including mode and per-kind counts.
@@ -1071,7 +1075,8 @@ export function buildSanitizeLogDetail(report: SanitizeReport, mode: SanitizeMod
   if (stripped.length > 0) {
     segments.push('stripped ' + stripped.join(', '));
   }
-  const lines: string[] = ['Sanitized raw HTML (mode: ' + mode + '): ' + segments.join('; ') + '.'];
+  const head = 'Sanitized raw HTML (mode: ' + mode + ')';
+  const lines: string[] = [segments.length > 0 ? head + ': ' + segments.join('; ') + '.' : head + '.'];
   if (report.removedElements.indexOf('style') !== -1) {
     lines.push('Tip: to keep <style>, set "markdown-pdf.sanitize": "gfm-allow-style".');
   }
