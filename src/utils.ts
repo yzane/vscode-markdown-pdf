@@ -939,6 +939,17 @@ export function getDisallowedTags(mode: SanitizeMode): Set<string> {
   return tags;
 }
 
+/**
+ * Sanitizes raw HTML per GFM's disallowed raw HTML extension, returning the
+ * sanitized string and a report of what was neutralized.
+ * - With `options.removeWithContent` (block context): <style>/<script>/<iframe>
+ *   are removed together with their content; other disallowed tags are escaped.
+ * - Without it (inline context, default): all disallowed tags have their leading
+ *   '<' escaped to '&lt;' (content preserved as text).
+ * - on* event handlers and href/src="javascript:..." attributes are stripped from
+ *   non-disallowed tags. HTML comments are preserved verbatim.
+ * Returns the input unchanged with an empty report when mode is 'none' or input is empty.
+ */
 export function sanitizeRawHtml(
   html: string,
   mode: SanitizeMode,
