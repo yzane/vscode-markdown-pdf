@@ -813,21 +813,30 @@ export function buildPlantumlImgTag(source: string, server: string): string {
 // GitHub Flavored Markdown; 'gfm-allow-style' keeps <style>; 'none' disables.
 export type SanitizeMode = 'gfm' | 'gfm-allow-style' | 'none';
 
-/**
- * Removes dangerous attributes from a single HTML opening/closing tag string.
- * - on* event handlers (onclick, onload, etc.), case-insensitive
- * - href/src whose value begins with 'javascript:' (ignoring leading whitespace), case-insensitive
- *
- * The input `tag` must be the full tag including '<' and '>'. Closing tags
- * ('</tagname>') are returned unchanged. Comments are not handled here.
- */
-function stripDangerousAttributes(tag: string): string {
+export interface SanitizeReport {
+  // Tag names of block-level elements removed with their content (one entry per occurrence).
+  removedElements: string[];
+  // Identifiers of attributes stripped (e.g. 'onclick', 'href(javascript:)'), one per occurrence.
+  strippedAttributes: string[];
+}
+
+export interface SanitizeOptions {
+  // true = block context: remove style/script/iframe with their content.
+  // false/omitted = inline context: escape them like the other disallowed tags.
+  removeWithContent?: boolean;
+}
+
+// Disallowed tags removed with their content (block context only). They render as
+// noise or are unsafe in a PDF: <style>/<script> dump text; <iframe> cannot function.
+const REMOVE_WITH_CONTENT = new Set(['style', 'script', 'iframe']);
+
+function stripDangerousAttributes(tag: string): { tag: string; stripped: string[] } {
+  const stripped: string[] = [];
   // Skip closing tags and bail out cheaply on malformed input.
   if (tag.length < 2 || tag[1] === '/') {
-    return tag;
+    return { tag, stripped };
   }
 
-  // Find where the tag name ends.
   let nameEnd = 1;
   while (nameEnd < tag.length && /[a-z0-9-]/i.test(tag[nameEnd])) {
     nameEnd++;
@@ -836,7 +845,6 @@ function stripDangerousAttributes(tag: string): string {
   let result = tag.slice(0, nameEnd);
   let i = nameEnd;
   while (i < tag.length) {
-    // Capture any whitespace leading to the next token.
     const wsStart = i;
     while (i < tag.length && /\s/.test(tag[i])) {
       i++;
@@ -848,7 +856,6 @@ function stripDangerousAttributes(tag: string): string {
       break;
     }
 
-    // Tag-closing delimiters ('/' or '>'): preserve the leading whitespace.
     if (tag[i] === '/' || tag[i] === '>') {
       result += ws;
       result += tag[i];
@@ -856,20 +863,17 @@ function stripDangerousAttributes(tag: string): string {
       continue;
     }
 
-    // Parse attribute name.
     const attrStart = i;
     while (i < tag.length && !/[\s=/>]/.test(tag[i])) {
       i++;
     }
     const attrName = tag.slice(attrStart, i);
 
-    // Skip whitespace between attribute name and optional '='.
     let afterName = i;
     while (afterName < tag.length && /\s/.test(tag[afterName])) {
       afterName++;
     }
 
-    // Parse optional value.
     let attrEnd = afterName;
     let attrValue: string | null = null;
     if (afterName < tag.length && tag[afterName] === '=') {
@@ -881,7 +885,6 @@ function stripDangerousAttributes(tag: string): string {
         const quote = tag[valueStart];
         const close = tag.indexOf(quote, valueStart + 1);
         if (close === -1) {
-          // Malformed: consume rest of tag.
           attrValue = tag.slice(valueStart + 1);
           attrEnd = tag.length;
         } else {
@@ -889,7 +892,6 @@ function stripDangerousAttributes(tag: string): string {
           attrEnd = close + 1;
         }
       } else {
-        // Unquoted value: read until whitespace, '/', or '>'.
         let valueEnd = valueStart;
         while (valueEnd < tag.length && !/[\s/>]/.test(tag[valueEnd])) {
           valueEnd++;
@@ -900,31 +902,25 @@ function stripDangerousAttributes(tag: string): string {
     }
 
     const lowerName = attrName.toLowerCase();
-    // Strip inline event handler attributes (onclick, onload, onmouseover, ...).
-    // The regex requires 'on' + at least 3 more letters because every real HTML
-    // event handler name has at least three characters after 'on' (the shortest
-    // being oncut/oncopy/ondrag). This intentionally excludes short non-handler
-    // names that also start with 'on', such as 'one' or 'only' used in custom
-    // data-like attributes, so they pass through unchanged.
-    const dangerous =
-      /^on[a-z]{3}/i.test(lowerName) ||
-      ((lowerName === 'href' || lowerName === 'src') &&
-        attrValue !== null &&
-        /^\s*javascript:/i.test(attrValue));
+    const isEventHandler = /^on[a-z]{3}/i.test(lowerName);
+    const isJavascriptUrl =
+      (lowerName === 'href' || lowerName === 'src') &&
+      attrValue !== null &&
+      /^\s*javascript:/i.test(attrValue);
 
-    if (!dangerous) {
-      // Emit the leading whitespace and this safe attribute verbatim.
+    if (!isEventHandler && !isJavascriptUrl) {
       result += ws;
       result += attrName;
       if (attrEnd > afterName) {
-        // Include the '=' and value section verbatim.
         result += tag.slice(i, attrEnd);
       }
+    } else {
+      // Record what was stripped for the sanitize report.
+      stripped.push(isEventHandler ? lowerName : lowerName + '(javascript:)');
     }
-    // If dangerous: drop both ws AND the attribute span (emit nothing).
     i = attrEnd;
   }
-  return result;
+  return { tag: result, stripped };
 }
 
 /**
@@ -943,20 +939,16 @@ export function getDisallowedTags(mode: SanitizeMode): Set<string> {
   return tags;
 }
 
-/**
- * Sanitizes raw HTML per GFM's disallowed raw HTML extension.
- * - Escapes the leading '<' of disallowed tags to '&lt;' (both opening and closing forms)
- * - Removes on* event handler attributes from non-disallowed tags
- * - Removes href/src attributes whose value starts with 'javascript:'
- *
- * Returns the input unchanged when mode is 'none' or input is empty.
- * Operates on the raw HTML string only; does not parse CSS or attribute content
- * beyond what is required for the rules above.
- */
-export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
+export function sanitizeRawHtml(
+  html: string,
+  mode: SanitizeMode,
+  options?: SanitizeOptions,
+): { html: string; report: SanitizeReport } {
+  const report: SanitizeReport = { removedElements: [], strippedAttributes: [] };
   if (mode === 'none' || !html) {
-    return html;
+    return { html, report };
   }
+  const removeWithContent = options?.removeWithContent === true;
   const disallowed = getDisallowedTags(mode);
   let result = '';
   let index = 0;
@@ -965,7 +957,8 @@ export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
     if (html.startsWith('<!--', index)) {
       const commentEnd = html.indexOf('-->', index + 4);
       if (commentEnd === -1) {
-        return result + html.slice(index);
+        result += html.slice(index);
+        break;
       }
       result += html.slice(index, commentEnd + 3);
       index = commentEnd + 3;
@@ -980,19 +973,44 @@ export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
 
     const tagEnd = findHtmlTagEnd(html, index + 1);
     if (tagEnd === -1) {
-      return result + html.slice(index);
+      result += html.slice(index);
+      break;
     }
 
     const tag = html.slice(index, tagEnd + 1);
     const tagName = getTagName(tag);
+
     if (tagName && disallowed.has(tagName)) {
-      // GFM rule: replace leading '<' with '&lt;'. Preserves tag content so the
-      // user still sees what was in the source as visible text.
+      if (removeWithContent && REMOVE_WITH_CONTENT.has(tagName)) {
+        if (tag[1] === '/') {
+          // Stray closing tag of a remove-set element: drop silently.
+          index = tagEnd + 1;
+          continue;
+        }
+        // Opening tag: remove through the matching closing tag (inclusive).
+        const closeRe = new RegExp('</' + tagName + '\\s*>', 'i');
+        const match = closeRe.exec(html.slice(tagEnd + 1));
+        if (match) {
+          index = tagEnd + 1 + match.index + match[0].length;
+        } else {
+          // No closing tag in this token: drop just the opening tag (graceful degrade).
+          index = tagEnd + 1;
+        }
+        report.removedElements.push(tagName);
+        continue;
+      }
+      // Escape set, or remove-set in inline context: GFM escape of leading '<'.
       result += '&lt;' + tag.slice(1);
-    } else {
-      result += stripDangerousAttributes(tag);
+      index = tagEnd + 1;
+      continue;
+    }
+
+    const stripResult = stripDangerousAttributes(tag);
+    result += stripResult.tag;
+    for (let s = 0; s < stripResult.stripped.length; s++) {
+      report.strippedAttributes.push(stripResult.stripped[s]);
     }
     index = tagEnd + 1;
   }
-  return result;
+  return { html: result, report };
 }
