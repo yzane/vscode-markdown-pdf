@@ -12,12 +12,8 @@ export function installSanitizeRules(
 ): void {
   function collect(content: string, removeWithContent: boolean): string {
     const result = sanitizeRawHtml(content, mode, { removeWithContent: removeWithContent });
-    for (let i = 0; i < result.report.removedElements.length; i++) {
-      report.removedElements.push(result.report.removedElements[i]);
-    }
-    for (let i = 0; i < result.report.strippedAttributes.length; i++) {
-      report.strippedAttributes.push(result.report.strippedAttributes[i]);
-    }
+    report.removedElements.push(...result.report.removedElements);
+    report.strippedAttributes.push(...result.report.strippedAttributes);
     return result.html;
   }
 

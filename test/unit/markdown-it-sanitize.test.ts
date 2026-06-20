@@ -24,13 +24,13 @@ describe('installSanitizeRules', function () {
     it('removes a block <script> with its content', function () {
       const { html, report } = render('<script>alert(1)</script>\n');
       assert.doesNotMatch(html, /alert\(1\)/);
-      assert.ok(report.removedElements.indexOf('script') !== -1);
+      assert.deepEqual(report.removedElements, ['script']);
     });
 
     it('removes a block <iframe>', function () {
       const { html, report } = render('<iframe src="x"></iframe>\n');
       assert.doesNotMatch(html, /<iframe/);
-      assert.ok(report.removedElements.indexOf('iframe') !== -1);
+      assert.deepEqual(report.removedElements, ['iframe']);
     });
   });
 
