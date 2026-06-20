@@ -1025,3 +1025,55 @@ export function sanitizeRawHtml(
   }
   return { html: result, report };
 }
+
+// Counts occurrences of each string, preserving first-seen order.
+function tallyOccurrences(items: string[]): Array<{ name: string; count: number }> {
+  const order: string[] = [];
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    if (!counts.has(item)) {
+      order.push(item);
+    }
+    counts.set(item, (counts.get(item) || 0) + 1);
+  }
+  return order.map(function (name) {
+    return { name: name, count: counts.get(name) || 0 };
+  });
+}
+
+// Short, human-facing summary for the warning toast (no counts; kinds only).
+export function buildSanitizeSummary(report: SanitizeReport): string {
+  const parts: string[] = [];
+  const removedKinds = tallyOccurrences(report.removedElements).map(function (e) {
+    return '<' + e.name + '>';
+  });
+  if (removedKinds.length > 0) {
+    parts.push('removed ' + removedKinds.join(', '));
+  }
+  if (report.strippedAttributes.length > 0) {
+    parts.push('stripped unsafe attribute(s)');
+  }
+  return 'Markdown PDF: ' + parts.join('; ') + ' for security. See output for details.';
+}
+
+// Detailed line(s) for the output channel, including mode and per-kind counts.
+export function buildSanitizeLogDetail(report: SanitizeReport, mode: SanitizeMode): string {
+  const segments: string[] = [];
+  const removed = tallyOccurrences(report.removedElements).map(function (e) {
+    return '<' + e.name + '>×' + e.count;
+  });
+  const stripped = tallyOccurrences(report.strippedAttributes).map(function (e) {
+    return e.name + '×' + e.count;
+  });
+  if (removed.length > 0) {
+    segments.push('removed ' + removed.join(', '));
+  }
+  if (stripped.length > 0) {
+    segments.push('stripped ' + stripped.join(', '));
+  }
+  const lines: string[] = ['Sanitized raw HTML (mode: ' + mode + '): ' + segments.join('; ') + '.'];
+  if (report.removedElements.indexOf('style') !== -1) {
+    lines.push('Tip: to keep <style>, set "markdown-pdf.sanitize": "gfm-allow-style".');
+  }
+  return lines.join('\n');
+}

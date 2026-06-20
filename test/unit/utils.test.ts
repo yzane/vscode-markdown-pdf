@@ -2036,6 +2036,46 @@ describe('utils', function () {
     });
   });
 
+  describe('buildSanitizeSummary', function () {
+    it('lists removed element kinds and notes stripped attributes', function () {
+      const summary = utils.buildSanitizeSummary({
+        removedElements: ['style', 'script', 'script'],
+        strippedAttributes: ['onclick'],
+      });
+      assert.match(summary, /<style>/);
+      assert.match(summary, /<script>/);
+      assert.match(summary, /attribute/i);
+      assert.match(summary, /See output for details\.$/);
+    });
+
+    it('handles removals only (no attributes)', function () {
+      const summary = utils.buildSanitizeSummary({ removedElements: ['iframe'], strippedAttributes: [] });
+      assert.match(summary, /<iframe>/);
+      assert.doesNotMatch(summary, /attribute/i);
+    });
+  });
+
+  describe('buildSanitizeLogDetail', function () {
+    it('includes mode and per-kind counts', function () {
+      const detail = utils.buildSanitizeLogDetail({
+        removedElements: ['style', 'script', 'script'],
+        strippedAttributes: ['onclick', 'href(javascript:)'],
+      }, 'gfm');
+      assert.match(detail, /mode: gfm/);
+      assert.match(detail, /<style>×1/);
+      assert.match(detail, /<script>×2/);
+      assert.match(detail, /onclick×1/);
+      assert.match(detail, /href\(javascript:\)×1/);
+    });
+
+    it('adds the gfm-allow-style tip only when <style> was removed', function () {
+      const withStyle = utils.buildSanitizeLogDetail({ removedElements: ['style'], strippedAttributes: [] }, 'gfm');
+      assert.match(withStyle, /gfm-allow-style/);
+      const withoutStyle = utils.buildSanitizeLogDetail({ removedElements: ['script'], strippedAttributes: [] }, 'gfm');
+      assert.doesNotMatch(withoutStyle, /gfm-allow-style/);
+    });
+  });
+
   describe('buildPlantumlImgTag', function () {
     it('should produce an <img> tag whose src points to the encoded plantuml URL', function () {
       const source = 'Bob -> Alice : hello\n';
