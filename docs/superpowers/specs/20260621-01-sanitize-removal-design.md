@@ -6,7 +6,7 @@ issue #437 の核心修正。Markdown 本文中の `<style>` は、現状の `sa
 
 本 spec は以下を統合実装する（要素①＋②a。結合度が高い＝通知は「何を除去したか」を①の結果から得るため）:
 
-- **要素①: サニタイズ除去** — `<style>`/`<script>`/`<iframe>` を「エスケープ」から「中身ごと完全除去」に変更。
+- **要素①: サニタイズ除去** — **ブロックレベル**の `<style>`/`<script>`/`<iframe>` を「エスケープ」から「中身ごと除去」に変更（inline は安全のためエスケープ維持。理由は後述のトークン化の前提）。
 - **要素②a: サニタイズ通知** — 除去・属性除去が起きたとき、ユーザーに通知（手動エクスポート時はトースト＋「Show Output」ボタン、保存時自動変換は OutputChannel のみ）。
 
 前提として完了済み:
@@ -19,11 +19,13 @@ issue #437 の核心修正。Markdown 本文中の `<style>` は、現状の `sa
 
 ### やること
 
-1. `sanitizeRawHtml`（`utils.ts`）: `<style>`/`<script>`/`<iframe>` を中身ごと除去。戻り値を「除去内容のレポート付き」に変更。
-2. 除去・属性除去のレポートを変換単位で集約し、通知（トースト／チャネル）を出す（`extension.ts`）。
+1. `sanitizeRawHtml`（`utils.ts`）: **ブロックレベル**の `<style>`/`<script>`/`<iframe>` を中身ごと除去（`removeWithContent` オプションで切替）。戻り値を「除去内容のレポート付き」に変更。
+2. レンダラ配線を vscode 非依存の新モジュール `markdown-it-sanitize.ts` に抽出（html_block は除去あり、html_inline は除去なし＝エスケープ）。markdown-it 経由の統合テストを可能にする。
+3. 除去・属性除去のレポートを変換単位で集約し、通知（トースト／チャネル）を出す（`extension.ts`）。
 
 ### やらないこと（対象外）
 
+- **inline raw HTML（`foo <script>…</script> bar` 等）の中身ごと除去** — markdown-it はインラインの開始タグ・中身・終了タグを**別トークンに分割**するため中身ごと除去できない（後述）。inline は従来どおり `&lt;` エスケープ（安全＝puppeteer で実行されない・テキスト表示。実例は稀）。本対応は**ブロックレベルの raw HTML 要素**に限定。
 - その他の GFM 禁止タグ（`title`/`textarea`/`xmp`/`noembed`/`noframes`/`plaintext`）の挙動変更 — 従来どおり `&lt;` エスケープ（中身はテキストとして残る）。
 - エスケープ(c) を通知対象にすること — 画面に見えるため除外。除去(a)と属性除去(b)のみ通知。
 - `README` / `CHANGELOG` の更新 — リリース準備時に要素③②b と合わせて一括（破壊的変更メモを含む）。
@@ -44,18 +46,20 @@ GFM 禁止タグ集合（`getDisallowedTags`）は不変（9種: `title, textare
 const REMOVE_WITH_CONTENT = new Set(['style', 'script', 'iframe']);
 ```
 
-`sanitizeRawHtml` の禁止タグ処理を2分岐:
+`sanitizeRawHtml(html, mode, options)` の禁止タグ処理は、`options.removeWithContent`（既定 `false`）で分岐する。**ブロック経路は `true`、インライン経路は `false`** で呼ぶ（後述の配線）。
 
-- タグが**禁止**かつ `REMOVE_WITH_CONTENT` に含まれ、**開始タグ**のとき → 同一トークン内で対応する閉じタグ `</tag>`（大文字小文字無視）を探し、**開始〜中身〜終了を丸ごと削除**。閉じタグが同トークンに無ければ開始タグのみ削除（graceful degrade）。`report.removedElements` に当該タグ名を記録。
-- タグが**禁止**かつ `REMOVE_WITH_CONTENT` の**閉じタグ**が単独で現れたとき（開始と対になっていない異常系）→ 黙って削除（記録しない）。
-- タグが**禁止**だが `REMOVE_WITH_CONTENT` に**含まれない**（エスケープ集合）とき → 従来どおり `&lt;` + `tag.slice(1)`。
-- タグが**非禁止**のとき → 従来どおり `stripDangerousAttributes`。除去された属性を `report.strippedAttributes` に集約。
+- `removeWithContent === true` で、タグが**禁止**かつ `REMOVE_WITH_CONTENT` に含まれ、**開始タグ**のとき → 同一文字列内で対応する閉じタグ `</tag>`（大文字小文字無視）を探し、**開始〜中身〜終了を丸ごと削除**。閉じタグが無ければ開始タグのみ削除（graceful degrade）。`report.removedElements` に当該タグ名を記録。同 set の**閉じタグ単独**（開始と対にならない異常系）→ 黙って削除（記録しない）。
+- `removeWithContent === false`（インライン）で、タグが `REMOVE_WITH_CONTENT` のとき → **エスケープ集合と同様に `&lt;` エスケープ**（中身は別トークンのため触れない。安全だがテキストとして残る）。
+- タグが**禁止**だが `REMOVE_WITH_CONTENT` に**含まれない**（エスケープ集合: title/textarea/xmp/noembed/noframes/plaintext）とき → `removeWithContent` に関わらず従来どおり `&lt;` + `tag.slice(1)`。
+- タグが**非禁止**のとき → 従来どおり `stripDangerousAttributes`。除去された属性を `report.strippedAttributes` に集約（block/inline 共通）。
 
 `gfm-allow-style` では `style` が禁止集合に無いため、除去もエスケープもされず素通り（既存の回避策の挙動を維持）。`none` は全体無変換・レポート空。
 
 #### トークン化の前提（重要）
 
-markdown-it は `<style>`/`<script>` を raw-text ブロック（HTML block type 1）として**開始〜中身〜閉じを1トークン**にまとめる。そのため `sanitizeRawHtml` が受け取る1トークン内で要素全体を確実に除去でき、CSS/JS 本文が残らない（#437 解決）。`<iframe>`（type 6）も単一行/空行を挟まない範囲なら同トークン。空行をまたぐ稀なケースは degrade（タグ除去・内側 markdown は残りうる）。
+markdown-it は `<style>`/`<script>` を raw-text ブロック（HTML block type 1）として**開始〜中身〜閉じを1トークン**（`html_block`）にまとめる。そのため html_block 経路（`removeWithContent: true`）の1トークン内で要素全体を確実に除去でき、CSS/JS 本文が残らない（#437 解決）。`<iframe>`（type 6）もブロック先頭・空行を挟まない範囲なら同様に1 `html_block` トークン。
+
+一方、**インラインの raw HTML**（例 `foo <script>alert(1)</script> bar`）は `html_inline "<script>"` / `text "alert(1)"` / `html_inline "</script>"` の**別トークンに分割**される。1トークン内には開始タグしか無いため「中身ごと除去」は成立しない。よって html_inline 経路は `removeWithContent: false` とし、**従来どおりエスケープ**（`&lt;script>alert(1)&lt;/script>` 相当＝安全・テキスト表示）。ブロック iframe が空行をまたぐ稀なケースも degrade（タグ除去・内側 markdown は残りうる）。
 
 ### レポート返却（戻り値の型変更）
 
@@ -65,15 +69,52 @@ export interface SanitizeReport {
   strippedAttributes: string[]; // 除去した属性の識別子（出現ごと）例 ['onclick','href(javascript:)']
 }
 
-export function sanitizeRawHtml(html: string, mode: SanitizeMode): { html: string; report: SanitizeReport }
+export interface SanitizeOptions {
+  removeWithContent?: boolean;  // default false. true = block context (remove style/script/iframe with content)
+}
+
+export function sanitizeRawHtml(html: string, mode: SanitizeMode, options?: SanitizeOptions): { html: string; report: SanitizeReport }
 ```
 
 - 内部関数 `stripDangerousAttributes(tag)` を `{ tag: string; stripped: string[] }` を返す形にリファクタ（`on*` は属性名、`href`/`src` の `javascript:` は `name(javascript:)` 形式で記録）。`sanitizeRawHtml` が集約。
 - `mode === 'none'` または空入力時は `{ html, report: { removedElements: [], strippedAttributes: [] } }` を返す。
+- `options` 省略時は `removeWithContent: false`（＝エスケープ動作）。既存の「除去なし」呼び出しと後方互換。
+
+### レンダラ配線モジュール（`markdown-it-sanitize.ts`、vscode 非依存・新規）
+
+html_block/html_inline のレンダラ規則を1箇所に集約し、ブロックは除去あり・インラインは除去なしで `sanitizeRawHtml` を呼ぶ。レポートは渡された collector に追記。vscode に依存しないため markdown-it 経由でユニットテスト可能。
+
+```ts
+import type MarkdownIt from 'markdown-it';
+import { sanitizeRawHtml, SanitizeMode, SanitizeReport } from './utils';
+
+export function installSanitizeRules(
+  md: MarkdownIt,
+  mode: SanitizeMode,
+  report: SanitizeReport,                      // mutated collector
+  transformBlock?: (html: string) => string,   // optional post-transform for html_block (non-html export types)
+): void {
+  function collect(content: string, removeWithContent: boolean): string {
+    const result = sanitizeRawHtml(content, mode, { removeWithContent });
+    report.removedElements.push(...result.report.removedElements);
+    report.strippedAttributes.push(...result.report.strippedAttributes);
+    return result.html;
+  }
+  md.renderer.rules.html_block = function (tokens, idx) {
+    const html = collect(tokens[idx].content, true);   // block: remove with content
+    return transformBlock ? transformBlock(html) : html;
+  };
+  md.renderer.rules.html_inline = function (tokens, idx) {
+    return collect(tokens[idx].content, false);        // inline: escape only
+  };
+}
+```
+
+`convertMarkdownToHtml` は従来インラインに書いていた html_block/html_inline 規則をこの関数呼び出しに置き換える。`transformHtmlBlock`（非 html 型のときの後処理）は `transformBlock` コールバックとして渡す（`type !== 'html' ? (h) => utils.transformHtmlBlock(h, filename) : undefined`）。
 
 ### 集約と通知（②a）
 
-**集約点**: `convertMarkdownToHtml`（`extension.ts`）。html_block/html_inline レンダラ規則の各 `sanitizeRawHtml` 呼び出しのレポートを、クロージャ変数 `report`（`{ removedElements: [], strippedAttributes: [] }`）に蓄積。`md.render()` 後に確定。
+**集約点**: `convertMarkdownToHtml`（`extension.ts`）。ローカルの collector `report`（`{ removedElements: [], strippedAttributes: [] }`）を生成し、`installSanitizeRules(md, sanitizeMode, report, transformBlock)` を呼ぶ。`md.render()` 中に各 html_block/html_inline トークンのサニタイズ結果が `report` に追記され、`md.render()` 後に確定。
 
 **戻り値**: `convertMarkdownToHtml` を `{ html: string; report: SanitizeReport } | undefined` に変更（唯一の呼び出し元 `markdownPdf` を更新）。
 
@@ -116,8 +157,10 @@ function notifySanitize(report: SanitizeReport, mode: utils.SanitizeMode, isOnSa
 ```
 markdownPdf(type, isOnSave)
   └ 型ごとに convertMarkdownToHtml(filename, type, text)
-        ├ html_block/html_inline 規則が sanitizeRawHtml(content, mode) を呼ぶ
-        │     → { html, report } を返し、クロージャの report に集約
+        ├ installSanitizeRules(md, mode, report, transformBlock)
+        │     html_block → sanitizeRawHtml(content, mode, {removeWithContent:true})  … ブロックは中身ごと除去
+        │     html_inline → sanitizeRawHtml(content, mode, {removeWithContent:false}) … インラインはエスケープ
+        │     各結果を collector report に追記
         ├ md.render() 後、{ html, report } を返す
   └ ループ後 notifySanitize(report, mode, isOnSave)
         ├ logWarn(buildSanitizeLogDetail(report, mode))        … 常時チャネルへ
@@ -136,30 +179,42 @@ markdownPdf(type, isOnSave)
 ### ユニット（tsx・vscode 非依存・`utils.ts`）
 
 `test/unit/utils.test.ts`（既存の sanitize 系テストを新シェイプに更新＋追加）:
-- `sanitizeRawHtml`:
+- `sanitizeRawHtml`（`removeWithContent: true` ＝ブロック経路相当）:
   - `<style>…css…</style>` が中身ごと消え `html` に残らない／`report.removedElements` に `style`。`<script>`・`<iframe>` も同様。
   - エスケープ集合（例 `<textarea>`）は従来どおり `&lt;textarea>` で中身が残り、`removedElements` に入らない。
-  - 非禁止タグの `onclick` / `href="javascript:…"` が除去され `report.strippedAttributes` に記録（`onclick`、`href(javascript:)`）。
-  - `gfm-allow-style`: `<style>` 素通り・レポート空。
-  - `none`: 無変換・レポート空。
-  - 閉じタグが同トークンに無い `<style>` 単独: 開始タグのみ除去（degrade）、`removedElements` に `style`。
+  - 閉じタグが無い `<style>` 単独: 開始タグのみ除去（degrade）、`removedElements` に `style`。
   - 複数要素・複数属性の件数集計。
+- `sanitizeRawHtml`（`removeWithContent: false` ＝インライン経路相当 / 既定）:
+  - `<style>` / `<script>` / `<iframe>` 単独タグが `&lt;` エスケープされ、`removedElements` は空（インラインは除去しない）。
+- `sanitizeRawHtml`（共通）:
+  - 非禁止タグの `onclick` / `href="javascript:…"` が除去され `report.strippedAttributes` に記録（`onclick`、`href(javascript:)`）。
+  - `gfm-allow-style`: `<style>` 素通り・レポート空。`none`: 無変換・レポート空。
   - 既存の「コメント保持」「属性温存」等のケースが新シェイプ（`.html`）で維持されること。
 - `buildSanitizeSummary` / `buildSanitizeLogDetail`（純粋関数）:
   - 件数集計が正しい（`<script>×2` 等）。
   - `gfm-allow-style` ヒントは `style` 除去時のみ。
   - 空レポートは呼ばれない前提（`notifySanitize` 側でガード）だが、念のため空時の出力も定義（空文字でなく安全な既定）。
 
+### 統合（tsx・vscode 非依存・`markdown-it-sanitize.ts` ＋ markdown-it 実体）
+
+`test/unit/markdown-it-sanitize.test.ts`（新規）。`markdownIt({ html: true })` に `installSanitizeRules(md, 'gfm', report)` を適用して `md.render(...)` し、トークン化を含めて検証（レビュアー指摘の inline ケースを実体で担保）:
+- **ブロック**: 行頭 `<style>body{color:red}</style>` → 出力に `body{color:red}` も `<style>` も残らない／`report.removedElements` に `style`。行頭 `<script>alert(1)</script>`・`<iframe src="x"></iframe>`（単一行）も同様に除去・記録。
+- **インライン（除去されずエスケープ）**:
+  - `foo <script>alert(1)</script> bar` → 出力に実行可能な `<script>` が無く、`alert(1)` はテキストとして残り、`&lt;script` を含む。`report.removedElements` は空。
+  - `foo <style>body{}</style> bar` → 同様にエスケープ（`body{}` はテキスト）。
+  - `foo <iframe>fallback</iframe> bar` → 同様にエスケープ（`fallback` はテキスト）。
+- `gfm-allow-style` で行頭 `<style>` がそのまま出力に残る（除去されない）。
+
 ### 手動（dev host・`extension.ts` は tsx 対象外）
 
-- 手動エクスポート（`<style>`＋`<script>`＋`onclick` を含む .md）: PDF に CSS がリテラル表示されない／トーストに「Show Output」→押下でチャネルに詳細＋`gfm-allow-style` ヒント。
+- 手動エクスポート（行頭 `<style>`＋`<script>`＋`onclick` を含む .md）: PDF に CSS がリテラル表示されない／トーストに「Show Output」→押下でチャネルに詳細＋`gfm-allow-style` ヒント。
 - 同じ .md で convertOnSave: **トーストなし**・チャネルに `logWarn` 記録あり。
 - `sanitize: gfm-allow-style`: `<style>` が保持・適用され、style の除去通知は出ない（`<script>` は除去・通知される）。
 - `all` エクスポート（複数型）: 通知は**1回だけ**。
 
 ## 採用済みデフォルト（レビューで異議があれば再検討）
 
-- 中身ごと除去する集合は `style`/`script`/`iframe` の3つ。他の GFM 禁止タグはエスケープ維持。
+- 中身ごと除去するのは**ブロックレベル**の `style`/`script`/`iframe` のみ。inline raw HTML はエスケープ維持（安全・稀）。他の GFM 禁止タグもエスケープ維持。
 - 通知は除去(a)＋属性除去(b)で発火、エスケープ(c)は対象外。
 - 手動エクスポートのみトースト、convertOnSave はチャネルのみ。
 - `gfm-allow-style` ヒントは詳細ログで `style` 除去時のみ。
