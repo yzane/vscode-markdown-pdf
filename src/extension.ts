@@ -7,6 +7,7 @@ import os from 'os';
 import * as utils from './utils';
 import * as chromiumResolver from './chromium-resolver';
 import * as logger from './logger';
+import * as diagnostics from './diagnostics';
 import { installSanitizeRules } from './markdown-it-sanitize';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
@@ -51,6 +52,37 @@ function getAutoDownload(): boolean {
   return true;
 }
 
+/** Collects a host environment snapshot for diagnostics. */
+function collectEnvironment(): diagnostics.EnvironmentInfo {
+  return {
+    extensionVersion: extensionContext?.extension.packageJSON.version ?? 'unknown',
+    vscodeVersion: vscode.version,
+    platform: process.platform,
+    osRelease: os.release(),
+    arch: process.arch,
+    nodeVersion: process.version,
+    puppeteerCoreVersion: chromiumResolver.getPuppeteerCoreVersion(),
+    expectedChromeBuildId: chromiumResolver.getExpectedBuildId(),
+  };
+}
+
+/** Outputs an environment snapshot and current settings to the channel, then reveals it. */
+function outputDiagnostics(): void {
+  const env = collectEnvironment();
+  const homeDir = os.homedir();
+  const config = vscode.workspace.getConfiguration('markdown-pdf');
+  logger.logInfo(diagnostics.buildEnvironmentBlock(env));
+  logger.logInfo([
+    '--- Settings ---',
+    'type: ' + JSON.stringify(config['type']),
+    'sanitize: ' + (config['sanitize'] || 'gfm'),
+    'executablePath: ' + diagnostics.orNotSet(diagnostics.maskHomePath(config['executablePath'] || '', homeDir)),
+    'chromium.autoDownload: ' + String(getAutoDownload()),
+    'outputDirectory: ' + diagnostics.orNotSet(diagnostics.maskHomePath(config['outputDirectory'] || '', homeDir)),
+  ].join('\n'));
+  logger.showLog();
+}
+
 /** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context;
@@ -66,7 +98,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); })
+    vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.diagnostics', outputDiagnostics),
   ];
   commands.forEach(function (command) {
     context.subscriptions.push(command);
@@ -91,6 +124,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     // check active window
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
+      logger.logWarn('Export aborted: no active editor.');
       vscode.window.showWarningMessage('No active Editor!');
       return;
     }
@@ -98,6 +132,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     // check markdown mode
     const mode = editor.document.languageId;
     if (mode != 'markdown') {
+      logger.logWarn('Export aborted: active document is not markdown (languageId=' + mode + ').');
       vscode.window.showWarningMessage('It is not a markdown mode!');
       return;
     }
@@ -107,10 +142,14 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     const ext = path.extname(mdfilename);
     if (!utils.isExistsPath(mdfilename)) {
       if (editor.document.isUntitled) {
+        logger.logWarn('Export aborted: document is untitled (unsaved).');
         vscode.window.showWarningMessage('Please save the file!');
         return;
       }
-      vscode.window.showWarningMessage('File name does not get!');
+      logger.logWarn('Export aborted: cannot resolve a local file path for ' + uri.toString());
+      vscode.window.showWarningMessage(
+        'Cannot determine the file path. Virtual or remote workspaces (e.g. Azure DevOps) are not supported. Save the file to a local folder.'
+      );
       return;
     }
 
@@ -118,7 +157,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     let filename = '';
     const types = utils.resolveExportTypes(option_type, vscode.workspace.getConfiguration('markdown-pdf')['type']);
     if (types === null) {
-      showErrorMessage('markdownPdf().1 Supported formats: html, pdf, png, jpeg.');
+      showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #1 (resolveExportTypes returned null)');
       return;
     }
 
@@ -126,27 +165,38 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     if (types && Array.isArray(types) && types.length > 0) {
       const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
       let sanitizeReport: utils.SanitizeReport = { removedElements: [], strippedAttributes: [] };
+      const env = collectEnvironment();
+      const homeDir = os.homedir();
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
           const text = editor.document.getText();
-          const converted = convertMarkdownToHtml(mdfilename, type, text);
+          const ctx: diagnostics.ConvertContext = {
+            sourceFile: mdfilename,
+            outputType: type,
+            executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '',
+            autoDownload: getAutoDownload(),
+            outputDirectory: vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '',
+            sanitize: sanitizeMode,
+          };
+          logger.logInfo(diagnostics.buildStartDiagnostics(env, ctx, homeDir));
+          const converted = convertMarkdownToHtml(mdfilename, type, text, ctx, homeDir);
           if (converted) {
             // Report is identical across export types (same source + mode); keep the latest.
             sanitizeReport = converted.report;
           }
-          const html = makeHtml(converted ? converted.html : undefined, uri);
-          await exportPdf(html, filename, type, uri);
+          const html = makeHtml(converted ? converted.html : undefined, uri, ctx, homeDir);
+          await exportPdf(html, filename, type, uri, ctx, homeDir);
         } else {
-          showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
+          showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #2 (unexpected type "' + type + '")');
           return;
         }
       }
       // One notification per invocation, after all export types are processed.
       notifySanitize(sanitizeReport, sanitizeMode, isOnSave);
     } else {
-      showErrorMessage('markdownPdf().3 Supported formats: html, pdf, png, jpeg.');
+      showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #3 (empty types)');
       return;
     }
   } catch (error) {
@@ -201,7 +251,14 @@ function getFrontMatterRecord(data: Record<string, unknown>, key: string): Recor
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename: string, type: string, text: string): { html: string; report: utils.SanitizeReport } | undefined {
+// ctx/homeDir are used only in the catch block(s) to add diagnostic context to error logs.
+function convertMarkdownToHtml(
+  filename: string,
+  type: string,
+  text: string,
+  ctx: diagnostics.ConvertContext,
+  homeDir: string
+): { html: string; report: utils.SanitizeReport } | undefined {
   const matterParts = utils.parseFrontMatter(text);
   let statusbarmessage: vscode.Disposable | undefined;
 
@@ -356,20 +413,26 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): { 
       if (statusbarmessage) {
         statusbarmessage.dispose();
       }
-      showErrorMessage('convertMarkdownToHtml()', error);
+      showErrorMessage('convertMarkdownToHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
     }
   } catch (error) {
     if (statusbarmessage) {
       statusbarmessage.dispose();
     }
-    showErrorMessage('convertMarkdownToHtml()', error);
+    showErrorMessage('convertMarkdownToHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
   }
 }
 
 /*
  * make html
  */
-function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined {
+// ctx/homeDir are used only in the catch block(s) to add diagnostic context to error logs.
+function makeHtml(
+  data: string | undefined,
+  uri: vscode.Uri,
+  ctx: diagnostics.ConvertContext,
+  homeDir: string
+): string | undefined {
   try {
     // read styles
     let style = '';
@@ -392,7 +455,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
     });
     return utils.renderTemplate(template as string, view);
   } catch (error) {
-    showErrorMessage('makeHtml()', error);
+    showErrorMessage('makeHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
   }
 }
 
@@ -411,10 +474,23 @@ function exportHtml(data: string, filename: string): void {
 /*
  * export a html to a pdf file (html-pdf)
  */
-function exportPdf(data: string | undefined, filename: string, type: string, uri: vscode.Uri): Thenable<void> {
+function exportPdf(
+  data: string | undefined,
+  filename: string,
+  type: string,
+  uri: vscode.Uri,
+  ctx: diagnostics.ConvertContext,
+  homeDir: string
+): Thenable<void> {
   const StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   const exportFilename = getOutputDir(filename, uri);
+
+  if (!exportFilename) {
+    return Promise.resolve();  // getOutputDir already showed an error toast
+  }
+  ctx.outputPath = exportFilename;
+  logger.logInfo('Output: ' + diagnostics.maskHomePath(exportFilename, homeDir));
 
   return vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
@@ -433,10 +509,10 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
         exportHtml(data as string, tmpfilename);
         const cacheDir = getExtensionCacheDir();
         const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
-        const resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
+        const resolution = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
           autoDownload: getAutoDownload()
         });
-        if (!resolvedExecPath) {
+        if (!resolution) {
           if (utils.isExistsPath(tmpfilename)) {
             deleteFile(tmpfilename);
           }
@@ -453,11 +529,14 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
           return;
         }
         const launchOptions = {
-          executablePath: resolvedExecPath,
+          executablePath: resolution.path,
           args: ['--lang=' + vscode.env.language, '--no-sandbox', '--disable-setuid-sandbox']
           // Setting Up Chrome Linux Sandbox
           // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
         };
+        ctx.resolvedChromiumPath = resolution.path;
+        ctx.chromiumSource = resolution.source;
+        logger.logInfo('Chromium: ' + diagnostics.maskHomePath(resolution.path, homeDir) + ' (source: ' + resolution.source + ')');
         const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
@@ -531,7 +610,7 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
 
         vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
       } catch (error) {
-        showErrorMessage('exportPdf()', error);
+        showErrorMessage('exportPdf()', error, diagnostics.buildContextSummary(ctx, homeDir));
       }
     } // async
   ); // vscode.window.withProgress
@@ -695,12 +774,12 @@ async function installChromium(): Promise<void> {
       throw new Error('Extension storage path is unavailable.');
     }
 
-    const executablePath = await chromiumResolver.resolveChromiumPath('', cacheDir, {
+    const resolution = await chromiumResolver.resolveChromiumPath('', cacheDir, {
       autoDownload: true,
       onProgress: onProgress
     });
 
-    if (executablePath) {
+    if (resolution) {
       INSTALL_CHECK = true;
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
@@ -736,14 +815,16 @@ async function installChromium(): Promise<void> {
 // Action label shown on the error toast; selecting it reveals the output channel.
 const SHOW_OUTPUT_ACTION = 'Show Output';
 
-function showErrorMessage(msg: string, error?: unknown): void {
-  // Log first so the detail (incl. stack via formatError) is in the channel
-  // by the time the user clicks "Show Output".
+function showErrorMessage(msg: string, error?: unknown, context?: string): void {
+  // Log first so detail (incl. stack via formatError) is in the channel by the
+  // time the user clicks "Show Output".
   logger.logError(msg);
+  if (context) {
+    logger.logError(context);
+  }
   if (error) {
     logger.logError(logger.formatError(error));
   }
-  // Single toast with an action button; the raw error detail lives in the output channel.
   vscode.window.showErrorMessage('ERROR: ' + msg, SHOW_OUTPUT_ACTION).then(function (selection) {
     if (selection === SHOW_OUTPUT_ACTION) {
       logger.showLog();
