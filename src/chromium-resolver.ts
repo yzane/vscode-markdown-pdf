@@ -5,11 +5,24 @@ import fs from 'fs';
 import path from 'path';
 import * as PB from '@puppeteer/browsers';
 import { logInfo, logWarn, logError } from './logger';
+import type { ChromiumSource } from './diagnostics';
 
 // PUPPETEER_REVISIONS is a named export on the CJS module but not on the default export type.
 // Use require() to access it reliably at runtime.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const puppeteerModule: { PUPPETEER_REVISIONS: { chrome: string } } = require('puppeteer-core');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const puppeteerPkg: { version: string } = require('puppeteer-core/package.json');
+
+export interface ChromiumResolution {
+  path: string;
+  source: ChromiumSource;
+}
+
+/** Returns the installed puppeteer-core package version (for diagnostics). */
+export function getPuppeteerCoreVersion(): string {
+  return puppeteerPkg.version;
+}
 
 /** Resolves the Chromium executable path from a user-configured setting. */
 export function findChromiumFromUserSetting(executablePath: string): string | null {
@@ -318,28 +331,30 @@ export async function resolveChromiumPath(
   userExecutablePath: string,
   cacheDir: string,
   options?: ResolveChromiumPathOptions
-): Promise<string | null> {
+): Promise<ChromiumResolution | null> {
   const autoDownload = options?.autoDownload !== false;
   const onProgress = options?.onProgress;
 
-  let executablePath: string | null = findChromiumFromUserSetting(userExecutablePath);
-  if (executablePath) {
-    return executablePath;
+  const userPath = findChromiumFromUserSetting(userExecutablePath);
+  if (userPath) {
+    return { path: userPath, source: 'user-setting' };
   }
 
-  executablePath = findChromiumFromSystem();
-  if (executablePath) {
-    return executablePath;
+  const systemPath = findChromiumFromSystem();
+  if (systemPath) {
+    return { path: systemPath, source: 'system' };
   }
 
   if (!autoDownload) {
-    return await findLatestCachedChromium(cacheDir);
+    const cached = await findLatestCachedChromium(cacheDir);
+    return cached ? { path: cached, source: 'cached' } : null;
   }
 
   const latestBuildId = await fetchLatestStableBuildId();
   if (latestBuildId) {
     try {
-      return await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+      const latestPath = await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+      return { path: latestPath, source: 'latest' };
     } catch (error) {
       logError('Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
       return null;
@@ -350,13 +365,14 @@ export async function resolveChromiumPath(
   const cachedPath = await findLatestCachedChromium(cacheDir);
   if (cachedPath) {
     logWarn('Falling back to cached Chromium build');
-    return cachedPath;
+    return { path: cachedPath, source: 'cached' };
   }
 
   const fallbackBuildId = getExpectedBuildId();
   logWarn('Falling back to bundled Chromium build: ' + fallbackBuildId);
   try {
-    return await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
+    const bundled = await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
+    return { path: bundled, source: 'bundled-fallback' };
   } catch (error) {
     logError('All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
     return null;

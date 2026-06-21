@@ -357,7 +357,8 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath(existingExecutablePath, '/cache', { autoDownload: true });
-        assert.strictEqual(result, existingExecutablePath);
+        assert.strictEqual(result?.path, existingExecutablePath);
+        assert.strictEqual(result?.source, 'user-setting');
         assert.strictEqual(installCalled, false);
       } finally {
         Object.defineProperty(PB, 'install', originalInstall!);
@@ -400,7 +401,8 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
-        assert.strictEqual(result, '/cache/chrome/installed-latest');
+        assert.strictEqual(result?.path, '/cache/chrome/installed-latest');
+        assert.strictEqual(result?.source, 'latest');
         assert.strictEqual(installCalls.length, 1);
         assert.strictEqual((installCalls[0] as { buildId: string }).buildId, '131.0.6778.85');
       } finally {
@@ -444,7 +446,8 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: true });
-        assert.strictEqual(result, '/cache/chrome/130');
+        assert.strictEqual(result?.path, '/cache/chrome/130');
+        assert.strictEqual(result?.source, 'cached');
         assert.strictEqual(installCalled, false);
       } finally {
         Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
@@ -491,7 +494,8 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
-        assert.strictEqual(result, '/cache/chrome/bundled');
+        assert.strictEqual(result?.path, '/cache/chrome/bundled');
+        assert.strictEqual(result?.source, 'bundled-fallback');
         assert.strictEqual(installCalls.length, 1);
         assert.strictEqual((installCalls[0] as { buildId: string }).buildId, chromiumResolver.getExpectedBuildId());
       } finally {
@@ -537,7 +541,8 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: false });
-        assert.strictEqual(result, '/cache/chrome/130');
+        assert.strictEqual(result?.path, '/cache/chrome/130');
+        assert.strictEqual(result?.source, 'cached');
         assert.strictEqual(installCalled, false);
         assert.strictEqual(fetchCalled, false);
       } finally {
