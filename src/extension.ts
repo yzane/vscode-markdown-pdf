@@ -66,6 +66,23 @@ function collectEnvironment(): diagnostics.EnvironmentInfo {
   };
 }
 
+/** Outputs an environment snapshot and current settings to the channel, then reveals it. */
+function outputDiagnostics(): void {
+  const env = collectEnvironment();
+  const homeDir = os.homedir();
+  const config = vscode.workspace.getConfiguration('markdown-pdf');
+  logger.logInfo(diagnostics.buildEnvironmentBlock(env));
+  logger.logInfo([
+    '--- Settings ---',
+    'type: ' + JSON.stringify(config['type']),
+    'sanitize: ' + (config['sanitize'] || 'gfm'),
+    'executablePath: ' + (diagnostics.maskHomePath(config['executablePath'] || '', homeDir) || '(not set)'),
+    'chromium.autoDownload: ' + String(getAutoDownload()),
+    'outputDirectory: ' + (diagnostics.maskHomePath(config['outputDirectory'] || '', homeDir) || '(not set)'),
+  ].join('\n'));
+  logger.showLog();
+}
+
 /** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context;
@@ -81,7 +98,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); })
+    vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.diagnostics', function () { outputDiagnostics(); }),
   ];
   commands.forEach(function (command) {
     context.subscriptions.push(command);
