@@ -182,11 +182,20 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
           };
           logger.logInfo(diagnostics.buildStartDiagnostics(env, ctx, homeDir));
           const converted = convertMarkdownToHtml(mdfilename, type, text, ctx, homeDir);
-          if (converted) {
-            // Report is identical across export types (same source + mode); keep the latest.
-            sanitizeReport = converted.report;
+          if (!converted) {
+            // convertMarkdownToHtml already logged the failure and showed an error toast.
+            // Skip this type instead of exporting a file with garbage content: makeHtml()
+            // would wrap an undefined body into the template (rendering the literal string
+            // "undefined"), which is not undefined and would slip past exportPdf()'s guard.
+            continue;
           }
-          const html = makeHtml(converted ? converted.html : undefined, uri, ctx, homeDir);
+          // Report is identical across export types (same source + mode); keep the latest.
+          sanitizeReport = converted.report;
+          const html = makeHtml(converted.html, uri, ctx, homeDir);
+          if (html === undefined) {
+            // makeHtml already logged the failure and showed an error toast. Skip this type.
+            continue;
+          }
           await exportPdf(html, filename, type, uri, ctx, homeDir);
         } else {
           showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #2 (unexpected type "' + type + '")');
@@ -482,6 +491,12 @@ function exportPdf(
   ctx: diagnostics.ConvertContext,
   homeDir: string
 ): Thenable<void> {
+  if (data === undefined) {
+    // The HTML pipeline failed upstream (already logged + toasted). Callers skip on
+    // undefined too; this is a defensive backstop so exportPdf can never write a file
+    // with undefined/garbage content.
+    return Promise.resolve();
+  }
   const StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   const exportFilename = getOutputDir(filename, uri);
@@ -499,14 +514,14 @@ function exportPdf(
       try {
         // export html
         if (type == 'html') {
-          exportHtml(data as string, exportFilename as string);
+          exportHtml(data, exportFilename as string);
           vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
           return;
         }
 
         // create temporary file
         const tmpfilename = utils.generateTmpHtmlFilename(filename);
-        exportHtml(data as string, tmpfilename);
+        exportHtml(data, tmpfilename);
         const cacheDir = getExtensionCacheDir();
         const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
         const resolution = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
