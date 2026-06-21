@@ -71,15 +71,17 @@ export interface EnvironmentInfo {
 export type ChromiumSource =
   | 'user-setting' | 'system' | 'downloaded' | 'cached' | 'bundled-fallback';
 
-// Context for a single export invocation.
+// Context for a single export invocation. Fields known up front are required;
+// values resolved later in exportPdf() are optional and filled in as they
+// become available, so the start block and error logs never show a stale path.
 export interface ConvertContext {
   sourceFile: string;
   outputType: string;        // pdf/html/png/jpeg
-  outputPath: string;
   executablePath: string;    // configured value (may be empty)
   autoDownload: boolean;
   outputDirectory: string;   // configured value (may be empty)
   sanitize: string;
+  outputPath?: string;             // filled after getOutputDir() in exportPdf
   resolvedChromiumPath?: string;   // filled in after Chromium resolution
   chromiumSource?: ChromiumSource; // filled in after Chromium resolution
 }
@@ -95,8 +97,8 @@ export function buildContextBlock(ctx: ConvertContext, homeDir: string): string;
 export function buildStartDiagnostics(env: EnvironmentInfo, ctx: ConvertContext, homeDir: string): string;
 
 // One-line context summary for error logs. The full block is already emitted at
-// export start, so this only re-states which invocation failed (type / source /
-// chromium) without re-dumping the whole block.
+// export start, so this only re-states which invocation failed
+// (type / output / source / chromium) without re-dumping the whole block.
 export function buildContextSummary(ctx: ConvertContext, homeDir: string): string;
 ```
 
@@ -140,16 +142,16 @@ Expected Chrome build: 131.0.6778.204
 --- Convert ---
 Source: ~\docs\sample.md
 Type: pdf
-Output: ~\docs\sample.pdf
 sanitize: gfm
 executablePath: (not set)
 chromium.autoDownload: true
 outputDirectory: (not set)
 ```
 
-Chromium 解決後（`exportPdf` 内、`logInfo`）:
+`exportPdf` 内で出力先と Chromium が確定した後（`logInfo`。`Output` は `getOutputDir()` が `outputDirectory` を反映した実パス、`source` は解決経路）:
 
 ```
+Output: ~\docs\sample.pdf
 Chromium: ~\AppData\Roaming\Code\...\chrome.exe (source: downloaded)
 ```
 
@@ -157,7 +159,7 @@ Chromium: ~\AppData\Roaming\Code\...\chrome.exe (source: downloaded)
 
 ```
 exportPdf()
-[type=pdf, source=~\docs\sample.md, chromium=system]
+[type=pdf, source=~\docs\sample.md, output=~\docs\sample.pdf, chromium=system]
 Error: Failed to launch the browser process ...
     <stack trace>
 ```
@@ -168,20 +170,38 @@ Error: Failed to launch the browser process ...
 markdownPdf(type)
   env = collectEnvironment()
   ↓ types のループ各回
-    ctx = ConvertContext を構築（file/type/output/設定）
+    ctx = ConvertContext を構築（source/type/設定。outputPath/chromium は未確定）
     logInfo(buildStartDiagnostics(env, ctx, homeDir))   ← 開始時の診断ブロック（毎回）
-    convertMarkdownToHtml → makeHtml → exportPdf(..., ctx)
-      exportPdf 内: resolveChromiumPath → resolution.{path, source}
-                    ctx.resolvedChromiumPath / ctx.chromiumSource を補完 → logInfo
-  ↓ 失敗時（各 catch）
-    showErrorMessage('exportPdf()', error, buildContextSummary(ctx, homeDir))
+    convertMarkdownToHtml(filename, type, text, ctx, homeDir)
+    makeHtml(data, uri, ctx, homeDir)
+    exportPdf(data, filename, type, uri, ctx, homeDir)
+      exportPdf 内: exportFilename = getOutputDir(filename, uri)
+                    ctx.outputPath を補完 → logInfo('Output: ...')
+                    resolveChromiumPath → resolution.{path, source}
+                    ctx.resolvedChromiumPath / ctx.chromiumSource を補完 → logInfo('Chromium: ...')
+  ↓ 失敗時（各 catch: convertMarkdownToHtml / makeHtml / exportPdf）
+    showErrorMessage('<関数名>()', error, buildContextSummary(ctx, homeDir))
       logError(msg) / logError(context) / logError(formatError(error))
       トースト（ERROR: msg ＋ Show Output ボタン）
 ```
 
-`ConvertContext` は `markdownPdf` で生成し、`exportPdf` まで引数で受け渡す。これにより、開始ログとエラー時コンテキストが同じ情報源を共有する。
+`ConvertContext` は `markdownPdf` で生成し、`convertMarkdownToHtml` / `makeHtml` / `exportPdf` のすべてに `homeDir` とともに引数で渡す（Finding 2）。これにより全段階の `catch` が同じ `ctx` で context 付きログを出せる。`outputPath` は `getOutputDir()` が `outputDirectory` を反映して決めるため `exportPdf` 内で確定し `ctx` に補完する（Finding 1）。早期段階（convert/makeHtml）のエラーは出力先非依存のため、`outputPath` 未確定（summary では `output=(unresolved)`）でも診断上の支障はない。
 
 ## 各要素の詳細設計
+
+### 変換パイプラインへの ctx 受け渡し（Finding 1・2 対応）
+
+`ConvertContext` と `homeDir` を変換パイプラインの全関数に渡し、各段階の `catch` が同じ `ctx` で context 付きログを出せるようにする。シグネチャは末尾に `ctx, homeDir` を加える形（既存引数は維持し、変更を最小化）:
+
+- `convertMarkdownToHtml(filename, type, text, ctx, homeDir)`
+- `makeHtml(data, uri, ctx, homeDir)`
+- `exportPdf(data, filename, type, uri, ctx, homeDir)`
+
+各関数の `catch` を `showErrorMessage('<関数名>()', error, buildContextSummary(ctx, homeDir))` に変更する。これで早期段階（convert/makeHtml）のエラーにも context が付く（**Finding 2**）。
+
+**`outputPath` の確定タイミング（Finding 1）**: 実際の出力先は `exportPdf` 内の `getOutputDir(filename, uri)` が `markdown-pdf.outputDirectory` を反映して決める。`markdownPdf` 開始時の `filename` は元 md と同じディレクトリへの単純置換にすぎないため、これを出力先として診断に出すと誤提示になる。よって `ctx.outputPath` は開始時には確定させず、`exportPdf` 内で `getOutputDir()` 直後に補完し `logInfo('Output: ' + maskHomePath(...))` で出力する（`chromiumSource` と同じ「解決後に補完」パターン）。開始ブロックには `outputDirectory` 設定値のみ載せる。
+
+`getOutputDir()` がエラー（`outputDirectory` 無効）の場合は従来どおり `showErrorMessage` してその type をスキップする。開始診断ブロックは既に出力済みのため、「何をしようとして失敗したか」は残る。
 
 ### Chromium 出所（resolver 拡張）
 
@@ -230,7 +250,7 @@ function showErrorMessage(msg: string, error?: unknown, context?: string): void 
 ```
 
 - `context` は任意。**トーストには出さない**（チャネルのみ）。トーストは従来どおり簡潔さを維持。
-- コンテキストを付与する `catch`: `exportPdf` / `convertMarkdownToHtml` / `makeHtml`（変換コンテキストを保持する箇所）。`context` には `buildContextSummary(ctx, homeDir)`（1 行）を渡す。開始時に詳細ブロックが出ているため、エラー時は重複を避けて 1 行サマリに留める。それ以外（`getOutputDir` 等）は段階が関数名で分かるため任意。過剰には付けない。
+- コンテキストを付与する `catch`: `exportPdf` / `convertMarkdownToHtml` / `makeHtml`（前述のとおり `ctx` / `homeDir` を引数で受け取る）。`context` には `buildContextSummary(ctx, homeDir)`（1 行）を渡す。開始時に詳細ブロックが出ているため、エラー時は重複を避けて 1 行サマリに留める。それ以外（`getOutputDir` 等）は段階が関数名で分かるため任意。過剰には付けない。
 
 ### 診断コマンド
 
