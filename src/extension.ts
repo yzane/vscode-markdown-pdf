@@ -7,6 +7,7 @@ import os from 'os';
 import * as utils from './utils';
 import * as chromiumResolver from './chromium-resolver';
 import * as logger from './logger';
+import * as diagnostics from './diagnostics';
 import { installSanitizeRules } from './markdown-it-sanitize';
 import hljs from 'highlight.js';
 import markdownIt from 'markdown-it';
@@ -49,6 +50,20 @@ function getAutoDownload(): boolean {
     return chromium.autoDownload;
   }
   return true;
+}
+
+/** Collects a host environment snapshot for diagnostics. */
+function collectEnvironment(): diagnostics.EnvironmentInfo {
+  return {
+    extensionVersion: extensionContext?.extension.packageJSON.version ?? 'unknown',
+    vscodeVersion: vscode.version,
+    platform: process.platform,
+    osRelease: os.release(),
+    arch: process.arch,
+    nodeVersion: process.version,
+    puppeteerCoreVersion: chromiumResolver.getPuppeteerCoreVersion(),
+    expectedChromeBuildId: chromiumResolver.getExpectedBuildId(),
+  };
 }
 
 /** Activates the extension: registers markdown-pdf commands and wires the convert-on-save handler. */
@@ -433,10 +448,10 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
         exportHtml(data as string, tmpfilename);
         const cacheDir = getExtensionCacheDir();
         const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
-        const resolvedExecPath = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
+        const resolution = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
           autoDownload: getAutoDownload()
         });
-        if (!resolvedExecPath) {
+        if (!resolution) {
           if (utils.isExistsPath(tmpfilename)) {
             deleteFile(tmpfilename);
           }
@@ -453,7 +468,7 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
           return;
         }
         const launchOptions = {
-          executablePath: resolvedExecPath,
+          executablePath: resolution.path,
           args: ['--lang=' + vscode.env.language, '--no-sandbox', '--disable-setuid-sandbox']
           // Setting Up Chrome Linux Sandbox
           // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
@@ -695,12 +710,12 @@ async function installChromium(): Promise<void> {
       throw new Error('Extension storage path is unavailable.');
     }
 
-    const executablePath = await chromiumResolver.resolveChromiumPath('', cacheDir, {
+    const resolution = await chromiumResolver.resolveChromiumPath('', cacheDir, {
       autoDownload: true,
       onProgress: onProgress
     });
 
-    if (executablePath) {
+    if (resolution) {
       INSTALL_CHECK = true;
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
@@ -736,14 +751,16 @@ async function installChromium(): Promise<void> {
 // Action label shown on the error toast; selecting it reveals the output channel.
 const SHOW_OUTPUT_ACTION = 'Show Output';
 
-function showErrorMessage(msg: string, error?: unknown): void {
-  // Log first so the detail (incl. stack via formatError) is in the channel
-  // by the time the user clicks "Show Output".
+function showErrorMessage(msg: string, error?: unknown, context?: string): void {
+  // Log first so detail (incl. stack via formatError) is in the channel by the
+  // time the user clicks "Show Output".
   logger.logError(msg);
+  if (context) {
+    logger.logError(context);
+  }
   if (error) {
     logger.logError(logger.formatError(error));
   }
-  // Single toast with an action button; the raw error detail lives in the output channel.
   vscode.window.showErrorMessage('ERROR: ' + msg, SHOW_OUTPUT_ACTION).then(function (selection) {
     if (selection === SHOW_OUTPUT_ACTION) {
       logger.showLog();

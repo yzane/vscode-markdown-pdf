@@ -21,7 +21,7 @@ export interface ChromiumResolution {
 
 /** Returns the installed puppeteer-core package version (for diagnostics). */
 export function getPuppeteerCoreVersion(): string {
-  return puppeteerPkg.version;
+  return typeof puppeteerPkg.version === 'string' ? puppeteerPkg.version : '(unknown)';
 }
 
 /** Resolves the Chromium executable path from a user-configured setting. */
