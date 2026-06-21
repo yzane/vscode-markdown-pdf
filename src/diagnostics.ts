@@ -42,7 +42,12 @@ export function maskHomePath(p: string, homeDir: string): string {
     return p;
   }
   if (p.toLowerCase().startsWith(homeDir.toLowerCase())) {
-    return '~' + p.slice(homeDir.length);
+    const rest = p.slice(homeDir.length);
+    // Only mask when the matched prefix ends on a path boundary, so that
+    // homeDir "C:\Users\jo" does not mask "C:\Users\john\...".
+    if (rest === '' || rest[0] === '/' || rest[0] === '\\') {
+      return '~' + rest;
+    }
   }
   return p;
 }

@@ -18,4 +18,13 @@ describe('maskHomePath', () => {
     assert.equal(diagnostics.maskHomePath('', HOME), '');
     assert.equal(diagnostics.maskHomePath('C:\\x', ''), 'C:\\x');
   });
+  it('does not mask a partial path-component match', () => {
+    assert.equal(diagnostics.maskHomePath('C:\\Users\\johnny\\a.md', 'C:\\Users\\john'), 'C:\\Users\\johnny\\a.md');
+  });
+  it('masks POSIX home paths', () => {
+    assert.equal(diagnostics.maskHomePath('/home/john/a.md', '/home/john'), '~/a.md');
+  });
+  it('masks when the path equals the home directory exactly', () => {
+    assert.equal(diagnostics.maskHomePath('C:\\Users\\john', 'C:\\Users\\john'), '~');
+  });
 });
