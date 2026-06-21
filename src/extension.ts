@@ -462,9 +462,16 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
         const page = await browser.newPage();
         // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
         // them so a script calling alert/confirm/prompt/beforeunload cannot hang the export.
-        page.on('dialog', function (dialog) {
-          logger.logWarn('Dismissed a blocking dialog during rendering (' + dialog.type() + '): ' + dialog.message());
-          void dialog.dismiss();
+        page.on('dialog', async function (dialog) {
+          const info = '(' + dialog.type() + '): ' + dialog.message();
+          try {
+            await dialog.dismiss();
+            logger.logWarn('Dismissed a blocking dialog during rendering ' + info);
+          } catch (error) {
+            // dismiss() can reject if the dialog was already handled or the page closed;
+            // swallow it (logged) so the handler never produces an unhandled rejection.
+            logger.logWarn('Failed to dismiss a blocking dialog during rendering ' + info + ' - ' + (error instanceof Error ? error.message : String(error)));
+          }
         });
         await page.setDefaultTimeout(0);
         await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });

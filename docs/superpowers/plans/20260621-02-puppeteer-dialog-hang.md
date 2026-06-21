@@ -79,17 +79,25 @@ Expected: 既存テストが全 pass（0 fail）。
         const page = await browser.newPage();
         // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
         // them so a script calling alert/confirm/prompt/beforeunload cannot hang the export.
-        page.on('dialog', function (dialog) {
-          logger.logWarn('Dismissed a blocking dialog during rendering (' + dialog.type() + '): ' + dialog.message());
-          void dialog.dismiss();
+        page.on('dialog', async function (dialog) {
+          const info = '(' + dialog.type() + '): ' + dialog.message();
+          try {
+            await dialog.dismiss();
+            logger.logWarn('Dismissed a blocking dialog during rendering ' + info);
+          } catch (error) {
+            // dismiss() can reject if the dialog was already handled or the page closed;
+            // swallow it (logged) so the handler never produces an unhandled rejection.
+            logger.logWarn('Failed to dismiss a blocking dialog during rendering ' + info + ' - ' + (error instanceof Error ? error.message : String(error)));
+          }
         });
         await page.setDefaultTimeout(0);
 ```
 
 ポイント:
 - `browser.newPage()` の直後・`setDefaultTimeout(0)` の前に置く（`goto` より前に登録する必要がある）。
-- `dialog.dismiss()` は `alert`/`confirm`/`prompt`/`beforeunload` すべてに有効。Promise は `void` で fire-and-forget（await しない）。
-- `dialog.type()` と `dialog.message()` を `logWarn` で「Markdown PDF」チャネルへ記録。
+- `dialog.dismiss()` は `alert`/`confirm`/`prompt`/`beforeunload` すべてに有効（`accept()` ではなく拒否側）。
+- **`async` ハンドラで `await dialog.dismiss()` を `try/catch`**：`dismiss()` が reject しても catch して `logWarn` し、**未処理 Promise rejection を出さない**（「ハンドラ内は例外を投げない」を厳密に満たす）。
+- `dialog.type()` と `dialog.message()` を `logWarn` で「Markdown PDF」チャネルへ記録。成功時は dismiss 後に記録、失敗時は catch で記録。
 - `setDefaultTimeout(0)` は変更しない。
 
 - [ ] **Step 2: 型チェック**

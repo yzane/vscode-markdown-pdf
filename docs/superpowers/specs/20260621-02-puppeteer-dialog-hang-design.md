@@ -34,32 +34,40 @@ const browser = await puppeteer.launch(launchOptions);
 const page = await browser.newPage();
 // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
 // them so a script calling alert/confirm/prompt/beforeunload cannot hang the export.
-page.on('dialog', function (dialog) {
-  logger.logWarn('Dismissed a blocking dialog during rendering (' + dialog.type() + '): ' + dialog.message());
-  void dialog.dismiss();
+page.on('dialog', async function (dialog) {
+  const info = '(' + dialog.type() + '): ' + dialog.message();
+  try {
+    await dialog.dismiss();
+    logger.logWarn('Dismissed a blocking dialog during rendering ' + info);
+  } catch (error) {
+    // dismiss() can reject if the dialog was already handled or the page closed;
+    // swallow it (logged) so the handler never produces an unhandled rejection.
+    logger.logWarn('Failed to dismiss a blocking dialog during rendering ' + info + ' - ' + (error instanceof Error ? error.message : String(error)));
+  }
 });
 await page.setDefaultTimeout(0);
 await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
 ```
 
 - `logger` は要素③で `extension.ts` に import 済み（`import * as logger from './logger';`）。`logWarn` はチャネル未注入時 no-op。
-- `dialog.dismiss()` は `alert`/`confirm`/`prompt`/`beforeunload` すべてに有効（puppeteer の Dialog API）。`void` で fire-and-forget。
+- `dialog.dismiss()` は `alert`/`confirm`/`prompt`/`beforeunload` すべてに有効（puppeteer の Dialog API）。`accept()` ではなく `dismiss()`＝キャンセル/拒否側を選ぶ（confirm→false、prompt→null）。
+- **`dismiss()` を `await` し `try/catch` で包む**: `dismiss()` は「ダイアログが既に処理済み」「ページが閉じた」等で reject しうる。catch で握って `logWarn` するため、**未処理 Promise rejection を出さない**（「ハンドラ内は例外を投げない」を厳密に満たす）。ハンドラ自体を `async` にしても puppeteer は listener を await しないので描画の進行に影響はなく、`dismiss()` の送信タイミングも変わらない。
 - 全 `sanitize` モード共通の防御。ダイアログが発生しなければハンドラは呼ばれず無害。
 
 ### データフロー
 
 ```
 exportPdf → puppeteer.launch → browser.newPage()
-  └ page.on('dialog', d => { logWarn(...); d.dismiss(); })   ← 追加
+  └ page.on('dialog', async d => { try { await d.dismiss(); logWarn(...); } catch { logWarn(failure) } })   ← 追加
   └ page.goto(file://tmp, networkidle0)
-        スクリプトがダイアログを開く → ハンドラが即 dismiss → 描画継続
-        （logWarn が「Markdown PDF」チャネルへ記録）
+        スクリプトがダイアログを開く → ハンドラが dismiss（拒否側）→ 描画継続
+        （logWarn が「Markdown PDF」チャネルへ記録。dismiss 失敗時も logWarn・未処理 rejection なし）
   └ page.pdf() / page.screenshot() → 完走
 ```
 
 ## エラーハンドリング
 
-- ハンドラ内は例外を投げない。`dialog.dismiss()` の Promise は `void` で破棄（await しない）。
+- ハンドラ内は例外を投げない。`async` ハンドラ内で `await dialog.dismiss()` を `try/catch` で包み、reject（ダイアログ処理済み/ページ終了タイミング等）も catch して `logWarn` する。これにより**未処理 Promise rejection を出さない**。
 - `logWarn` はチャネル未注入時も no-op で安全（要素③の設計）。
 - 既存の `exportPdf` の try/catch（失敗時 `showErrorMessage('exportPdf()', error)`）はそのまま。
 
