@@ -460,6 +460,12 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
         };
         const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
+        // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
+        // them so a script calling alert/confirm/prompt/beforeunload cannot hang the export.
+        page.on('dialog', function (dialog) {
+          logger.logWarn('Dismissed a blocking dialog during rendering (' + dialog.type() + '): ' + dialog.message());
+          void dialog.dismiss();
+        });
         await page.setDefaultTimeout(0);
         await page.goto(vscode.Uri.file(tmpfilename).toString(), { waitUntil: 'networkidle0' });
         // generate pdf
