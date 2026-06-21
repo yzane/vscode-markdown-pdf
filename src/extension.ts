@@ -146,7 +146,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
         vscode.window.showWarningMessage('Please save the file!');
         return;
       }
-      logger.logWarn('Export aborted: cannot resolve a local file path for ' + uri.scheme + '://' + uri.fsPath);
+      logger.logWarn('Export aborted: cannot resolve a local file path for ' + uri.toString());
       vscode.window.showWarningMessage(
         'Cannot determine the file path. Virtual or remote workspaces (e.g. Azure DevOps) are not supported. Save the file to a local folder.'
       );
