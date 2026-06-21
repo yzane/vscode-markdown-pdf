@@ -51,7 +51,7 @@ Expected: 完了（`node_modules` 生成）。
 
 - [ ] **Step 4: ベースライン確認**
 
-Run: `npm run test:unit`（`node --test` は失敗時に非0終了するので**終了コード**でゲート。要約は `npm run test:unit 2>&1 | tail -5`）
+Run: `npm run test:unit`（`node --test` は失敗時に非0終了するので**終了コード**でゲートする。要約が要る場合のみ、使用シェルの末尾表示を使う — Bash: `npm run test:unit 2>&1 | tail -5` / PowerShell: `npm run test:unit 2>&1 | Select-Object -Last 5`）
 Expected: 既存テストが全 pass（0 fail）。
 
 ---
