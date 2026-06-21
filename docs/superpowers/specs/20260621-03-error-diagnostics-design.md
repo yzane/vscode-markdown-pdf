@@ -69,7 +69,7 @@ export interface EnvironmentInfo {
 
 // How the Chromium executable was resolved.
 export type ChromiumSource =
-  | 'user-setting' | 'system' | 'downloaded' | 'cached' | 'bundled-fallback';
+  | 'user-setting' | 'system' | 'latest' | 'cached' | 'bundled-fallback';
 
 // Context for a single export invocation. Fields known up front are required;
 // values resolved later in exportPdf() are optional and filled in as they
@@ -152,7 +152,7 @@ outputDirectory: (not set)
 
 ```
 Output: ~\docs\sample.pdf
-Chromium: ~\AppData\Roaming\Code\...\chrome.exe (source: downloaded)
+Chromium: ~\AppData\Roaming\Code\...\chrome.exe (source: latest)
 ```
 
 エラー時（`logError`、`showErrorMessage` 経由。`LogOutputChannel` がタイムスタンプ／レベルを自動付与）:
@@ -201,7 +201,7 @@ markdownPdf(type)
 
 **`outputPath` の確定タイミング（Finding 1）**: 実際の出力先は `exportPdf` 内の `getOutputDir(filename, uri)` が `markdown-pdf.outputDirectory` を反映して決める。`markdownPdf` 開始時の `filename` は元 md と同じディレクトリへの単純置換にすぎないため、これを出力先として診断に出すと誤提示になる。よって `ctx.outputPath` は開始時には確定させず、`exportPdf` 内で `getOutputDir()` 直後に補完し `logInfo('Output: ' + maskHomePath(...))` で出力する（`chromiumSource` と同じ「解決後に補完」パターン）。開始ブロックには `outputDirectory` 設定値のみ載せる。
 
-`getOutputDir()` がエラー（`outputDirectory` 無効）の場合は従来どおり `showErrorMessage` してその type をスキップする。開始診断ブロックは既に出力済みのため、「何をしようとして失敗したか」は残る。
+`getOutputDir()` が `undefined`（`outputDirectory` 無効）を返したら、`exportPdf` 内で早期 `return Promise.resolve()` してその type を中止する。**現行コードは `exportFilename as string` のまま `exportHtml` / `page.pdf` に渡して続行してしまうため、この早期 return を新設する**（`getOutputDir` 内で `showErrorMessage` は実行済み）。開始診断ブロックは既に出力済みのため、「何をしようとして失敗したか」は残る。
 
 ### Chromium 出所（resolver 拡張）
 
@@ -219,9 +219,11 @@ export interface ChromiumResolution {
 |---|---|
 | `findChromiumFromUserSetting` 成功 | `'user-setting'` |
 | `findChromiumFromSystem` 成功 | `'system'` |
-| `ensureChromiumDownloaded`（latest build）成功 | `'downloaded'` |
+| `ensureChromiumDownloaded`（latest build, DL または既存キャッシュ）成功 | `'latest'` |
 | `findLatestCachedChromium` 成功（autoDownload=false、または fetch 失敗時の cache） | `'cached'` |
-| bundled fallback build のダウンロード成功 | `'bundled-fallback'` |
+| `ensureChromiumDownloaded`（bundled fallback build, DL または既存キャッシュ）成功 | `'bundled-fallback'` |
+
+`'latest'` は「最新安定ビルド ID で解決した経路」を表す。`ensureChromiumDownloaded` は対象ビルドが既にキャッシュにあればダウンロードせずに返すため、`'latest'` / `'bundled-fallback'` は実ダウンロードと既存キャッシュを名前では区別しない（解決経路が分かれば診断には十分。厳密な download/cache 区別は YAGNI のため `ensureChromiumDownloaded` の戻り値は変更しない）。
 
 呼び出し元の更新（2 箇所のみ。`init`→`checkPuppeteerBinary` は `findChromiumFrom*` を直接使い `resolveChromiumPath` を経由しないため影響なし）:
 
@@ -311,7 +313,7 @@ export function maskHomePath(p: string, homeDir: string): string {
   - `maskHomePath`: homedir 先頭一致 / 大小違い / 未一致 / 空文字 / homeDir 空。
   - `buildEnvironmentBlock` / `buildContextBlock` / `buildContextSummary` / `buildStartDiagnostics`: 既知の `EnvironmentInfo` / `ConvertContext` から、主要キーの存在とマスク適用、未設定値が `(not set)` 表記になることを検証。`buildContextSummary` は 1 行であることも確認。
 - `test/unit/chromium-resolver.test.ts`（更新）:
-  - 各経路（user-setting / system / downloaded / cached / bundled-fallback）で `source` が正しいことを検証。
+  - 各経路（user-setting / system / latest / cached / bundled-fallback）で `source` が正しいことを検証。
   - 既存テストの戻り値参照を `.path` に追随。
 
 ### 手動検証（dev host F5）

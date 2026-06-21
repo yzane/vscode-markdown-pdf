@@ -88,7 +88,7 @@ export interface EnvironmentInfo {
 // How the Chromium executable was resolved. Single source of truth for the
 // union; chromium-resolver.ts imports this type.
 export type ChromiumSource =
-  | 'user-setting' | 'system' | 'downloaded' | 'cached' | 'bundled-fallback';
+  | 'user-setting' | 'system' | 'latest' | 'cached' | 'bundled-fallback';
 
 // Context for a single export invocation. Fields known up front are required;
 // values resolved later in exportPdf() are optional and filled in as they become
@@ -310,7 +310,7 @@ In `test/unit/chromium-resolver.test.ts`, the `describe('resolveChromiumPath', .
 | Test (it title) | Old assertion | New assertions |
 |---|---|---|
 | returns user setting path immediately | `assert.strictEqual(result, existingExecutablePath)` | `assert.strictEqual(result?.path, existingExecutablePath); assert.strictEqual(result?.source, 'user-setting')` |
-| download latest build id | `assert.strictEqual(result, '/cache/chrome/installed-latest')` | `assert.strictEqual(result?.path, '/cache/chrome/installed-latest'); assert.strictEqual(result?.source, 'downloaded')` |
+| download latest build id | `assert.strictEqual(result, '/cache/chrome/installed-latest')` | `assert.strictEqual(result?.path, '/cache/chrome/installed-latest'); assert.strictEqual(result?.source, 'latest')` |
 | return cached path when JSON fetch fails | `assert.strictEqual(result, '/cache/chrome/130')` | `assert.strictEqual(result?.path, '/cache/chrome/130'); assert.strictEqual(result?.source, 'cached')` |
 | fall back to bundled puppeteer-core build | `assert.strictEqual(result, '/cache/chrome/bundled')` | `assert.strictEqual(result?.path, '/cache/chrome/bundled'); assert.strictEqual(result?.source, 'bundled-fallback')` |
 | return cached path when autoDownload=false | `assert.strictEqual(result, '/cache/chrome/130')` | `assert.strictEqual(result?.path, '/cache/chrome/130'); assert.strictEqual(result?.source, 'cached')` |
@@ -373,8 +373,8 @@ export async function resolveChromiumPath(
   const latestBuildId = await fetchLatestStableBuildId();
   if (latestBuildId) {
     try {
-      const downloaded = await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
-      return { path: downloaded, source: 'downloaded' };
+      const latestPath = await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+      return { path: latestPath, source: 'latest' };
     } catch (error) {
       logError('Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
       return null;
@@ -650,14 +650,17 @@ function exportPdf(
 ): Thenable<void> {
 ```
 
-After `const exportFilename = getOutputDir(filename, uri);` (line 417), add the output-path completion log:
+After `const exportFilename = getOutputDir(filename, uri);` (line 417), add an early return for the unresolved-output-dir case, then the output-path completion log. The early return fixes a latent bug: currently exportPdf continues with `exportFilename as string` even when `getOutputDir` returned `undefined`.
 
 ```ts
-  if (exportFilename) {
-    ctx.outputPath = exportFilename;
-    logger.logInfo('Output: ' + diagnostics.maskHomePath(exportFilename, homeDir));
+  if (!exportFilename) {
+    return Promise.resolve();  // getOutputDir already showed an error toast
   }
+  ctx.outputPath = exportFilename;
+  logger.logInfo('Output: ' + diagnostics.maskHomePath(exportFilename, homeDir));
 ```
+
+> Note: this `return` sits before `return vscode.window.withProgress(...)`, so it returns `Promise.resolve()` to satisfy the `Thenable<void>` return type. Once this guard is in place, the later `exportFilename as string` casts can stay as-is (the value is now guaranteed defined).
 
 After the `launchOptions` block (i.e. once `resolution` is known, inside the `try`, just before `const browser = await puppeteer.launch(launchOptions);`), add the Chromium completion log:
 
