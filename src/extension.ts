@@ -124,6 +124,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     // check active window
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
+      logger.logWarn('Export aborted: no active editor.');
       vscode.window.showWarningMessage('No active Editor!');
       return;
     }
@@ -131,6 +132,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     // check markdown mode
     const mode = editor.document.languageId;
     if (mode != 'markdown') {
+      logger.logWarn('Export aborted: active document is not markdown (languageId=' + mode + ').');
       vscode.window.showWarningMessage('It is not a markdown mode!');
       return;
     }
@@ -140,10 +142,14 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     const ext = path.extname(mdfilename);
     if (!utils.isExistsPath(mdfilename)) {
       if (editor.document.isUntitled) {
+        logger.logWarn('Export aborted: document is untitled (unsaved).');
         vscode.window.showWarningMessage('Please save the file!');
         return;
       }
-      vscode.window.showWarningMessage('File name does not get!');
+      logger.logWarn('Export aborted: cannot resolve a local file path for ' + uri.scheme + '://' + uri.fsPath);
+      vscode.window.showWarningMessage(
+        'Cannot determine the file path. Virtual or remote workspaces (e.g. Azure DevOps) are not supported. Save the file to a local folder.'
+      );
       return;
     }
 
@@ -151,7 +157,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     let filename = '';
     const types = utils.resolveExportTypes(option_type, vscode.workspace.getConfiguration('markdown-pdf')['type']);
     if (types === null) {
-      showErrorMessage('markdownPdf().1 Supported formats: html, pdf, png, jpeg.');
+      showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #1 (resolveExportTypes returned null)');
       return;
     }
 
@@ -183,14 +189,14 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
           const html = makeHtml(converted ? converted.html : undefined, uri, ctx, homeDir);
           await exportPdf(html, filename, type, uri, ctx, homeDir);
         } else {
-          showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
+          showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #2 (unexpected type "' + type + '")');
           return;
         }
       }
       // One notification per invocation, after all export types are processed.
       notifySanitize(sanitizeReport, sanitizeMode, isOnSave);
     } else {
-      showErrorMessage('markdownPdf().3 Supported formats: html, pdf, png, jpeg.');
+      showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #3 (empty types)');
       return;
     }
   } catch (error) {
