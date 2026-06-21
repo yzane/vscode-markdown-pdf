@@ -52,9 +52,9 @@ export function maskHomePath(p: string, homeDir: string): string {
   return p;
 }
 
-// Render a value for display, substituting a placeholder for empty input.
+// Render a value for display, substituting a placeholder for empty/blank input.
 function orNotSet(value: string): string {
-  return value && value.length > 0 ? value : '(not set)';
+  return value && value.trim().length > 0 ? value : '(not set)';
 }
 
 export function buildEnvironmentBlock(env: EnvironmentInfo): string {

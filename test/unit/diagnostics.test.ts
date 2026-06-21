@@ -81,6 +81,10 @@ describe('buildContextBlock', () => {
       makeContext({ executablePath: 'C:\\Users\\john\\chrome.exe' }), HOME);
     assert.match(block, /executablePath: ~\\chrome\.exe/);
   });
+  it('shows autoDownload=false', () => {
+    const block = diagnostics.buildContextBlock(makeContext({ autoDownload: false }), HOME);
+    assert.match(block, /chromium\.autoDownload: false/);
+  });
 });
 
 describe('buildContextSummary', () => {
@@ -103,5 +107,9 @@ describe('buildStartDiagnostics', () => {
     assert.match(out, /=== Markdown PDF Diagnostics ===/);
     assert.match(out, /--- Convert ---/);
     assert.ok(out.indexOf('===') < out.indexOf('---'));
+  });
+  it('joins the two blocks with a single newline', () => {
+    const out = diagnostics.buildStartDiagnostics(ENV, makeContext(), HOME);
+    assert.ok(out.includes('\n--- Convert ---'));
   });
 });
