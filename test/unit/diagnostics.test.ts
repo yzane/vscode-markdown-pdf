@@ -85,6 +85,10 @@ describe('buildContextBlock', () => {
     const block = diagnostics.buildContextBlock(makeContext({ autoDownload: false }), HOME);
     assert.match(block, /chromium\.autoDownload: false/);
   });
+  it('treats a whitespace-only config value as not set', () => {
+    const block = diagnostics.buildContextBlock(makeContext({ executablePath: '   ' }), HOME);
+    assert.match(block, /executablePath: \(not set\)/);
+  });
 });
 
 describe('buildContextSummary', () => {

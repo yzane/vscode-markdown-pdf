@@ -227,6 +227,7 @@ function getFrontMatterRecord(data: Record<string, unknown>, key: string): Recor
 /*
  * convert markdown to html (markdown-it)
  */
+// ctx/homeDir are used only in the catch block(s) to add diagnostic context to error logs.
 function convertMarkdownToHtml(
   filename: string,
   type: string,
@@ -401,6 +402,7 @@ function convertMarkdownToHtml(
 /*
  * make html
  */
+// ctx/homeDir are used only in the catch block(s) to add diagnostic context to error logs.
 function makeHtml(
   data: string | undefined,
   uri: vscode.Uri,
