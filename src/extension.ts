@@ -141,18 +141,29 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     if (types && Array.isArray(types) && types.length > 0) {
       const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
       let sanitizeReport: utils.SanitizeReport = { removedElements: [], strippedAttributes: [] };
+      const env = collectEnvironment();
+      const homeDir = os.homedir();
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
           const text = editor.document.getText();
-          const converted = convertMarkdownToHtml(mdfilename, type, text);
+          const ctx: diagnostics.ConvertContext = {
+            sourceFile: mdfilename,
+            outputType: type,
+            executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '',
+            autoDownload: getAutoDownload(),
+            outputDirectory: vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '',
+            sanitize: sanitizeMode,
+          };
+          logger.logInfo(diagnostics.buildStartDiagnostics(env, ctx, homeDir));
+          const converted = convertMarkdownToHtml(mdfilename, type, text, ctx, homeDir);
           if (converted) {
             // Report is identical across export types (same source + mode); keep the latest.
             sanitizeReport = converted.report;
           }
-          const html = makeHtml(converted ? converted.html : undefined, uri);
-          await exportPdf(html, filename, type, uri);
+          const html = makeHtml(converted ? converted.html : undefined, uri, ctx, homeDir);
+          await exportPdf(html, filename, type, uri, ctx, homeDir);
         } else {
           showErrorMessage('markdownPdf().2 Supported formats: html, pdf, png, jpeg.');
           return;
@@ -216,7 +227,13 @@ function getFrontMatterRecord(data: Record<string, unknown>, key: string): Recor
 /*
  * convert markdown to html (markdown-it)
  */
-function convertMarkdownToHtml(filename: string, type: string, text: string): { html: string; report: utils.SanitizeReport } | undefined {
+function convertMarkdownToHtml(
+  filename: string,
+  type: string,
+  text: string,
+  ctx: diagnostics.ConvertContext,
+  homeDir: string
+): { html: string; report: utils.SanitizeReport } | undefined {
   const matterParts = utils.parseFrontMatter(text);
   let statusbarmessage: vscode.Disposable | undefined;
 
@@ -371,20 +388,25 @@ function convertMarkdownToHtml(filename: string, type: string, text: string): { 
       if (statusbarmessage) {
         statusbarmessage.dispose();
       }
-      showErrorMessage('convertMarkdownToHtml()', error);
+      showErrorMessage('convertMarkdownToHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
     }
   } catch (error) {
     if (statusbarmessage) {
       statusbarmessage.dispose();
     }
-    showErrorMessage('convertMarkdownToHtml()', error);
+    showErrorMessage('convertMarkdownToHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
   }
 }
 
 /*
  * make html
  */
-function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined {
+function makeHtml(
+  data: string | undefined,
+  uri: vscode.Uri,
+  ctx: diagnostics.ConvertContext,
+  homeDir: string
+): string | undefined {
   try {
     // read styles
     let style = '';
@@ -407,7 +429,7 @@ function makeHtml(data: string | undefined, uri: vscode.Uri): string | undefined
     });
     return utils.renderTemplate(template as string, view);
   } catch (error) {
-    showErrorMessage('makeHtml()', error);
+    showErrorMessage('makeHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
   }
 }
 
@@ -426,10 +448,23 @@ function exportHtml(data: string, filename: string): void {
 /*
  * export a html to a pdf file (html-pdf)
  */
-function exportPdf(data: string | undefined, filename: string, type: string, uri: vscode.Uri): Thenable<void> {
+function exportPdf(
+  data: string | undefined,
+  filename: string,
+  type: string,
+  uri: vscode.Uri,
+  ctx: diagnostics.ConvertContext,
+  homeDir: string
+): Thenable<void> {
   const StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
   const exportFilename = getOutputDir(filename, uri);
+
+  if (!exportFilename) {
+    return Promise.resolve();  // getOutputDir already showed an error toast
+  }
+  ctx.outputPath = exportFilename;
+  logger.logInfo('Output: ' + diagnostics.maskHomePath(exportFilename, homeDir));
 
   return vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
@@ -473,6 +508,9 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
           // Setting Up Chrome Linux Sandbox
           // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#setting-up-chrome-linux-sandbox
         };
+        ctx.resolvedChromiumPath = resolution.path;
+        ctx.chromiumSource = resolution.source;
+        logger.logInfo('Chromium: ' + diagnostics.maskHomePath(resolution.path, homeDir) + ' (source: ' + resolution.source + ')');
         const browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
@@ -546,7 +584,7 @@ function exportPdf(data: string | undefined, filename: string, type: string, uri
 
         vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
       } catch (error) {
-        showErrorMessage('exportPdf()', error);
+        showErrorMessage('exportPdf()', error, diagnostics.buildContextSummary(ctx, homeDir));
       }
     } // async
   ); // vscode.window.withProgress
