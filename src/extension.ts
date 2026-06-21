@@ -76,9 +76,9 @@ function outputDiagnostics(): void {
     '--- Settings ---',
     'type: ' + JSON.stringify(config['type']),
     'sanitize: ' + (config['sanitize'] || 'gfm'),
-    'executablePath: ' + (diagnostics.maskHomePath(config['executablePath'] || '', homeDir) || '(not set)'),
+    'executablePath: ' + diagnostics.orNotSet(diagnostics.maskHomePath(config['executablePath'] || '', homeDir)),
     'chromium.autoDownload: ' + String(getAutoDownload()),
-    'outputDirectory: ' + (diagnostics.maskHomePath(config['outputDirectory'] || '', homeDir) || '(not set)'),
+    'outputDirectory: ' + diagnostics.orNotSet(diagnostics.maskHomePath(config['outputDirectory'] || '', homeDir)),
   ].join('\n'));
   logger.showLog();
 }
@@ -99,7 +99,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.all', async function () { await markdownPdf('all'); }),
-    vscode.commands.registerCommand('extension.markdown-pdf.diagnostics', function () { outputDiagnostics(); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.diagnostics', outputDiagnostics),
   ];
   commands.forEach(function (command) {
     context.subscriptions.push(command);
