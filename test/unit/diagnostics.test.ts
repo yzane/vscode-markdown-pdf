@@ -117,3 +117,57 @@ describe('buildStartDiagnostics', () => {
     assert.ok(out.includes('\n--- Convert ---'));
   });
 });
+
+// Build an Error carrying a Node fs error code (e.g. EBUSY) for classifyError tests.
+function errWith(message: string, code?: string): Error {
+  const e = new Error(message);
+  if (code !== undefined) {
+    (e as NodeJS.ErrnoException).code = code;
+  }
+  return e;
+}
+
+describe('classifyError', () => {
+  it('rule 1: browser launch failure → Chromium hint + executablePath setting', () => {
+    const r = diagnostics.classifyError(errWith('Failed to launch the browser process! spawn ENOENT'));
+    assert.match(r?.hint ?? '', /Chromium/);
+    const a = r?.action;
+    assert.ok(a?.kind === 'settings' && /markdown-pdf\.executablePath/.test(a.query));
+  });
+  it('rule 1: "Could not find" browser message also matches', () => {
+    assert.match(diagnostics.classifyError(errWith('Could not find Chrome (ver. 131).'))?.hint ?? '', /Chromium/);
+  });
+  it('rule 2: EBUSY/EPERM/EACCES code → write-file hint, no action', () => {
+    for (const code of ['EBUSY', 'EPERM', 'EACCES']) {
+      const r = diagnostics.classifyError(errWith('write failed', code));
+      assert.match(r?.hint ?? '', /write the output file/i);
+      assert.equal(r?.action, undefined);
+    }
+  });
+  it('rule 2: also matches via message token (wrapped error)', () => {
+    assert.match(
+      diagnostics.classifyError(errWith('EBUSY: resource busy or locked, open ...'))?.hint ?? '',
+      /write the output file/i);
+  });
+  it('rule 3: ENOSPC → disk-space hint', () => {
+    assert.match(diagnostics.classifyError(errWith('no space', 'ENOSPC'))?.hint ?? '', /space/i);
+  });
+  it('rule 4: ENOENT/EISDIR → output-path hint + outputDirectory setting', () => {
+    for (const code of ['ENOENT', 'EISDIR']) {
+      const r = diagnostics.classifyError(errWith('bad path', code));
+      assert.match(r?.hint ?? '', /output path/i);
+      const a = r?.action;
+      assert.ok(a?.kind === 'settings' && /markdown-pdf\.outputDirectory/.test(a.query));
+    }
+  });
+  it('order: launch failure wins over an EACCES code', () => {
+    const r = diagnostics.classifyError(errWith('Failed to launch the browser process!', 'EACCES'));
+    assert.match(r?.hint ?? '', /Chromium/);
+  });
+  it('returns undefined for an unrecognized error', () => {
+    assert.equal(diagnostics.classifyError(errWith('something totally unexpected')), undefined);
+  });
+  it('classifies from non-Error string values', () => {
+    assert.match(diagnostics.classifyError('EACCES: denied')?.hint ?? '', /write the output file/i);
+  });
+});

@@ -96,3 +96,71 @@ export function buildContextSummary(ctx: ConvertContext, homeDir: string): strin
     ', output=' + output +
     ', chromium=' + chromium;
 }
+
+// Action a user can take from an error toast. `label` is the button text; `kind`
+// selects how extension.ts performs it (open settings / open a URL). Defined here
+// (vscode-free) so classifyError can return it without importing the editor API.
+export type ErrorActionSpec =
+  | { kind: 'settings'; query: string; label: string }
+  | { kind: 'url'; url: string; label: string };
+
+export interface ErrorHint {
+  hint: string;
+  action?: ErrorActionSpec;
+}
+
+// Read a Node fs/network error code (e.g. EBUSY) if present; '' otherwise. Null-safe.
+function errorCode(error: unknown): string {
+  const c = (error as { code?: unknown } | null | undefined)?.code;
+  return c != null ? String(c) : '';
+}
+
+// Read a message for substring matching. Never throws.
+function errorMessageText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+// Map a thrown export error to a one-line, user-actionable hint (+ optional action
+// button). Detection is code-first (stable, locale-independent) with a
+// message-substring fallback for wrapped errors. Returns undefined when the error
+// is not recognized -- a wrong hint is worse than none. Rule order matters: the
+// browser-launch check runs first so a launch failure carrying EACCES is not
+// misread as an output-file permission problem.
+export function classifyError(error: unknown): ErrorHint | undefined {
+  const code = errorCode(error);
+  const message = errorMessageText(error);
+
+  // 1. Chromium failed to launch (resolved path exists but the process won't start).
+  if (/Failed to launch the browser process/i.test(message) ||
+      /Could not find .*(Chrome|Chromium|browser)/i.test(message)) {
+    return {
+      hint: 'Chromium could not be started. Set a valid Chromium path or enable auto-download.',
+      action: { kind: 'settings', query: '@id:markdown-pdf.executablePath', label: 'Open Settings' },
+    };
+  }
+
+  // 2. Output file locked (open in another app) or no write permission.
+  if (code === 'EBUSY' || code === 'EPERM' || code === 'EACCES' ||
+      /\bEBUSY\b|\bEPERM\b|\bEACCES\b|being used by another process/i.test(message)) {
+    return {
+      hint: 'Cannot write the output file. Close it if it is open in another app, then check write permission.',
+    };
+  }
+
+  // 3. Disk full.
+  if (code === 'ENOSPC' || /\bENOSPC\b|no space left/i.test(message)) {
+    return {
+      hint: 'No space left on the device. Free up disk space and retry.',
+    };
+  }
+
+  // 4. Output path invalid (missing parent directory, or the path is a directory).
+  if (code === 'ENOENT' || code === 'EISDIR' || /\bENOENT\b|\bEISDIR\b/i.test(message)) {
+    return {
+      hint: 'The output path is invalid. Check the markdown-pdf.outputDirectory setting.',
+      action: { kind: 'settings', query: '@id:markdown-pdf.outputDirectory', label: 'Open Settings' },
+    };
+  }
+
+  return undefined;
+}
