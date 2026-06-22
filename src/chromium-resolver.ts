@@ -14,9 +14,27 @@ const puppeteerModule: { PUPPETEER_REVISIONS: { chrome: string } } = require('pu
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const puppeteerPkg: { version: string } = require('puppeteer-core/package.json');
 
-export interface ChromiumResolution {
-  path: string;
-  source: ChromiumSource;
+export type ChromiumResolution =
+  | { ok: true; path: string; source: ChromiumSource }
+  | { ok: false; reason: ChromiumFailureReason };
+
+// Why resolution failed, surfaced to the export error toast (extension.ts maps
+// these to user-facing messages + actions). Determined where the raw error is in
+// hand (download/fetch), not flattened to a bare null.
+export type ChromiumFailureReason = 'autodownload-disabled' | 'network' | 'download-failed';
+
+const NETWORK_ERROR_CODES = ['ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ECONNRESET'];
+
+// True when the error looks like a network/proxy failure. code-first (stable,
+// locale-independent), message-fallback (for errors that lost their code through
+// wrapping). Null-safe.
+export function isNetworkError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  if (typeof code === 'string' && NETWORK_ERROR_CODES.indexOf(code) !== -1) {
+    return true;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  return /ETIMEDOUT|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ECONNRESET|getaddrinfo|socket hang up/i.test(message);
 }
 
 /** Returns the installed puppeteer-core package version (for diagnostics). */
@@ -140,6 +158,10 @@ const defaultJsonFetcher: JsonFetcher = async function (url) {
 let jsonFetcher: JsonFetcher = defaultJsonFetcher;
 let cachedLatestBuildId: string | null = null;
 let cachedLatestFetchFailed: boolean = false;
+// Whether the last failed latest-version fetch looked like a network/proxy error.
+// Lets resolveChromiumPath report reason 'network' even when the fetch (not the
+// download) was the network failure.
+let cachedLatestFetchNetworkError: boolean = false;
 
 /** Replaces the JSON fetcher used by fetchLatestStableBuildId; intended for unit tests. */
 export function setJsonFetcherForTesting(fetcher: JsonFetcher): void {
@@ -150,6 +172,7 @@ export function setJsonFetcherForTesting(fetcher: JsonFetcher): void {
 export function resetLatestBuildIdCache(): void {
   cachedLatestBuildId = null;
   cachedLatestFetchFailed = false;
+  cachedLatestFetchNetworkError = false;
   jsonFetcher = defaultJsonFetcher;
 }
 
@@ -167,6 +190,7 @@ export async function fetchLatestStableBuildId(): Promise<string | null> {
     const version = extractStableVersion(json);
     if (!version || !BUILD_ID_PATTERN.test(version)) {
       cachedLatestFetchFailed = true;
+      cachedLatestFetchNetworkError = false;
       logWarn('Latest Chromium version response had unexpected shape');
       return null;
     }
@@ -174,6 +198,7 @@ export async function fetchLatestStableBuildId(): Promise<string | null> {
     return version;
   } catch (error) {
     cachedLatestFetchFailed = true;
+    cachedLatestFetchNetworkError = isNetworkError(error);
     const msg = error && (error as Error).message ? (error as Error).message : String(error);
     logWarn('Failed to fetch latest Chromium version: ' + msg);
     return null;
@@ -331,33 +356,40 @@ export async function resolveChromiumPath(
   userExecutablePath: string,
   cacheDir: string,
   options?: ResolveChromiumPathOptions
-): Promise<ChromiumResolution | null> {
+): Promise<ChromiumResolution> {
   const autoDownload = options?.autoDownload !== false;
   const onProgress = options?.onProgress;
 
+  // A download failure is 'network' if either this error or the earlier
+  // latest-version fetch looked like a network/proxy problem; else 'download-failed'.
+  const downloadFailureReason = (error: unknown): ChromiumFailureReason =>
+    (isNetworkError(error) || cachedLatestFetchNetworkError) ? 'network' : 'download-failed';
+
   const userPath = findChromiumFromUserSetting(userExecutablePath);
   if (userPath) {
-    return { path: userPath, source: 'user-setting' };
+    return { ok: true, path: userPath, source: 'user-setting' };
   }
 
   const systemPath = findChromiumFromSystem();
   if (systemPath) {
-    return { path: systemPath, source: 'system' };
+    return { ok: true, path: systemPath, source: 'system' };
   }
 
   if (!autoDownload) {
     const cached = await findLatestCachedChromium(cacheDir);
-    return cached ? { path: cached, source: 'cached' } : null;
+    return cached
+      ? { ok: true, path: cached, source: 'cached' }
+      : { ok: false, reason: 'autodownload-disabled' };
   }
 
   const latestBuildId = await fetchLatestStableBuildId();
   if (latestBuildId) {
     try {
       const latestPath = await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
-      return { path: latestPath, source: 'latest' };
+      return { ok: true, path: latestPath, source: 'latest' };
     } catch (error) {
       logError('Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
-      return null;
+      return { ok: false, reason: downloadFailureReason(error) };
     }
   }
 
@@ -365,16 +397,16 @@ export async function resolveChromiumPath(
   const cachedPath = await findLatestCachedChromium(cacheDir);
   if (cachedPath) {
     logWarn('Falling back to cached Chromium build');
-    return { path: cachedPath, source: 'cached' };
+    return { ok: true, path: cachedPath, source: 'cached' };
   }
 
   const fallbackBuildId = getExpectedBuildId();
   logWarn('Falling back to bundled Chromium build: ' + fallbackBuildId);
   try {
     const bundled = await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
-    return { path: bundled, source: 'bundled-fallback' };
+    return { ok: true, path: bundled, source: 'bundled-fallback' };
   } catch (error) {
     logError('All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
-    return null;
+    return { ok: false, reason: downloadFailureReason(error) };
   }
 }

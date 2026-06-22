@@ -157,7 +157,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
     let filename = '';
     const types = utils.resolveExportTypes(option_type, vscode.workspace.getConfiguration('markdown-pdf')['type']);
     if (types === null) {
-      showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #1 (resolveExportTypes returned null)');
+      reportError({ operation: 'Unsupported output format. Supported: html, pdf, png, jpeg.', where: 'markdownPdf()', context: 'type guard #1 (resolveExportTypes returned null)' });
       return;
     }
 
@@ -198,18 +198,18 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
           }
           await exportPdf(html, filename, type, uri, ctx, homeDir);
         } else {
-          showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #2 (unexpected type "' + type + '")');
+          reportError({ operation: 'Unsupported output format. Supported: html, pdf, png, jpeg.', where: 'markdownPdf()', context: 'type guard #2 (unexpected type "' + type + '")' });
           return;
         }
       }
       // One notification per invocation, after all export types are processed.
       notifySanitize(sanitizeReport, sanitizeMode, isOnSave);
     } else {
-      showErrorMessage('Unsupported output format. Supported: html, pdf, png, jpeg.', undefined, 'markdownPdf() type guard #3 (empty types)');
+      reportError({ operation: 'Unsupported output format. Supported: html, pdf, png, jpeg.', where: 'markdownPdf()', context: 'type guard #3 (empty types)' });
       return;
     }
   } catch (error) {
-    showErrorMessage('markdownPdf()', error);
+    reportError({ operation: EXPORT_FAILED_MSG, where: 'markdownPdf()', error });
   }
 }
 
@@ -224,7 +224,7 @@ function markdownPdfOnSave(): void {
       markdownPdf('settings', true);
     }
   } catch (error) {
-    showErrorMessage('markdownPdfOnSave()', error);
+    reportError({ operation: EXPORT_FAILED_MSG, where: 'markdownPdfOnSave()', error });
   }
 }
 
@@ -235,7 +235,7 @@ function isMarkdownPdfOnSaveExclude(): boolean | undefined {
     const patterns = vscode.workspace.getConfiguration('markdown-pdf')['convertOnSaveExclude'] || '';
     return utils.isExcludeFile(filename, patterns);
   } catch (error) {
-    showErrorMessage('isMarkdownPdfOnSaveExclude()', error);
+    reportError({ operation: GENERIC_ERROR_MSG, where: 'isMarkdownPdfOnSaveExclude()', error });
   }
 }
 
@@ -422,13 +422,13 @@ function convertMarkdownToHtml(
       if (statusbarmessage) {
         statusbarmessage.dispose();
       }
-      showErrorMessage('convertMarkdownToHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
+      reportError({ operation: 'Failed to convert Markdown to HTML.', where: 'convertMarkdownToHtml()', error, context: diagnostics.buildContextSummary(ctx, homeDir), classify: true });
     }
   } catch (error) {
     if (statusbarmessage) {
       statusbarmessage.dispose();
     }
-    showErrorMessage('convertMarkdownToHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
+    reportError({ operation: 'Failed to convert Markdown to HTML.', where: 'convertMarkdownToHtml()', error, context: diagnostics.buildContextSummary(ctx, homeDir), classify: true });
   }
 }
 
@@ -464,7 +464,7 @@ function makeHtml(
     });
     return utils.renderTemplate(template as string, view);
   } catch (error) {
-    showErrorMessage('makeHtml()', error, diagnostics.buildContextSummary(ctx, homeDir));
+    reportError({ operation: 'Failed to build the HTML document.', where: 'makeHtml()', error, context: diagnostics.buildContextSummary(ctx, homeDir), classify: true });
   }
 }
 
@@ -474,7 +474,7 @@ function makeHtml(
 function exportHtml(data: string, filename: string): void {
   fs.writeFile(filename, data, 'utf-8', function (error) {
     if (error) {
-      showErrorMessage('exportHtml()', error);
+      reportError({ operation: 'Failed to write the HTML file.', where: 'exportHtml()', error, classify: true });
       return;
     }
   });
@@ -527,19 +527,33 @@ function exportPdf(
         const resolution = await chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
           autoDownload: getAutoDownload()
         });
-        if (!resolution) {
+        if (!resolution.ok) {
           if (utils.isExistsPath(tmpfilename)) {
             deleteFile(tmpfilename);
           }
-          if (!getAutoDownload()) {
-            showErrorMessage(
-              'Chromium not found. Automatic download is disabled (markdown-pdf.chromium.autoDownload = false). ' +
-              'Install Google Chrome / Chromium / Microsoft Edge, set markdown-pdf.executablePath, ' +
-              'or enable markdown-pdf.chromium.autoDownload. ' +
-              'See https://github.com/yzane/vscode-markdown-pdf#install'
-            );
-          } else {
-            showErrorMessage('Chromium or Chrome does not exist! See https://github.com/yzane/vscode-markdown-pdf#install');
+          switch (resolution.reason) {
+            case 'autodownload-disabled':
+              reportError({
+                operation: AUTO_DOWNLOAD_DISABLED_MSG,
+                where: 'exportPdf()',
+                action: { kind: 'settings', query: '@id:markdown-pdf.chromium.autoDownload', label: 'Open Settings' },
+              });
+              break;
+            case 'network':
+              reportError({
+                operation: 'Could not download Chromium (network error). '
+                  + 'If you are behind a proxy, set http.proxy and restart VS Code.',
+                where: 'exportPdf()',
+                action: { kind: 'settings', query: '@id:http.proxy', label: 'Open Settings' },
+              });
+              break;
+            case 'download-failed':
+              reportError({
+                operation: 'Could not obtain Chromium. See the setup guide.',
+                where: 'exportPdf()',
+                action: { kind: 'url', url: 'https://github.com/yzane/vscode-markdown-pdf#chromium', label: 'Learn More' },
+              });
+              break;
           }
           return;
         }
@@ -625,7 +639,7 @@ function exportPdf(
 
         vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
       } catch (error) {
-        showErrorMessage('exportPdf()', error, diagnostics.buildContextSummary(ctx, homeDir));
+        reportError({ operation: 'Failed to export ' + type + '.', where: 'exportPdf()', error, context: diagnostics.buildContextSummary(ctx, homeDir), classify: true });
       }
     } // async
   ); // vscode.window.withProgress
@@ -652,8 +666,11 @@ function getOutputDir(filename: string, resource: vscode.Uri | undefined): strin
     );
 
     if (result === null) {
-      showErrorMessage(`The output directory specified by the markdown-pdf.outputDirectory option does not exist.\
-        Check the markdown-pdf.outputDirectory option. ` + outputDirectory);
+      reportError({
+        operation: 'The output directory does not exist: ' + outputDirectory,
+        where: 'getOutputDir()',
+        action: { kind: 'settings', query: '@id:markdown-pdf.outputDirectory', label: 'Open Settings' },
+      });
       return;
     }
 
@@ -665,7 +682,7 @@ function getOutputDir(filename: string, resource: vscode.Uri | undefined): strin
 
     return result;
   } catch (error) {
-    showErrorMessage('getOutputDir()', error);
+    reportError({ operation: EXPORT_FAILED_MSG, where: 'getOutputDir()', error });
   }
 }
 
@@ -709,7 +726,7 @@ function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | und
 
     return style;
   } catch (error) {
-    showErrorMessage('readStyles()', error);
+    reportError({ operation: EXPORT_FAILED_MSG, where: 'readStyles()', error });
   }
 }
 
@@ -736,7 +753,7 @@ function fixHref(resource: vscode.Uri, href: string): string | undefined {
     const root = vscode.workspace.getWorkspaceFolder(resource);
     return utils.resolveHref(href, resource.fsPath, stylesRelativePathFile, root ? root.uri.fsPath : undefined) ?? undefined;
   } catch (error) {
-    showErrorMessage('fixHref()', error);
+    reportError({ operation: EXPORT_FAILED_MSG, where: 'fixHref()', error });
   }
 }
 
@@ -762,7 +779,7 @@ function checkPuppeteerBinary(): boolean | undefined {
 
     return false;
   } catch (error) {
-    showErrorMessage('checkPuppeteerBinary()', error);
+    reportError({ operation: GENERIC_ERROR_MSG, where: 'checkPuppeteerBinary()', error });
   }
 }
 
@@ -794,7 +811,7 @@ async function installChromium(): Promise<void> {
       onProgress: onProgress
     });
 
-    if (resolution) {
+    if (resolution.ok) {
       INSTALL_CHECK = true;
       statusbarmessage.dispose();
       vscode.window.setStatusBarMessage('$(markdown) Chromium installation succeeded!', StatusbarMessageTimeout);
@@ -811,9 +828,13 @@ async function installChromium(): Promise<void> {
     }
     const StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
     vscode.window.setStatusBarMessage('$(markdown) ERROR: Failed to download Chromium!', StatusbarMessageTimeout);
-    showErrorMessage('Failed to download Chromium! \
-        If you are behind a proxy, set the http.proxy option to settings.json and restart Visual Studio Code. \
-        See https://github.com/yzane/vscode-markdown-pdf#install', error);
+    reportError({
+      operation: 'Failed to download Chromium! '
+        + 'If you are behind a proxy, set the http.proxy option to settings.json and restart Visual Studio Code. '
+        + 'See https://github.com/yzane/vscode-markdown-pdf#chromium',
+      where: 'installChromium()',
+      error,
+    });
   }
 
   function onProgress(downloadedBytes: number, totalBytes: number): void {
@@ -827,21 +848,73 @@ async function installChromium(): Promise<void> {
   }
 }
 
-// Action label shown on the error toast; selecting it reveals the output channel.
-const SHOW_OUTPUT_ACTION = 'Show Output';
+// Action label that reveals the diagnostics log; selecting it shows the output channel.
+const SHOW_DETAILS_ACTION = 'Show Details';
 
-function showErrorMessage(msg: string, error?: unknown, context?: string): void {
-  // Log first so detail (incl. stack via formatError) is in the channel by the
-  // time the user clicks "Show Output".
-  logger.logError(msg);
-  if (context) {
-    logger.logError(context);
+// Shared toast text for failures that are not individually actionable. Wording is
+// split so it fits the situation: export attempts say a file was not produced;
+// other internal failures stay generic.
+const EXPORT_FAILED_MSG = 'Markdown PDF: export failed. The file was not generated.';
+const GENERIC_ERROR_MSG = 'Markdown PDF: an unexpected error occurred.';
+const AUTO_DOWNLOAD_DISABLED_MSG =
+  'Chromium not found. Automatic download is disabled (markdown-pdf.chromium.autoDownload = false). ' +
+  'Install Google Chrome / Chromium / Microsoft Edge, set markdown-pdf.executablePath, ' +
+  'or enable markdown-pdf.chromium.autoDownload. See https://github.com/yzane/vscode-markdown-pdf#chromium';
+
+interface ErrorReport {
+  operation: string;                    // toast text (human-readable "what failed")
+  where?: string;                       // internal function name, log only (e.g. 'exportPdf()')
+  error?: unknown;                      // log only: message + stack via formatError
+  context?: string;                     // log only: buildContextSummary(ctx, homeDir)
+  classify?: boolean;                   // when true, derive a hint + action from error
+  action?: diagnostics.ErrorActionSpec; // explicit action (takes precedence over classified)
+}
+
+// Perform an error toast's action button. vscode-only; kept out of diagnostics.ts.
+function runErrorAction(action: diagnostics.ErrorActionSpec): void {
+  if (action.kind === 'settings') {
+    vscode.commands.executeCommand('workbench.action.openSettings', action.query);
+  } else {
+    vscode.env.openExternal(vscode.Uri.parse(action.url));
   }
-  if (error) {
-    logger.logError(logger.formatError(error));
+}
+
+// Present an error: a human-readable toast (operation + optional hint) plus a
+// "Show Details" button that reveals the full log (function name, context, hint,
+// message, stack) for issue reports. The raw error message is never shown in the
+// toast -- only in the log.
+function reportError(r: ErrorReport): void {
+  const classified = r.classify && r.error !== undefined ? diagnostics.classifyError(r.error) : undefined;
+  const hint = classified?.hint;
+  const action = r.action ?? classified?.action;
+
+  // Log first so detail is in the channel by the time the user clicks "Show Details".
+  // operation is the human-readable summary shown in the toast; log it too so a
+  // "Show Details" paste is meaningful even for error-free reports (Tier C / resolver reasons),
+  // where there is otherwise only the function name in the channel.
+  logger.logError(r.operation);
+  if (r.where) {
+    logger.logError(r.where);
   }
-  vscode.window.showErrorMessage('ERROR: ' + msg, SHOW_OUTPUT_ACTION).then(function (selection) {
-    if (selection === SHOW_OUTPUT_ACTION) {
+  if (r.context) {
+    logger.logError(r.context);
+  }
+  if (hint) {
+    logger.logError('Hint: ' + hint);
+  }
+  if (r.error !== undefined) {
+    logger.logError(logger.formatError(r.error));
+  }
+
+  let toast = 'ERROR: ' + r.operation;
+  if (hint) {
+    toast += ' — ' + hint;
+  }
+  const buttons = action ? [action.label, SHOW_DETAILS_ACTION] : [SHOW_DETAILS_ACTION];
+  vscode.window.showErrorMessage(toast, ...buttons).then(function (selection) {
+    if (action && selection === action.label) {
+      runErrorAction(action);
+    } else if (selection === SHOW_DETAILS_ACTION) {
       logger.showLog();
     }
   });
@@ -855,8 +928,8 @@ function notifySanitize(report: utils.SanitizeReport, mode: utils.SanitizeMode, 
   logger.logWarn(utils.buildSanitizeLogDetail(report, mode));
   // Toast only on explicit/manual export to avoid spamming on convertOnSave.
   if (!isOnSave) {
-    vscode.window.showWarningMessage(utils.buildSanitizeSummary(report), SHOW_OUTPUT_ACTION).then(function (selection) {
-      if (selection === SHOW_OUTPUT_ACTION) {
+    vscode.window.showWarningMessage(utils.buildSanitizeSummary(report), SHOW_DETAILS_ACTION).then(function (selection) {
+      if (selection === SHOW_DETAILS_ACTION) {
         logger.showLog();
       }
     });
@@ -879,6 +952,6 @@ async function init(): Promise<void> {
       await installChromium();
     }
   } catch (error) {
-    showErrorMessage('init()', error);
+    reportError({ operation: GENERIC_ERROR_MSG, where: 'init()', error });
   }
 }
