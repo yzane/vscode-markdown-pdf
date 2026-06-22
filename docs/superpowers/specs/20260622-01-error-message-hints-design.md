@@ -76,6 +76,7 @@ hint   = classified?.hint
 action = r.action ?? classified?.action
 
 // --- log first (so Show Details has full detail ready) ---
+logError(r.operation)                       // human summary — logged too, so a Show Details paste is meaningful even without an error
 if (r.where)   logError(r.where)
 if (r.context) logError(r.context)
 if (hint)      logError('Hint: ' + hint)
@@ -193,6 +194,7 @@ if (!resolution.ok) {
   - `GENERIC_ERROR_MSG`（例 `'Markdown PDF: an unexpected error occurred.'`）= 起動時（`init`/`checkPuppeteerBinary`）や on-save 除外判定（`isMarkdownPdfOnSaveExclude`）など、export 中とは限らない経路。「ファイルが生成されない」とは書かない。
   - 文言は実装時に最終化。詳細は Show Details へ誘導。
 - C の 814（installChromium）は `setProxy()` 後のダウンロード失敗。既存文言が proxy/インストールに言及済みのため operation に流用するが、**含まれる `#install` を `#chromium` に修正**。`installChromium` の `if (resolution)` → `if (resolution.ok)`、`else throw` の文言（現 803）は内部用なので維持。
+- C の 655（`getOutputDir` 事前チェック）は出力先の不在を Chromium 起動前に検出する経路。文言を簡潔化（`'The output directory does not exist: ' + outputDirectory`）し、**Open Settings(`@id:markdown-pdf.outputDirectory`) を付与**する（rule 4 と同じ救済を早期経路でも提供。手動検証で判明）。実際の「出力先不在」はこの事前チェックで止まり、rule 4 は書き込み経路の ENOENT/EISDIR の backstop として残す。
 - **全層共通**: 関数名はトーストに出さずログ（`where`）へ。`Show Details` ボタンを必ず付与。
 
 ## README アンカー（P1 対応）
@@ -210,7 +212,7 @@ if (!resolution.ok) {
 ```
 catch (error) → reportError({ operation, where, error, context?, classify? , action? })
   ├ ログ②（Show Details で前面化）:
-  │    where（関数名）/ context（1行サマリ）/ Hint: …（あれば）/ formatError(error)（message+stack）
+  │    operation（人間向け要約）/ where（関数名）/ context（1行サマリ）/ Hint: …（あれば）/ formatError(error)（message+stack）
   └ トースト:
        ERROR: <operation>（classify で hint があれば " — <hint>"）
        ボタン: [<action.label>?] [Show Details]
