@@ -69,6 +69,7 @@ Issue の症状（PDF は生成されるが通知と一時 HTML が残る）と�
 - 待ち切りに達した場合は OutputChannel に warning を記録し、エラー toast は出さず、`withProgress` callback を完了させる。
 - 一時 HTML 削除に失敗した場合も OutputChannel に warning を記録し、export 成功自体を失敗扱いにしない。
 - Chromium 解決失敗時にある既存のインライン一時 HTML 削除は削除し、一時 HTML cleanup を `finally` の一箇所に集約する。
+- Chromium 解決失敗時も他の PDF/PNG/JPEG export 経路と同じく `debug` 設定に従い、`debug=true` の場合は調査用に一時 HTML を残す。
 - 待ち切り helper は `src/utils.ts` に切り出して unit test できるようにする。
 
 ### やらないこと
@@ -90,6 +91,7 @@ Issue の症状（PDF は生成されるが通知と一時 HTML が残る）と�
   - `finally` で `browser.close()` と一時 HTML 削除を行う。
   - close 待ち切り時と削除失敗時に `logger.logWarn` で記録する。
   - Chromium 解決失敗分岐のインライン一時 HTML 削除を除去し、削除処理を `finally` に一本化する。
+  - Chromium 解決失敗分岐でも `debug=true` の場合は一時 HTML を残す。
 
 - `src/utils.ts`
   - Promise の完了を一定時間だけ待つ helper を追加する。
@@ -98,7 +100,7 @@ Issue の症状（PDF は生成されるが通知と一時 HTML が残る）と�
   - helper は Promise が timeout 前に settle した場合も timeout に達した場合も、内部 timer を解放する。
 
 - `test/unit/await-with-timeout.test.ts`
-  - helper の成功ケース、期限前 reject、待ち切り、timeout 後の遅延 reject を unit test する。
+  - helper の成功ケース、期限前 reject、待ち切り、timeout 後の遅延 reject、timer 解放を unit test する。
 
 ### 推奨処理順
 
@@ -181,6 +183,7 @@ Timed out while closing Chromium after export; continuing so the progress notifi
 - PDF が生成される。
 - `Exporting (pdf) ...` notification が閉じる。
 - `debug=false` のとき、一時 HTML が残らない。
+- `debug=true` のとき、Chromium 解決失敗時も一時 HTML が残る。
 - OutputChannel に不要な error toast 相当のログが出ない。
 - `browser.close()` が通常完了する環境では、待ち切り warning が出ない。
 - 通常ケースでは close 後に一時 HTML が削除される。
@@ -211,6 +214,7 @@ include 失敗、highlight style fallback、sanitize 警告などは、複数形
 
 - PDF/PNG/JPEG export の後処理で、`browser.close()` の完了待ちが無期限に `withProgress` callback を保持しない。
 - `debug=false` のとき、一時 HTML 削除は `browser.close()` の成否に依存しない。通常完了した場合は close 後に削除し、待ち切りに達した場合も削除処理へ進む。
+- `debug=true` のとき、Chromium 解決失敗時も他経路と同じく一時 HTML を残す。
 - `Exporting (...) ...` notification を直接閉じる処理は追加せず、callback 完了により自然に閉じる。
 - `page.goto(..., waitUntil: 'networkidle0')` の挙動は変更しない。
 - 待ち切り helper に、成功、期限前 reject、timeout、timeout 後の遅延 reject、timer 解放の unit test がある。
@@ -222,5 +226,6 @@ include 失敗、highlight style fallback、sanitize 警告などは、複数形
 - #374 の観測症状（PDF 生成済み、通知残留、一時 HTML 残留）と設計対象が一致している。
 - `browser.close()` 待ち切りと `page.goto()` タイムアウトの違いを明記している。
 - 一時 HTML 削除を close 待ち切り後に置く理由と、close 前削除を避ける理由を明記している。
+- cleanup 一本化に伴う Chromium 解決失敗時の `debug=true` 挙動変化を意図的な決定として明記している。
 - 待ち切り helper の late reject と timer 解放を仕様・テスト対象に含めている。
 - Chromium install 通知、warning toast 重複、`networkidle0` 全体タイムアウトは対象外として分離している。
