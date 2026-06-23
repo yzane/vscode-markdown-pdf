@@ -64,10 +64,11 @@ Issue の症状（PDF は生成されるが通知と一時 HTML が残る）と�
 ### やること
 
 - `exportPdf()` の PDF/PNG/JPEG 生成後処理を `finally` に移し、成功・失敗に関係なく一時 HTML 削除を試みる。
-- 一時 HTML 削除は `browser.close()` の完了待ちより前に行い、`browser.close()` が詰まっても一時 HTML cleanup が妨げられないようにする。
 - `browser.close()` は通常どおり呼び出すが、`await` に短い待ち切りを設ける。
+- 一時 HTML 削除は `browser.close()` の待ち切り後に行う。正常系では Chromium の file handle 解放後に削除できるよう、現行の「close 後に削除」という安全特性を維持する。
 - 待ち切りに達した場合は OutputChannel に warning を記録し、エラー toast は出さず、`withProgress` callback を完了させる。
 - 一時 HTML 削除に失敗した場合も OutputChannel に warning を記録し、export 成功自体を失敗扱いにしない。
+- Chromium 解決失敗時にある既存のインライン一時 HTML 削除は削除し、一時 HTML cleanup を `finally` の一箇所に集約する。
 - 待ち切り helper は `src/utils.ts` に切り出して unit test できるようにする。
 
 ### やらないこと
@@ -76,6 +77,7 @@ Issue の症状（PDF は生成されるが通知と一時 HTML が残る）と�
 - `page.goto(..., { waitUntil: 'networkidle0' })` 自体のタイムアウトは変更しない。これは PDF 生成前の読み込み待機に影響し、大きな文書、外部画像、Mermaid、PlantUML などの挙動に波及するため、別 spec で扱う。
 - Chromium install の information toast / status bar 表示は変更しない。構造的には残り続ける可能性があるが、export 後処理とは別経路のため、別 issue / 別 spec 候補として記録する。
 - `browser.close()` が待ち切りに達した場合の強制 kill は行わない。まずは通知と一時 HTML cleanup が無期限に詰まる状態を避けることを優先する。
+- 強制 kill しないため、`browser.close()` 待ち切り時には Chromium プロセスや一時 user-data-dir が残る可能性がある。これは既知の制約として扱い、必要なら別 spec で `browser.process()?.kill()` などの後追い強制終了を検討する。
 - README / CHANGELOG は今回触らない。ユーザー向け挙動の大きな新機能ではなく、既存動作の堅牢化として扱う。
 
 ## アーキテクチャ
@@ -85,15 +87,18 @@ Issue の症状（PDF は生成されるが通知と一時 HTML が残る）と�
 - `src/extension.ts`
   - `exportPdf()` の後処理順序を整理する。
   - `tmpfilename` と `browser` を `try` ブロック外から参照できるようにする。
-  - `finally` で一時 HTML 削除と `browser.close()` を行う。
+  - `finally` で `browser.close()` と一時 HTML 削除を行う。
   - close 待ち切り時と削除失敗時に `logger.logWarn` で記録する。
+  - Chromium 解決失敗分岐のインライン一時 HTML 削除を除去し、削除処理を `finally` に一本化する。
 
 - `src/utils.ts`
   - Promise の完了を一定時間だけ待つ helper を追加する。
   - helper は VS Code / puppeteer に依存しない純粋な async utility とする。
+  - helper は timeout 後に元 Promise が遅れて reject しても未処理 rejection を出さないよう、元 Promise を観測する。
+  - helper は Promise が timeout 前に settle した場合も timeout に達した場合も、内部 timer を解放する。
 
 - `test/unit/await-with-timeout.test.ts`
-  - helper の成功ケースと待ち切りケースを unit test する。
+  - helper の成功ケース、期限前 reject、待ち切り、timeout 後の遅延 reject を unit test する。
 
 ### 推奨処理順
 
@@ -105,13 +110,15 @@ page.goto(...)
 page.pdf() / page.screenshot()
 status bar に出力ファイル名を表示
 finally:
-  debug=false かつ tmpfilename があれば一時 HTML 削除を試みる
   browser があれば browser.close() を呼び、短時間だけ待つ
   close 待ち切り時は warning をログに残して先へ進む
+  debug=false かつ tmpfilename があれば一時 HTML 削除を試みる
 withProgress callback 完了
 ```
 
-一時 HTML 削除を `browser.close()` より前に置く理由は、#374 の観測症状の一つである「一時 HTML が残る」を `browser.close()` の成否から切り離すためである。`browser.close()` が遅延またはハングしても、ファイル削除は先に実行される。
+一時 HTML 削除を `browser.close()` の後に置く理由は、正常系で Chromium が `file://` の一時 HTML を参照している可能性を避け、現行実装と同じく close 完了後に削除する安全特性を維持するためである。一方で `browser.close()` には待ち切りを設けるため、close が戻らない場合でも削除処理には到達する。
+
+`finally` 内では `browser.close()` と一時 HTML 削除をそれぞれ独立した `try/catch` で囲む。close の失敗や待ち切りが削除を妨げず、削除失敗も close 結果の記録を妨げないようにする。
 
 ### `browser.close()` 待ち切りの意味
 
@@ -127,6 +134,14 @@ withProgress callback 完了
 
 待ち切り時間は短すぎると通常 close 中にも warning が出やすく、長すぎると #374 の体感改善が弱くなる。初期値は 5 秒を候補とする。これは実装 plan で定数化し、テストでは helper を直接検証する。
 
+helper の契約は次の通りにする。
+
+- 元 Promise が timeout 前に resolve した場合: `{ timedOut: false, value }` を返す。
+- 元 Promise が timeout 前に reject した場合: reject を呼び出し元へ伝播する。
+- timeout に達した場合: `{ timedOut: true }` を返す。
+- timeout 後に元 Promise が遅れて reject した場合: 未処理 rejection を出さない。
+- timeout 用 timer は resolve / reject / timeout のいずれでも解放する。
+
 ## エラーハンドリング
 
 - `exportPdf()` 本体の既存 `catch` は維持し、変換・出力失敗時は従来どおり `reportError()` を使う。
@@ -139,6 +154,7 @@ Timed out while closing Chromium after export; continuing so the progress notifi
 ```
 
 - `withProgress` callback を完了させることを優先し、close 待ち切り時に例外を投げ直さない。
+- `page.pdf()` / `page.screenshot()` が throw した場合も `finally` に入るため、現行実装では到達しない可能性がある `browser.close()` と一時 HTML cleanup を試みられる。これは #374 対応に伴う副次的な堅牢化である。
 
 ## テスト戦略
 
@@ -148,7 +164,10 @@ Timed out while closing Chromium after export; continuing so the progress notifi
 
 - `test/unit/await-with-timeout.test.ts`
   - Promise が timeout 前に resolve した場合、`{ timedOut: false, value }` を返す。
+  - Promise が timeout 前に reject した場合、その reject を呼び出し元へ伝播する。
   - Promise が pending のまま timeout に達した場合、`{ timedOut: true }` を返す。
+  - timeout 後に元 Promise が遅れて reject しても、未処理 rejection が発生しない。
+  - timeout 前に settle した場合に timer が残って test runner を待たせない。
 
 - 既存回帰確認
   - `npm run test:unit`
@@ -164,6 +183,7 @@ Timed out while closing Chromium after export; continuing so the progress notifi
 - `debug=false` のとき、一時 HTML が残らない。
 - OutputChannel に不要な error toast 相当のログが出ない。
 - `browser.close()` が通常完了する環境では、待ち切り warning が出ない。
+- 通常ケースでは close 後に一時 HTML が削除される。
 
 `browser.close()` の実ハングは環境依存で再現が難しいため、手動確認では「通常ケースを壊していないこと」を主に見る。待ち切り分岐は helper の unit test とコードレビューで担保する。
 
@@ -183,13 +203,17 @@ Chromium 自動インストールでは、information toast と status bar を�
 
 include 失敗、highlight style fallback、sanitize 警告などは、複数形式 export 時に繰り返し表示される可能性がある。これは通知 UX の改善余地だが、#374 の「処理完了と連動する progress notification が閉じない」問題とは性質が違うため対象外とする。
 
+### close 待ち切り後の Chromium プロセス残留
+
+`browser.close()` が待ち切りに達した後も、Chromium プロセスが裏で残る可能性はある。本設計では強制 kill まで踏み込まず、progress notification と一時 HTML cleanup が無期限に詰まらないことを優先する。プロセス残留や一時 user-data-dir 残留の解消は、必要なら別 spec で検討する。
+
 ## 受け入れ条件
 
 - PDF/PNG/JPEG export の後処理で、`browser.close()` の完了待ちが無期限に `withProgress` callback を保持しない。
-- `debug=false` のとき、一時 HTML 削除は `browser.close()` の完了に依存しない。
+- `debug=false` のとき、一時 HTML 削除は `browser.close()` の成否に依存しない。通常完了した場合は close 後に削除し、待ち切りに達した場合も削除処理へ進む。
 - `Exporting (...) ...` notification を直接閉じる処理は追加せず、callback 完了により自然に閉じる。
 - `page.goto(..., waitUntil: 'networkidle0')` の挙動は変更しない。
-- 待ち切り helper に unit test がある。
+- 待ち切り helper に、成功、期限前 reject、timeout、timeout 後の遅延 reject、timer 解放の unit test がある。
 - `npm run test:unit`、`npm run check`、`npm run build` が成功する。
 
 ## Spec self-review
@@ -197,4 +221,6 @@ include 失敗、highlight style fallback、sanitize 警告などは、複数形
 - プレースホルダーはない。
 - #374 の観測症状（PDF 生成済み、通知残留、一時 HTML 残留）と設計対象が一致している。
 - `browser.close()` 待ち切りと `page.goto()` タイムアウトの違いを明記している。
+- 一時 HTML 削除を close 待ち切り後に置く理由と、close 前削除を避ける理由を明記している。
+- 待ち切り helper の late reject と timer 解放を仕様・テスト対象に含めている。
 - Chromium install 通知、warning toast 重複、`networkidle0` 全体タイムアウトは対象外として分離している。
