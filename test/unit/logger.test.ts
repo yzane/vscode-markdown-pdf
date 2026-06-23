@@ -72,6 +72,67 @@ describe('logger', () => {
       assert.equal(logger.formatError(42), '42');
       assert.equal(logger.formatError(null), 'null');
     });
+
+    it('appends a "Caused by" section for an Error with a cause', () => {
+      const inner = new Error('inner reason');
+      const outer = new Error('outer failure') as Error & { cause?: unknown };
+      outer.cause = inner;
+      const out = logger.formatError(outer);
+      assert.ok(out.includes(outer.stack ?? 'outer failure'));
+      assert.match(out, /Caused by:/);
+      assert.ok(out.includes(inner.stack ?? 'inner reason'));
+    });
+
+    it('follows a multi-level cause chain in order', () => {
+      const inner = new Error('LEVELROOT');
+      const mid = new Error('LEVELMID') as Error & { cause?: unknown };
+      mid.cause = inner;
+      const outer = new Error('LEVELTOP') as Error & { cause?: unknown };
+      outer.cause = mid;
+      const out = logger.formatError(outer);
+      const iTop = out.indexOf('LEVELTOP');
+      const iMid = out.indexOf('LEVELMID');
+      const iRoot = out.indexOf('LEVELROOT');
+      assert.ok(iTop >= 0 && iMid > iTop && iRoot > iMid);
+    });
+
+    it('stringifies a non-Error cause', () => {
+      const outer = new Error('outer') as Error & { cause?: unknown };
+      outer.cause = 'plain root reason';
+      assert.match(logger.formatError(outer), /Caused by: plain root reason/);
+    });
+
+    it('expands AggregateError.errors (duck-typed)', () => {
+      const agg = new Error('all failed') as Error & { errors: unknown[] };
+      agg.name = 'AggregateError';
+      agg.errors = [new Error('AGGFIRST'), new Error('AGGSECOND')];
+      const out = logger.formatError(agg);
+      assert.match(out, /Aggregated error \[0\]/);
+      assert.match(out, /AGGFIRST/);
+      assert.match(out, /Aggregated error \[1\]/);
+      assert.match(out, /AGGSECOND/);
+    });
+
+    it('does not loop on a circular cause', () => {
+      const a = new Error('a') as Error & { cause?: unknown };
+      const b = new Error('b') as Error & { cause?: unknown };
+      a.cause = b;
+      b.cause = a;
+      let out = '';
+      assert.doesNotThrow(() => { out = logger.formatError(a); });
+      assert.match(out, /\[circular error reference\]/);
+    });
+
+    it('truncates a cause chain deeper than the limit', () => {
+      const head = new Error('level-0') as Error & { cause?: unknown };
+      let cur = head;
+      for (let i = 1; i <= 7; i++) {
+        const next = new Error('level-' + i) as Error & { cause?: unknown };
+        cur.cause = next;
+        cur = next;
+      }
+      assert.match(logger.formatError(head), /\[error chain truncated\]/);
+    });
   });
 
   describe('initializeLogger', () => {
