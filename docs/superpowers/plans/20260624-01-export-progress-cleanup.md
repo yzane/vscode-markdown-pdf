@@ -127,6 +127,32 @@ describe('awaitWithTimeout', () => {
       global.clearTimeout = originalClearTimeout;
     }
   });
+
+  it('clears the timeout when the original promise rejects before timeout', async () => {
+    const originalSetTimeout = global.setTimeout;
+    const originalClearTimeout = global.clearTimeout;
+    const fakeHandle = { kind: 'timeout' } as unknown as ReturnType<typeof setTimeout>;
+    let cleared = false;
+
+    try {
+      global.setTimeout = ((handler: (...args: unknown[]) => void, timeout?: number, ...args: unknown[]) => {
+        return fakeHandle;
+      }) as typeof setTimeout;
+      global.clearTimeout = ((handle?: ReturnType<typeof setTimeout>) => {
+        if (handle === fakeHandle) {
+          cleared = true;
+        }
+      }) as typeof clearTimeout;
+
+      const error = new Error('fast failure');
+      await assert.rejects(utils.awaitWithTimeout(Promise.reject(error), 1000), error);
+
+      assert.equal(cleared, true);
+    } finally {
+      global.setTimeout = originalSetTimeout;
+      global.clearTimeout = originalClearTimeout;
+    }
+  });
 });
 ```
 
@@ -194,7 +220,7 @@ Run:
 npx tsx --test test/unit/await-with-timeout.test.ts
 ```
 
-Expected: PASS。`awaitWithTimeout` の 5 tests が通る。
+Expected: PASS。`awaitWithTimeout` の 6 tests が通る。
 
 - [ ] **Step 5: Task 1 を commit する**
 
@@ -481,7 +507,7 @@ Expected:
   - close timeout / close reject / deletion failure の warning: Task 2 Step 7。
   - `debug=true` の Chromium 解決失敗時 temporary HTML 残留: Task 2 Step 4 and Step 7, Task 3 Step 4。
   - `page.goto(..., waitUntil: 'networkidle0')` 変更なし: Task 2 changes avoid that line.
-  - helper の late reject / timer 解放 tests: Task 1 Step 1。
+  - helper の late reject / timer 解放 tests: Task 1 Step 1。timer 解放は resolve 経路と reject 経路を明示的に検証する。
 
 - Placeholder scan:
   - この plan は未確定項目を書かず、各変更ステップに対象ファイル、コード、コマンド、期待結果を含めている。
