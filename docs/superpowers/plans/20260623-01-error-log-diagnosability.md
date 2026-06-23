@@ -221,3 +221,9 @@ if (/error while loading shared libraries/i.test(message) ||
 
 - ES2020 lib 制約を忘れて `error.cause` / `AggregateError` を型参照すると `tsc` が落ちる → ダックタイピング厳守。手順 3/6 の `npm run check` で担保。
 - 既存テスト「launch failure (spawn ENOENT)」が共有ライブラリルールに誤吸着しないこと（語が異なるため問題なし、テスト 2 で順序も担保）。
+
+## 検証結果（2026-06-23）
+
+- 単体: 全 unit **441 件 pass**（H-1: logger 6 件 / M-2: classifyError 5 件を追加）、`tsc --noEmit` clean、`npm run build`（esbuild）成功。
+- **M-2 実機 e2e（WSL2 / Linux, VS Code 1.125 / Node 24 / puppeteer-core 24.40.0）**: `executablePath` に ld.so 風 stderr（`error while loading shared libraries: libnss3.so: cannot open shared object file`）を出す偽 chrome を指定して export → 出力チャネルに `Hint: Chromium is missing required system libraries...` が出力され、トーストの `Troubleshooting` から `https://pptr.dev/troubleshooting` が開くことを確認。`reportError` の多段ログ（`operation=Failed to export pdf.` / `exportPdf()` / `context(chromium=user-setting)` / `Hint:` / stack）も実機で確認。
+- H-1: cause / AggregateError 展開は単体で網羅。実機の単層エラーでは `Caused by:` は出ない（仕様どおり）。

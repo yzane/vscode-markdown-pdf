@@ -38,7 +38,7 @@
 
 [`src/extension.ts:886-921`](../../../src/extension.ts)（引数は `ErrorReport` interface [`extension.ts:864`](../../../src/extension.ts)）。出力チャネルへは **存在する項目を 1 つずつ別々の `logError` で**出力する（`{ log: true }` のため各行が個別のタイムスタンプ＋`[error]` を持つ）。出力順は:
 
-1. `operation` … 失敗の説明（トーストにも出る人間可読文。例 `Markdown PDF: export failed. The file was not generated.`）— **常に出力**
+1. `operation` … 失敗の説明（トーストにも出る人間可読文。例: exportPdf 経路は `Failed to export pdf.`（`'Failed to export ' + type + '.'`）、markdownPdf 等の上位 catch は `Markdown PDF: export failed. The file was not generated.`（`EXPORT_FAILED_MSG`））— **常に出力**
 2. `where` … 失敗した関数（`convertMarkdownToHtml()` / `makeHtml()` / `exportPdf()` / `getOutputDir()` 等）— あれば
 3. `context` … `buildContextSummary`（`type=… , source=… , output=… , chromium=…`）— あれば
 4. `Hint: <hint>` … `classify: true` かつ `classifyError` がヒントを返したとき — あれば
@@ -83,12 +83,12 @@ chromium.autoDownload: true
 outputDirectory: (not set)
 2026-06-23 10:15:30.045 [info] Output: ~\docs\sample.pdf
 2026-06-23 10:15:31.230 [info] Chromium: ~\.cache\puppeteer\chrome\win64-131.0.6778.204\chrome.exe (source: cached)
-2026-06-23 10:15:31.450 [error] Markdown PDF: export failed. The file was not generated.
+2026-06-23 10:15:31.450 [error] Failed to export pdf.
 2026-06-23 10:15:31.450 [error] exportPdf()
 2026-06-23 10:15:31.451 [error] type=pdf, source=~\docs\sample.md, output=~\docs\sample.pdf, chromium=cached
 2026-06-23 10:15:31.451 [error] Hint: Chromium could not be started. Set a valid Chromium path or enable auto-download.
 2026-06-23 10:15:31.452 [error] Error: Failed to launch the browser process!
-[1234:5678] error while loading shared libraries: libnss3.so: cannot open shared object file
+spawn C:\Users\me\.cache\puppeteer\chrome\win64-131.0.6778.204\chrome.exe ENOENT
 TROUBLESHOOTING: https://pptr.dev/troubleshooting
     at ChildProcess.onClose (.../puppeteer-core/.../BrowserRunner.js:299:20)
     at ChildProcess.emit (node:events:519:28)
@@ -97,7 +97,7 @@ TROUBLESHOOTING: https://pptr.dev/troubleshooting
 **サンプル B — 出力ファイルがロック（PDF を開いたまま再変換 / EBUSY）**
 
 ```
-2026-06-23 10:20:11.300 [error] Markdown PDF: export failed. The file was not generated.
+2026-06-23 10:20:11.300 [error] Failed to export pdf.
 2026-06-23 10:20:11.300 [error] exportPdf()
 2026-06-23 10:20:11.301 [error] type=pdf, source=~\docs\sample.md, output=~\docs\sample.pdf, chromium=cached
 2026-06-23 10:20:11.301 [error] Hint: Cannot write the output file. Close it if it is open in another app, then check write permission.
