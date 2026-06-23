@@ -120,17 +120,66 @@ function errorMessageText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// Maximum depth to follow an error's cause chain / aggregated errors when building
+// the text classifyError matches against (mirrors logger.formatError's guard).
+const MAX_CAUSE_DEPTH = 5;
+
+// Collect messages and fs/network codes from an error plus its cause chain and
+// aggregated errors, so classification can see a root cause nested under `cause`.
+// cause/AggregateError are read by duck typing (the tsconfig lib is ES2020, so their
+// static types are unavailable) while Node provides them at runtime. Cycle- and
+// depth-guarded. Local to this module to avoid importing the logger.
+function collectErrorText(error: unknown): string {
+  const parts: string[] = [];
+  const seen = new Set<unknown>();
+  const visit = (e: unknown, depth: number): void => {
+    if (e === undefined || e === null || depth > MAX_CAUSE_DEPTH) {
+      return;
+    }
+    if (typeof e === 'object') {
+      if (seen.has(e)) {
+        return;
+      }
+      seen.add(e);
+    }
+    const code = errorCode(e);
+    if (code) {
+      parts.push(code);
+    }
+    parts.push(errorMessageText(e));
+    const errors = (e as { errors?: unknown }).errors;
+    if (Array.isArray(errors)) {
+      errors.forEach((sub) => visit(sub, depth + 1));
+    }
+    visit((e as { cause?: unknown }).cause, depth + 1);
+  };
+  visit(error, 0);
+  return parts.join('\n');
+}
+
 // Map a thrown export error to a one-line, user-actionable hint (+ optional action
 // button). Detection is code-first (stable, locale-independent) with a
-// message-substring fallback for wrapped errors. Returns undefined when the error
-// is not recognized -- a wrong hint is worse than none. Rule order matters: the
-// browser-launch check runs first so a launch failure carrying EACCES is not
-// misread as an output-file permission problem.
+// message-substring fallback for wrapped errors; the message is collected across the
+// cause chain / aggregated errors so a nested root cause is still classified. Returns
+// undefined when the error is not recognized -- a wrong hint is worse than none. Rule
+// order matters: the missing-shared-library check runs first (its message often also
+// contains "Failed to launch the browser process"), then the generic browser-launch
+// check (so a launch failure carrying EACCES is not misread as a file-permission problem).
 export function classifyError(error: unknown): ErrorHint | undefined {
   const code = errorCode(error);
-  const message = errorMessageText(error);
+  const message = collectErrorText(error);
 
-  // 1. Chromium failed to launch (resolved path exists but the process won't start).
+  // 1. Chromium is present but missing system shared libraries (Linux). More specific
+  // than the generic launch failure below, so it must be checked first.
+  if (/error while loading shared libraries/i.test(message) ||
+      /cannot open shared object file/i.test(message)) {
+    return {
+      hint: 'Chromium is missing required system libraries. Install them (e.g. libnss3, libatk-1.0, libgbm) - see the Puppeteer troubleshooting guide.',
+      action: { kind: 'url', url: 'https://pptr.dev/troubleshooting', label: 'Troubleshooting' },
+    };
+  }
+
+  // 2. Chromium failed to launch (resolved path exists but the process won't start).
   if (/Failed to launch the browser process/i.test(message) ||
       /Could not find .*(Chrome|Chromium|browser)/i.test(message)) {
     return {
@@ -139,7 +188,7 @@ export function classifyError(error: unknown): ErrorHint | undefined {
     };
   }
 
-  // 2. Output file locked (open in another app) or no write permission.
+  // 3. Output file locked (open in another app) or no write permission.
   if (code === 'EBUSY' || code === 'EPERM' || code === 'EACCES' ||
       /\bEBUSY\b|\bEPERM\b|\bEACCES\b|being used by another process/i.test(message)) {
     return {
@@ -147,14 +196,14 @@ export function classifyError(error: unknown): ErrorHint | undefined {
     };
   }
 
-  // 3. Disk full.
+  // 4. Disk full.
   if (code === 'ENOSPC' || /\bENOSPC\b|no space left/i.test(message)) {
     return {
       hint: 'No space left on the device. Free up disk space and retry.',
     };
   }
 
-  // 4. Output path invalid (missing parent directory, or the path is a directory).
+  // 5. Output path invalid (missing parent directory, or the path is a directory).
   if (code === 'ENOENT' || code === 'EISDIR' || /\bENOENT\b|\bEISDIR\b/i.test(message)) {
     return {
       hint: 'The output path is invalid. Check the markdown-pdf.outputDirectory setting.',

@@ -50,11 +50,46 @@ export function showLog(): void {
   sink?.show(true);
 }
 
+// Maximum depth to follow an error's cause chain / aggregated errors, guarding
+// against pathologically deep or cyclic chains.
+const MAX_ERROR_DEPTH = 5;
+
 // Deterministically stringify an unknown error for logging. Prefer the stack
 // (richest debug info); fall back to "name: message"; non-Error values via String().
+// Follows error.cause and AggregateError.errors so a root cause nested by a wrapper
+// is not lost. cause/AggregateError are read by duck typing because the tsconfig lib
+// is ES2020 (their static types are unavailable), while Node provides them at runtime.
 export function formatError(error: unknown): string {
-  if (error instanceof Error) {
-    return error.stack ?? `${error.name}: ${error.message}`;
+  return formatErrorAt(error, 0, new Set<unknown>());
+}
+
+function formatErrorAt(error: unknown, depth: number, seen: Set<unknown>): string {
+  if (!(error instanceof Error)) {
+    return String(error);
   }
-  return String(error);
+  if (seen.has(error)) {
+    return '[circular error reference]';
+  }
+  if (depth >= MAX_ERROR_DEPTH) {
+    return '[error chain truncated]';
+  }
+  seen.add(error);
+
+  let result = error.stack ?? `${error.name}: ${error.message}`;
+
+  // AggregateError (e.g. from Promise.any): include each aggregated error.
+  const errors = (error as { errors?: unknown }).errors;
+  if (error.name === 'AggregateError' && Array.isArray(errors)) {
+    errors.forEach((sub, index) => {
+      result += `\nAggregated error [${index}]: ${formatErrorAt(sub, depth + 1, seen)}`;
+    });
+  }
+
+  // Follow the cause chain (the cause may itself be any value, not only an Error).
+  const cause = (error as { cause?: unknown }).cause;
+  if (cause !== undefined && cause !== null) {
+    result += `\nCaused by: ${formatErrorAt(cause, depth + 1, seen)}`;
+  }
+
+  return result;
 }

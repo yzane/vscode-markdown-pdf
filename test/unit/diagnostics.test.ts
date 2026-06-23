@@ -170,4 +170,36 @@ describe('classifyError', () => {
   it('classifies from non-Error string values', () => {
     assert.match(diagnostics.classifyError('EACCES: denied')?.hint ?? '', /write the output file/i);
   });
+
+  it('rule 1: missing shared libraries → system-libraries hint + Troubleshooting url', () => {
+    const r = diagnostics.classifyError(errWith(
+      'error while loading shared libraries: libnss3.so: cannot open shared object file'));
+    assert.match(r?.hint ?? '', /system librar/i);
+    const a = r?.action;
+    assert.ok(a?.kind === 'url' && /pptr\.dev/.test(a.url));
+  });
+  it('rule 1: matches "cannot open shared object file" alone', () => {
+    assert.match(
+      diagnostics.classifyError(errWith('libatk-1.0.so.0: cannot open shared object file'))?.hint ?? '',
+      /system librar/i);
+  });
+  it('order: shared-library failure wins over the generic launch failure', () => {
+    const r = diagnostics.classifyError(errWith(
+      'Failed to launch the browser process!\n... error while loading shared libraries: libgbm.so.1 ...'));
+    assert.match(r?.hint ?? '', /system librar/i);
+    assert.equal(r?.action?.kind, 'url');
+  });
+  it('classifies a shared-library failure nested under error.cause', () => {
+    const inner = errWith('error while loading shared libraries: libgbm.so.1: cannot open shared object file');
+    const outer = new Error('Failed to launch the browser process!') as Error & { cause?: unknown };
+    outer.cause = inner;
+    const r = diagnostics.classifyError(outer);
+    assert.match(r?.hint ?? '', /system librar/i);
+    assert.equal(r?.action?.kind, 'url');
+  });
+  it('classifies a generic code (EBUSY) nested under error.cause', () => {
+    const outer = new Error('export wrapper failed') as Error & { cause?: unknown };
+    outer.cause = errWith('EBUSY: resource busy or locked', 'EBUSY');
+    assert.match(diagnostics.classifyError(outer)?.hint ?? '', /write the output file/i);
+  });
 });
