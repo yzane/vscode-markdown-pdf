@@ -1082,3 +1082,38 @@ export function buildSanitizeLogDetail(report: SanitizeReport, mode: SanitizeMod
   }
   return lines.join('\n');
 }
+
+export type AwaitWithTimeoutResult<T> =
+  | { timedOut: false; value: T }
+  | { timedOut: true };
+
+export async function awaitWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<AwaitWithTimeoutResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+
+  const observedPromise = promise.catch((error) => {
+    if (timedOut) {
+      return undefined as T;
+    }
+    throw error;
+  });
+
+  try {
+    const timeoutPromise = new Promise<AwaitWithTimeoutResult<T>>((resolve) => {
+      timeoutId = setTimeout(() => {
+        timedOut = true;
+        resolve({ timedOut: true });
+      }, timeoutMs);
+    });
+
+    const valuePromise = observedPromise.then((value): AwaitWithTimeoutResult<T> => {
+      return { timedOut: false, value };
+    });
+
+    return await Promise.race([valuePromise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
+}

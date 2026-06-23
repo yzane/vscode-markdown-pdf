@@ -26,6 +26,7 @@ import puppeteer from 'puppeteer-core';
 const EXTENSION_ROOT = path.join(__dirname, '..');
 let INSTALL_CHECK = false;
 let extensionContext: vscode.ExtensionContext | null = null;
+const CLOSE_BROWSER_TIMEOUT_MS = 5000;
 
 function getExtensionCacheDir(): string {
   if (!extensionContext) {
@@ -511,6 +512,9 @@ function exportPdf(
     location: vscode.ProgressLocation.Notification,
     title: '[Markdown PDF]: Exporting (' + type + ') ...'
     }, async () => {
+      let tmpfilename: string | undefined;
+      let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
+
       try {
         // export html
         if (type == 'html') {
@@ -520,7 +524,7 @@ function exportPdf(
         }
 
         // create temporary file
-        const tmpfilename = utils.generateTmpHtmlFilename(filename);
+        tmpfilename = utils.generateTmpHtmlFilename(filename);
         exportHtml(data, tmpfilename);
         const cacheDir = getExtensionCacheDir();
         const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
@@ -528,9 +532,6 @@ function exportPdf(
           autoDownload: getAutoDownload()
         });
         if (!resolution.ok) {
-          if (utils.isExistsPath(tmpfilename)) {
-            deleteFile(tmpfilename);
-          }
           switch (resolution.reason) {
             case 'autodownload-disabled':
               reportError({
@@ -566,7 +567,7 @@ function exportPdf(
         ctx.resolvedChromiumPath = resolution.path;
         ctx.chromiumSource = resolution.source;
         logger.logInfo('Chromium: ' + diagnostics.maskHomePath(resolution.path, homeDir) + ' (source: ' + resolution.source + ')');
-        const browser = await puppeteer.launch(launchOptions);
+        browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
         // PDF/image rendering is headless with no user to answer JS dialogs; auto-dismiss
         // them so a script calling alert/confirm/prompt/beforeunload cannot hang the export.
@@ -627,19 +628,29 @@ function exportPdf(
           await page.screenshot(imageOptions);
         }
 
-        await browser.close();
-
-        // delete temporary file
-        const debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
-        if (!debug) {
-          if (utils.isExistsPath(tmpfilename)) {
-            deleteFile(tmpfilename);
-          }
-        }
-
         vscode.window.setStatusBarMessage('$(markdown) ' + exportFilename, StatusbarMessageTimeout);
       } catch (error) {
         reportError({ operation: 'Failed to export ' + type + '.', where: 'exportPdf()', error, context: diagnostics.buildContextSummary(ctx, homeDir), classify: true });
+      } finally {
+        if (browser) {
+          try {
+            const closeResult = await utils.awaitWithTimeout(browser.close(), CLOSE_BROWSER_TIMEOUT_MS);
+            if (closeResult.timedOut) {
+              logger.logWarn('Timed out while closing Chromium after export; continuing so the progress notification can finish.');
+            }
+          } catch (error) {
+            logger.logWarn('Failed to close Chromium after export: ' + logger.formatError(error));
+          }
+        }
+
+        const debug = vscode.workspace.getConfiguration('markdown-pdf')['debug'] || false;
+        if (!debug && tmpfilename && utils.isExistsPath(tmpfilename)) {
+          try {
+            deleteFile(tmpfilename);
+          } catch (error) {
+            logger.logWarn('Failed to delete temporary HTML after export: ' + logger.formatError(error));
+          }
+        }
       }
     } // async
   ); // vscode.window.withProgress
