@@ -92,7 +92,39 @@ function fenceRegionAt(index: number): CodeRegion | undefined {
 }
 ```
 
-- [ ] **Step 2-3: 外側ループの 1 文字前進を `indexOf` に戻す**
+- [ ] **Step 2-3: `nextFenceStartFrom()` を追加する**
+
+`searchLimit` をフェンス開始位置でクランプするために必要。同じく二分探索で求める。
+
+```ts
+// Start offset of the first fence region beginning at or after `from`,
+// or src.length when there is none.
+function nextFenceStartFrom(from: number): number {
+  let lo = 0;
+  let hi = fenceRegions.length - 1;
+  let best = src.length;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (fenceRegions[mid].start >= from) { best = fenceRegions[mid].start; hi = mid - 1; }
+    else { lo = mid + 1; }
+  }
+  return best;
+}
+```
+
+- [ ] **Step 2-4: `searchLimit` をフェンス開始位置でクランプする**
+
+```ts
+// A code span can cross neither a paragraph break nor a fenced block, so the
+// closer search stops at whichever comes first.
+const searchLimit = Math.min(nextParagraphBreak(openEnd), nextFenceStartFrom(openEnd));
+```
+
+**これは必須要件である。** 候補バックティック位置に対する `fenceRegionAt()` 判定だけでは `~~~` フェンスを飛び越える（`~~~` はバックティックを含まないため `indexOf` がフェンス全体をスキップし、候補位置はフェンス外になって判定を通過する）。空行があるケースは段落境界が偶然守るため見落としやすい。CommonMark ではフェンスが段落を中断できるので、空行なしのケースは正当な Markdown である。詳細と実測は spec の「`~~~` フェンスに関する注意」を参照。
+
+クランプ方式にすることで、内側ループから位置ごとのフェンス判定が完全に不要になる。
+
+- [ ] **Step 2-5: 外側ループの 1 文字前進を `indexOf` に戻す**
 
 ```ts
 while (pos < src.length) {
@@ -109,11 +141,11 @@ while (pos < src.length) {
 }
 ```
 
-注意: `indexOf` で飛ばした区間にフェンスが含まれる可能性があるため、見つけた位置で再判定する。この再判定を省くと `pos` がフェンス内に入り込み、Pass 2 の領域がフェンス領域と重複し得る（本バグの再発）。
+注意: `indexOf` で飛ばした区間にフェンスが含まれる可能性があるため、見つけた位置で再判定する。この再判定を省くと `pos` がフェンス内に入り込み、Pass 2 の領域がフェンス領域と重複し得る。
 
-- [ ] **Step 2-4: 内側ループの 1 文字前進を `indexOf` に戻す**
+- [ ] **Step 2-6: 内側ループの 1 文字前進を `indexOf` に戻す**
 
-`searchLimit`（段落境界）で打ち切る。
+`searchLimit`（段落境界とフェンス開始位置の小さい方）で打ち切る。Step 2-4 のクランプにより、ループ内でのフェンス判定は不要になる。
 
 ```ts
 let searchPos = openEnd;
@@ -121,8 +153,6 @@ let closeStart = -1;
 while (searchPos < searchLimit) {
   const candidate = src.indexOf('`', searchPos);
   if (candidate === -1 || candidate >= searchLimit) break;
-  const fenceAhead = fenceRegionAt(candidate);
-  if (fenceAhead) break;   // a code span can never cross a fence
   let candEnd = candidate;
   while (candEnd < src.length && src[candEnd] === '`') candEnd++;
   if (candEnd - candidate === openLen) { closeStart = candidate; break; }
@@ -130,31 +160,65 @@ while (searchPos < searchLimit) {
 }
 ```
 
-注意: `fenceRegionAt` の判定位置は「候補バックティック」でなければならない。飛ばした空白側で判定するとフェンス直前で誤って break する。
+- [ ] **Step 2-7: `nextParagraphBreak()` を CRLF 対応にする**
 
-- [ ] **Step 2-5: 検証**
+PR #444 自身の欠陥。`/\n[ \t]*\n/` は `\r\n\r\n` に一致しない。include ルールは markdown-it の `normalize` より前に走るため CRLF が素通しで渡ってくる。
+
+```ts
+const blankLineRe = /\r?\n[ \t]*\r?\n/g;
+```
+
+CRLF 文書では段落制限が一切効かず（常に `src.length` を返す）、閉じ相手のないバックティックが後続段落のバックティックと対になり、**include 記法が黙って展開されなくなる**。重複は起きないが別の不具合になる。
+
+- [ ] **Step 2-8: 回帰テストを 2 件追加する**
+
+対象: `test/unit/markdown-it-include.test.ts`
+
+| 追加ケース | 期待 |
+|---|---|
+| `~~~` フェンスが段落を中断する位置にある（`'Text with stray `backtick.\n~~~txt\nraw\n~~~\nLater `ok` here.'`） | 入力と一致（重複しない） |
+| CRLF 文書で後続段落の include が展開される（`'Stray ` backtick.\r\n\r\n:[a](part.md) and `code` here.'`） | include が展開される |
+
+いずれも修正前のコードで**失敗すること**を先に確認してから実装する（TDD）。
+
+- [ ] **Step 2-9: 検証**
 
 ```
 npx tsc --noEmit
 npx tsx --test "test/unit/**/*.test.ts"
 ```
 
-期待: tsc クリーン、**454 pass / 0 fail**（挙動を変えない内部最適化なので新規テストは追加しない）。
+期待: tsc クリーン、**456 pass / 0 fail**（PR マージ後 454 + 追加 2）。
+
+- [ ] **Step 2-10: コミット**
+
+```
+git add src/markdown-it-include.ts test/unit/markdown-it-include.test.ts
+git commit -m "fix: bound include code-span search by fence and CRLF paragraph break"
+```
+
+`src/markdown-it-include.ts` を未コミットで残さないこと。残すと develop へのマージに含まれない。
 
 ---
 
 ## Task 3: CHANGELOG 追記
 
-方針確定（2026-07-27）: **`## Unreleased` 節を新設**し、`### Fixes` に本修正を追記する。
+方針確定（2026-07-27・レビュー指摘 4 を採用）: **プレースホルダ見出し `## X.Y.Z (YYYY/MM/DD)`** を新設し、`### Fixes` に本修正を追記する。
 
-現 `CHANGELOG.md` の先頭は `## 2.1.0 (2026/05/24)`（リリース済み）で `Unreleased` 節は無い。develop に積まれている他の未リリース変更（サニタイズ除去、エラー診断ログ、error-message-hints、AI 診断性改善）は CHANGELOG 未追記のままなので、新設する `Unreleased` 節の内容は本修正のみで**不完全な状態**になる。リリース時に節をバージョン見出しへ改名し、他の未リリース項目を追加する運用になる点を `AGENTS.md` の Release Notes 節と `docs/release-process.md` の記述と突き合わせ、齟齬があれば別途整理する（本 bugfix のスコープ外）。
+`docs/release-process.md` に文書化された規約に従う。
 
-- [ ] **Step 3-1: `## Unreleased` 節を新設して追記**
+- [`docs/release-process.md:49`](../../release-process.md): ``docs: finalize x.x.x changelog entry` — replace the `X.Y.Z (YYYY/MM/DD)` placeholder in `CHANGELOG.md`.``
+- [`docs/release-process.md:31`](../../release-process.md): リリース前チェックに ``CHANGELOG.md` has a `## x.x.x (YYYY/MM/DD)` entry with all placeholder text resolved.``
+- `3f928a9 docs: finalize 2.1.0 changelog entry` が実際にこの運用
 
-`# Change Log` の直後、`## 2.1.0 (2026/05/24)` の前に挿入する。
+`## Unreleased` は CHANGELOG.md の履歴に一度も存在せず規約にも無いため採用しない。
+
+- [ ] **Step 3-1: プレースホルダ見出しを新設して追記**
+
+`# Change Log` の直後、`## 2.1.0 (2026/05/24)` の前に挿入する。既に他の未リリース変更で同見出しが存在する場合はそこへ追記するだけにする（実装時に確認する）。
 
 ```markdown
-## Unreleased
+## X.Y.Z (YYYY/MM/DD)
 
 ### Fixes
 
@@ -222,5 +286,5 @@ git -C C:/work/github/yzane/vscode-markdown-pdf merge --no-ff bugfix/include-cod
 ## 未決事項
 
 1. **issue #443 の返信** — 修正内容と影響バージョンを報告するか。返信する場合は生 Markdown をフェンスコードブロックで囲んで出力する
-2. **PR #444 への返信** — 性能追補を行った旨を伝えるか
-3. **`Unreleased` 節の運用** — リリース時にバージョン見出しへ改名する手順が `docs/release-process.md` に無い場合、追記が必要か（本 bugfix のスコープ外）
+2. **PR #444 への返信** — 性能追補と 2 件の不具合（`~~~` フェンス飛び越えは追補側の設計課題、CRLF は PR 自身の欠陥）を修正した旨を伝えるか
+3. **`.vscode/settings.json` の include 設定** — `false` は 1.x 時代の回避策で 2.0.0 以降は不要と実測確認済み。有効へ戻すかは本 bugfix のスコープ外（integration の `readme-previews` / `sample` が include 有効で通ることの確認が必要）

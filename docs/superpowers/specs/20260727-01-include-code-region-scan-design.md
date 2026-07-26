@@ -62,6 +62,20 @@ PR #444 の方針を採用する。**コード span はフェンスも空行（�
 
 旧コードにあった「行頭 3 連バックティックは fence 済みなのでスキップ」判定は削除する。Pass 1 は打ち切り時も `end = src.length` の領域を積むため行頭フェンスが未記録になるケースは無く、`fenceRegionAt(pos)` が代替できる。
 
+### PR #444 自身の欠陥: CRLF の空行を検出できない
+
+PR #444 の `nextParagraphBreak()` は `/\n[ \t]*\n/` を使うため、Windows の `\r\n\r\n` に一致しない。include ルールは markdown-it の `normalize`（`state.src` の改行を LF へ正規化する core rule）**より前**に走るため、CRLF がそのまま渡ってくる。本リポジトリは `core.autocrlf` が有効で、worktree の `README.md` は実際に CRLF になっている（LF 版 37,514 文字に対し CRLF 版 38,504 文字）ため、実害のある条件である。
+
+CRLF 文書では段落制限が一切効かず（`nextParagraphBreak` が常に `src.length` を返す）、閉じ相手のないバックティックが後続段落のバックティックと対になる。実測:
+
+```
+入力: 'Stray ` backtick.\n\n:[a](part.md) and `code` here.'
+[LF]   → "Stray ` backtick.\n\nINCLUDED and `code` here."   (展開される)
+[CRLF] → 変化なし                                            (include が展開されない)
+```
+
+重複は起きない（フェンス境界で打ち切るため領域重複は発生しない）が、include 記法が保護領域に飲み込まれて**黙って展開されない**という別の不具合になる。`/\r?\n[ \t]*\r?\n/g` に修正する。
+
 ## 4. PR #444 への追補（本ブランチで実施）
 
 PR #444 の実装には性能退行がある。`fenceRegionAt()` が**走査 1 文字ごとに `fenceRegions.find()` の線形探索**を行い、かつ非バックティック文字を `pos += 1` で 1 文字ずつ前進するため `O(文書長 × フェンス数)` になる。旧コードは `indexOf('`')` で一括して飛ばしていた。
@@ -79,9 +93,28 @@ PR #444 の実装には性能退行がある。`fenceRegionAt()` が**走査 1 �
 ### 追補内容
 
 1. **`fenceRegionAt()` を二分探索にする**。`fenceRegions` は Pass 1 の左→右単一パスで得られるため `start` 昇順かつ非重複であり、二分探索の前提を満たす。単調カーソル方式は採らない（外側ループの `pos` が内側ループの `searchPos` より戻る場合があり単調性が崩れるため）
-2. **1 文字前進を `indexOf('`')` に戻す**。外側ループは `src.indexOf('`', pos)`、内側ループは `searchLimit` で打ち切る
+2. **`searchLimit` を「段落境界」と「次のフェンス開始位置」の小さい方にクランプする**。`nextFenceStartFrom()` も `fenceRegions` に対する二分探索で求める
+3. **1 文字前進を `indexOf('`')` に戻す**。外側ループは `src.indexOf('`', pos)`、内側ループは `searchLimit` で打ち切る
 
 計算量は `O(n log m)`（n = 文書長, m = フェンス数）になり、develop 以上の速度に戻る。
+
+### `~~~` フェンスに関する注意（設計上の必須要件）
+
+`indexOf('`')` へ戻す際、**内側ループで「候補バックティック位置がフェンス領域内か」を判定するだけでは不十分**である。`~~~` フェンスはバックティックを含まないため、`indexOf` がフェンス全体を飛び越え、候補位置はフェンス外になって判定を通過してしまう。結果として #443 と同じ領域重複が再発する。
+
+実測（PR #444 のコードに素朴な `indexOf` 版を当てた場合）:
+
+| ケース | 結果 |
+|---|---|
+| `~~~` が段落を中断（空行なし） | **delta=+22・重複再発** |
+| `~~~` が空行の後 | delta=0（段落境界が偶然守る） |
+| ```` ``` ```` が段落を中断 | delta=0（フェンス内にバックティックがあるため `indexOf` が内部に着地し判定が働く） |
+
+再発時の出力: `"Text with stray \`backtick.\n~~~txt\nraw\n~~~\nLater \`~~~txt\nraw\n~~~\nLater \`ok\` here."`
+
+空行が守るケースがあるため見落としやすい。CommonMark ではフェンスが段落を中断できるので、空行なしのケースは正当な Markdown である。
+
+上記 2 の「`searchLimit` をフェンス開始位置でクランプする」方式ならフェンス種別に依存せず、内側ループから位置ごとのフェンス判定が完全に不要になる。この方式を採用する。
 
 ## 5. テスト方針
 
@@ -97,7 +130,14 @@ PR #444 が追加する `test/unit/markdown-it-include.test.ts`（7 ケース）
 | 空行を越えたコード span は成立しない | 段落境界の扱い |
 | **閉じないバックティックが後続フェンスを飲み込んで重複させない** | **本バグの回帰テスト** |
 
-追補で追加するテストは無い。二分探索化と `indexOf` 復帰は挙動を変えない内部最適化であり、上記 7 ケース＋既存 447 ケースで担保する。
+追補では **2 ケースを追加**する。いずれもレビュー指摘に対応する回帰テストで、`` ` `` フェンスだけでは検出できない観点である。
+
+| 追加ケース | 観点 |
+|---|---|
+| `~~~` フェンスが段落を中断する位置にある場合に、閉じないバックティックがそれを飲み込んで重複させない | `indexOf` 最適化がフェンスを飛び越えないこと。`~~~` はバックティックを含まないため `` ``` `` のケースでは代替できない |
+| CRLF 文書で段落境界が正しく効き、後続段落の include 記法が展開される | `nextParagraphBreak()` の CRLF 対応 |
+
+二分探索化そのものは挙動を変えない内部最適化なので、専用テストは追加しない（上記＋既存 447 ケースで担保する）。
 
 性能は回帰テストにしない（実行環境依存で不安定なため）。実装時に手元で計測して develop 同等であることを確認する。
 
@@ -109,7 +149,10 @@ npx tsx --test test/unit/markdown-it-include.test.ts
 npx tsx --test "test/unit/**/*.test.ts"
 ```
 
-期待: 454 pass / 0 fail（develop 447 + 新規 7）。
+期待:
+
+- PR #444 マージ直後: **454 pass / 0 fail**（develop 447 + PR の新規 7）
+- 追補完了後: **456 pass / 0 fail**（さらに `~~~` と CRLF の 2 ケースを追加）
 
 ## 6. 対象外
 
@@ -129,4 +172,12 @@ issue #443 は自動クローズされない（GitHub が issue を自動クロ�
 
 ## 8. CHANGELOG
 
-`### Fixes` に 1 行追加する。バージョン見出しは未リリース分の扱いに合わせる（`develop` には未リリースの変更が複数積まれているため、リリース時に一括で整理する方針との整合を実装時に確認する）。
+`docs/release-process.md` に文書化された規約に従い、**プレースホルダ見出し `## X.Y.Z (YYYY/MM/DD)`** を新設して `### Fixes` に 1 行追加する。
+
+- [`docs/release-process.md:49`](../../release-process.md): ``docs: finalize x.x.x changelog entry` — replace the `X.Y.Z (YYYY/MM/DD)` placeholder in `CHANGELOG.md`.``
+- [`docs/release-process.md:31`](../../release-process.md): リリース前チェックに ``CHANGELOG.md` has a `## x.x.x (YYYY/MM/DD)` entry with all placeholder text resolved.``
+- `3f928a9 docs: finalize 2.1.0 changelog entry` が実際にこの運用
+
+`## Unreleased` は CHANGELOG.md の履歴に一度も存在せず、規約にも無いため採用しない。
+
+README の `### X.Y.Z` プレースホルダ（`What's New` / `Breaking Changes`）は追加しない。`AGENTS.md` の規定では `What's New` は v2 以降の**機能**、`Breaking Changes` は**仕様変更**が対象であり、バグ修正は対象外である。
