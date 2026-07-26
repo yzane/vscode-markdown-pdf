@@ -69,18 +69,18 @@ npx tsx --test "test/unit/**/*.test.ts"
 
 期待の記録値（既測値）: 49KB/フェンス500 で約 14ms、200KB/フェンス2000 で約 197ms。
 
-- [ ] **Step 2-2: 回帰テストを 2 件先に追加する（RED）**
+- [ ] **Step 2-2: テストを先に追加（CRLF: RED / `~~~`: GREEN）**
 
 対象: `test/unit/markdown-it-include.test.ts`
 
-| 追加ケース | 期待 | 追加時点での結果 |
+2 件は役割が異なる。実装より先に追加するのは共通だが、追加時点での期待結果が違う。
+
+| 追加ケース | 役割 | 追加時点での結果 |
 |---|---|---|
-| CRLF 文書で後続段落の include が展開される（`'Stray ` backtick.\r\n\r\n:[a](part.md) and `code` here.'`） | include が展開される | **失敗する（RED）**。実測で `expanded=false` を確認済み |
-| `~~~` フェンスが段落を中断する位置にある（`'Text with stray `backtick.\n~~~txt\nraw\n~~~\nLater `ok` here.'`） | 入力と一致（重複しない） | **成功する**（下記参照） |
+| CRLF 文書で後続段落の include が展開される（`'Stray ` backtick.\r\n\r\n:[a](part.md) and `code` here.'`） | **RED テスト**。Step 2-8 の CRLF 修正で GREEN になる | **失敗する**（実測で `expanded=false` を確認済み） |
+| `~~~` フェンスが段落を中断する位置にある（`'Text with stray `backtick.\n~~~txt\nraw\n~~~\nLater `ok` here.'`） | **characterization test**。リファクタリング前の正しい挙動を固定し、Step 2-6 / 2-7 の `indexOf` 最適化が退行を入れないことを保証する | **成功する**（PR #444 の内側ループは 1 文字ずつ `fenceRegionAt()` を判定するため、この時点では正しく動く） |
 
-注意: **`~~~` のケースは追加時点では成功する。** PR #444 の内側ループは 1 文字ずつ `fenceRegionAt()` を判定するためフェンスを飛び越えないので、この時点では正しく動く。このテストは Step 2-6 / 2-7 の `indexOf` 最適化が入れる退行に対する**ガード**であり、RED から始まる TDD の対象ではない。
-
-テストに意味があることを示すため、Step 2-2 の時点で**素朴な `indexOf` 版を一時的に当てて失敗すること**を確認し、確認後に必ず `git checkout -- src/markdown-it-include.ts` で戻す。実測では `delta=+22`・出力 `"Text with stray \`backtick.\n~~~txt\nraw\n~~~\nLater \`~~~txt\nraw\n~~~\nLater \`ok\` here."` となる。
+`~~~` ケースにガードとしての実効性があることは、レビュー時に素朴な `indexOf` 版で実測して確認済みである（`delta=+22`、再発時の出力は spec の「`~~~` フェンスに関する注意」に記載）。実装中に誤実装を一時的に当てて再確認する必要はない。
 
 ```
 npx tsx --test test/unit/markdown-it-include.test.ts
