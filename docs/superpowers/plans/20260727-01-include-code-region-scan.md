@@ -69,7 +69,26 @@ npx tsx --test "test/unit/**/*.test.ts"
 
 期待の記録値（既測値）: 49KB/フェンス500 で約 14ms、200KB/フェンス2000 で約 197ms。
 
-- [ ] **Step 2-2: `fenceRegionAt()` を二分探索にする**
+- [ ] **Step 2-2: 回帰テストを 2 件先に追加する（RED）**
+
+対象: `test/unit/markdown-it-include.test.ts`
+
+| 追加ケース | 期待 | 追加時点での結果 |
+|---|---|---|
+| CRLF 文書で後続段落の include が展開される（`'Stray ` backtick.\r\n\r\n:[a](part.md) and `code` here.'`） | include が展開される | **失敗する（RED）**。実測で `expanded=false` を確認済み |
+| `~~~` フェンスが段落を中断する位置にある（`'Text with stray `backtick.\n~~~txt\nraw\n~~~\nLater `ok` here.'`） | 入力と一致（重複しない） | **成功する**（下記参照） |
+
+注意: **`~~~` のケースは追加時点では成功する。** PR #444 の内側ループは 1 文字ずつ `fenceRegionAt()` を判定するためフェンスを飛び越えないので、この時点では正しく動く。このテストは Step 2-6 / 2-7 の `indexOf` 最適化が入れる退行に対する**ガード**であり、RED から始まる TDD の対象ではない。
+
+テストに意味があることを示すため、Step 2-2 の時点で**素朴な `indexOf` 版を一時的に当てて失敗すること**を確認し、確認後に必ず `git checkout -- src/markdown-it-include.ts` で戻す。実測では `delta=+22`・出力 `"Text with stray \`backtick.\n~~~txt\nraw\n~~~\nLater \`~~~txt\nraw\n~~~\nLater \`ok\` here."` となる。
+
+```
+npx tsx --test test/unit/markdown-it-include.test.ts
+```
+
+期待: CRLF ケースのみ失敗（8 pass / 1 fail）。
+
+- [ ] **Step 2-3: `fenceRegionAt()` を二分探索にする**
 
 `fenceRegions` は Pass 1 の左→右単一パスで得られるため `start` 昇順かつ非重複。この前提を関数のコメントに明記する。
 
@@ -92,7 +111,7 @@ function fenceRegionAt(index: number): CodeRegion | undefined {
 }
 ```
 
-- [ ] **Step 2-3: `nextFenceStartFrom()` を追加する**
+- [ ] **Step 2-4: `nextFenceStartFrom()` を追加する**
 
 `searchLimit` をフェンス開始位置でクランプするために必要。同じく二分探索で求める。
 
@@ -112,7 +131,7 @@ function nextFenceStartFrom(from: number): number {
 }
 ```
 
-- [ ] **Step 2-4: `searchLimit` をフェンス開始位置でクランプする**
+- [ ] **Step 2-5: `searchLimit` をフェンス開始位置でクランプする**
 
 ```ts
 // A code span can cross neither a paragraph break nor a fenced block, so the
@@ -122,9 +141,9 @@ const searchLimit = Math.min(nextParagraphBreak(openEnd), nextFenceStartFrom(ope
 
 **これは必須要件である。** 候補バックティック位置に対する `fenceRegionAt()` 判定だけでは `~~~` フェンスを飛び越える（`~~~` はバックティックを含まないため `indexOf` がフェンス全体をスキップし、候補位置はフェンス外になって判定を通過する）。空行があるケースは段落境界が偶然守るため見落としやすい。CommonMark ではフェンスが段落を中断できるので、空行なしのケースは正当な Markdown である。詳細と実測は spec の「`~~~` フェンスに関する注意」を参照。
 
-クランプ方式にすることで、内側ループから位置ごとのフェンス判定が完全に不要になる。
+クランプ方式にすることで、内側ループから位置ごとのフェンス判定が完全に不要になる。Step 2-2 で追加した `~~~` ケースがこの要件のガードになる。
 
-- [ ] **Step 2-5: 外側ループの 1 文字前進を `indexOf` に戻す**
+- [ ] **Step 2-6: 外側ループの 1 文字前進を `indexOf` に戻す**
 
 ```ts
 while (pos < src.length) {
@@ -143,9 +162,9 @@ while (pos < src.length) {
 
 注意: `indexOf` で飛ばした区間にフェンスが含まれる可能性があるため、見つけた位置で再判定する。この再判定を省くと `pos` がフェンス内に入り込み、Pass 2 の領域がフェンス領域と重複し得る。
 
-- [ ] **Step 2-6: 内側ループの 1 文字前進を `indexOf` に戻す**
+- [ ] **Step 2-7: 内側ループの 1 文字前進を `indexOf` に戻す**
 
-`searchLimit`（段落境界とフェンス開始位置の小さい方）で打ち切る。Step 2-4 のクランプにより、ループ内でのフェンス判定は不要になる。
+`searchLimit`（段落境界とフェンス開始位置の小さい方）で打ち切る。Step 2-5 のクランプにより、ループ内でのフェンス判定は不要になる。
 
 ```ts
 let searchPos = openEnd;
@@ -160,7 +179,7 @@ while (searchPos < searchLimit) {
 }
 ```
 
-- [ ] **Step 2-7: `nextParagraphBreak()` を CRLF 対応にする**
+- [ ] **Step 2-8: `nextParagraphBreak()` を CRLF 対応にする**
 
 PR #444 自身の欠陥。`/\n[ \t]*\n/` は `\r\n\r\n` に一致しない。include ルールは markdown-it の `normalize` より前に走るため CRLF が素通しで渡ってくる。
 
@@ -170,18 +189,7 @@ const blankLineRe = /\r?\n[ \t]*\r?\n/g;
 
 CRLF 文書では段落制限が一切効かず（常に `src.length` を返す）、閉じ相手のないバックティックが後続段落のバックティックと対になり、**include 記法が黙って展開されなくなる**。重複は起きないが別の不具合になる。
 
-- [ ] **Step 2-8: 回帰テストを 2 件追加する**
-
-対象: `test/unit/markdown-it-include.test.ts`
-
-| 追加ケース | 期待 |
-|---|---|
-| `~~~` フェンスが段落を中断する位置にある（`'Text with stray `backtick.\n~~~txt\nraw\n~~~\nLater `ok` here.'`） | 入力と一致（重複しない） |
-| CRLF 文書で後続段落の include が展開される（`'Stray ` backtick.\r\n\r\n:[a](part.md) and `code` here.'`） | include が展開される |
-
-いずれも修正前のコードで**失敗すること**を先に確認してから実装する（TDD）。
-
-- [ ] **Step 2-9: 検証**
+- [ ] **Step 2-9: 検証（GREEN）**
 
 ```
 npx tsc --noEmit
@@ -265,7 +273,19 @@ git commit -m "docs: add changelog entry for include duplication fix"
 
 - [ ] **Step 5-1: マージ前確認**
 
-`AGENTS.md` のマージ確認ルールに従い、実行前にユーザー承認を得る。
+`AGENTS.md` のマージ確認ルールに従い、実行前にユーザー承認を得る。**承認を求める前に、メインツリーの状態を確認する。**
+
+```
+git -C C:/work/github/yzane/vscode-markdown-pdf rev-parse --abbrev-ref HEAD
+git -C C:/work/github/yzane/vscode-markdown-pdf status --short
+```
+
+必須条件:
+
+- ブランチが **`develop` であること**。別ブランチに切り替わっていた場合、そのブランチへ誤ってマージされる
+- 作業ツリーが**クリーンであること**。現時点で `.vscode/settings.json` が modified のまま残っているため、マージ前に戻すか退避する必要がある
+
+どちらかを満たさない場合はマージせず、ユーザーに状態を報告して指示を仰ぐ。
 
 - [ ] **Step 5-2: マージ**
 
