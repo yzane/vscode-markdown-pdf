@@ -16,7 +16,7 @@
 
 ## Task 0: spec / plan をコミット
 
-- [ ] **Step 0-1: 2 ファイルを追加**
+- [x] **Step 0-1: 2 ファイルを追加**
 
 対象:
 
@@ -34,11 +34,11 @@ git commit -m "docs: add include code-region scan fix plan"
 
 作者クレジットと PR の merged 判定を成立させるため、**cherry-pick / squash / rebase は使わない**。
 
-- [ ] **Step 1-1: マージ前確認**
+- [x] **Step 1-1: マージ前確認**
 
 `AGENTS.md` のマージ確認ルールに従い、実行前にユーザー承認を得る。
 
-- [ ] **Step 1-2: `--no-ff` でマージ**
+- [x] **Step 1-2: `--no-ff` でマージ**
 
 ```
 git merge --no-ff pr-444-review -m "Merge PR #444 into bugfix/include-code-region-scan"
@@ -46,7 +46,7 @@ git merge --no-ff pr-444-review -m "Merge PR #444 into bugfix/include-code-regio
 
 期待: コンフリクトなし（PR は現 develop の真上に作られている）。`git log --format='%an %s' -3` で `94c8911` の author が `JasRockr` のまま残ることを確認する。
 
-- [ ] **Step 1-3: マージ直後の検証**
+- [x] **Step 1-3: マージ直後の検証**
 
 ```
 npx tsc --noEmit
@@ -63,13 +63,13 @@ npx tsx --test "test/unit/**/*.test.ts"
 
 現状の問題は `fenceRegionAt()` が走査 1 文字ごとに `fenceRegions.find()` の線形探索を行い、かつ非バックティック文字を 1 文字ずつ前進すること。`O(文書長 × フェンス数)` になっている。
 
-- [ ] **Step 2-1: 性能ベースラインを記録**
+- [x] **Step 2-1: 性能ベースラインを記録**
 
 実装前に現状（PR #444 マージ後）の数値を控える。合成文書での計測手順は Task 4 に置く。
 
 期待の記録値（既測値）: 49KB/フェンス500 で約 14ms、200KB/フェンス2000 で約 197ms。
 
-- [ ] **Step 2-2: テストを先に追加（CRLF: RED / `~~~`: GREEN）**
+- [x] **Step 2-2: テストを先に追加（CRLF: RED / `~~~`: GREEN）**
 
 対象: `test/unit/markdown-it-include.test.ts`
 
@@ -88,7 +88,7 @@ npx tsx --test test/unit/markdown-it-include.test.ts
 
 期待: CRLF ケースのみ失敗（8 pass / 1 fail）。
 
-- [ ] **Step 2-3: `fenceRegionAt()` を二分探索にする**
+- [x] **Step 2-3: `fenceRegionAt()` を二分探索にする**
 
 `fenceRegions` は Pass 1 の左→右単一パスで得られるため `start` 昇順かつ非重複。この前提を関数のコメントに明記する。
 
@@ -111,7 +111,7 @@ function fenceRegionAt(index: number): CodeRegion | undefined {
 }
 ```
 
-- [ ] **Step 2-4: `nextFenceStartFrom()` を追加する**
+- [x] **Step 2-4: `nextFenceStartFrom()` を追加する**
 
 `searchLimit` をフェンス開始位置でクランプするために必要。同じく二分探索で求める。
 
@@ -131,7 +131,7 @@ function nextFenceStartFrom(from: number): number {
 }
 ```
 
-- [ ] **Step 2-5: `searchLimit` をフェンス開始位置でクランプする**
+- [x] **Step 2-5: `searchLimit` をフェンス開始位置でクランプする**
 
 ```ts
 // A code span can cross neither a paragraph break nor a fenced block, so the
@@ -143,7 +143,7 @@ const searchLimit = Math.min(nextParagraphBreak(openEnd), nextFenceStartFrom(ope
 
 クランプ方式にすることで、内側ループから位置ごとのフェンス判定が完全に不要になる。Step 2-2 で追加した `~~~` ケースがこの要件のガードになる。
 
-- [ ] **Step 2-6: 外側ループの 1 文字前進を `indexOf` に戻す**
+- [x] **Step 2-6: 外側ループの 1 文字前進を `indexOf` に戻す**
 
 ```ts
 while (pos < src.length) {
@@ -162,7 +162,7 @@ while (pos < src.length) {
 
 注意: `indexOf` で飛ばした区間にフェンスが含まれる可能性があるため、見つけた位置で再判定する。この再判定を省くと `pos` がフェンス内に入り込み、Pass 2 の領域がフェンス領域と重複し得る。
 
-- [ ] **Step 2-7: 内側ループの 1 文字前進を `indexOf` に戻す**
+- [x] **Step 2-7: 内側ループの 1 文字前進を `indexOf` に戻す**
 
 `searchLimit`（段落境界とフェンス開始位置の小さい方）で打ち切る。Step 2-5 のクランプにより、ループ内でのフェンス判定は不要になる。
 
@@ -179,7 +179,7 @@ while (searchPos < searchLimit) {
 }
 ```
 
-- [ ] **Step 2-8: `nextParagraphBreak()` を CRLF 対応にする**
+- [x] **Step 2-8: `nextParagraphBreak()` を CRLF 対応にする**
 
 PR #444 自身の欠陥。`/\n[ \t]*\n/` は `\r\n\r\n` に一致しない。include ルールは markdown-it の `normalize` より前に走るため CRLF が素通しで渡ってくる。
 
@@ -189,7 +189,7 @@ const blankLineRe = /\r?\n[ \t]*\r?\n/g;
 
 CRLF 文書では段落制限が一切効かず（常に `src.length` を返す）、閉じ相手のないバックティックが後続段落のバックティックと対になり、**include 記法が黙って展開されなくなる**。重複は起きないが別の不具合になる。
 
-- [ ] **Step 2-9: 検証（GREEN）**
+- [x] **Step 2-9: 検証（GREEN）**
 
 ```
 npx tsc --noEmit
@@ -198,7 +198,7 @@ npx tsx --test "test/unit/**/*.test.ts"
 
 期待: tsc クリーン、**456 pass / 0 fail**（PR マージ後 454 + 追加 2）。
 
-- [ ] **Step 2-10: コミット**
+- [x] **Step 2-10: コミット**
 
 ```
 git add src/markdown-it-include.ts test/unit/markdown-it-include.test.ts
@@ -221,7 +221,7 @@ git commit -m "fix: bound include code-span search by fence and CRLF paragraph b
 
 `## Unreleased` は CHANGELOG.md の履歴に一度も存在せず規約にも無いため採用しない。
 
-- [ ] **Step 3-1: プレースホルダ見出しを新設して追記**
+- [x] **Step 3-1: プレースホルダ見出しを新設して追記**
 
 `# Change Log` の直後、`## 2.1.0 (2026/05/24)` の前に挿入する。既に他の未リリース変更で同見出しが存在する場合はそこへ追記するだけにする（実装時に確認する）。
 
@@ -239,7 +239,7 @@ git commit -m "fix: bound include code-span search by fence and CRLF paragraph b
 * Fix: Documents containing an unmatched backtick before a fenced code block no longer have a chunk of content duplicated as raw Markdown in the export. The `markdown-it-include` code-region scanner could pair an opening backtick with a closing backtick on the far side of a fenced block, producing overlapping protected regions that were emitted twice. Affects 2.0.0 through 2.1.0; the include scan runs on every export because `markdown-pdf.markdown-it-include.enable` defaults to `true` [#443](https://github.com/yzane/vscode-markdown-pdf/issues/443) [#444](https://github.com/yzane/vscode-markdown-pdf/pull/444)
 ```
 
-- [ ] **Step 3-2: コミット**
+- [x] **Step 3-2: コミット**
 
 ```
 git add CHANGELOG.md
