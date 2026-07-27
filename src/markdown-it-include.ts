@@ -62,15 +62,45 @@ function findCodeRegions(src: string): CodeRegion[] {
   // are already sorted by start position at this point.
   const fenceRegions = regions.slice();
 
+  // fenceRegions is sorted by start and non-overlapping because Pass 1 scans
+  // left to right. A monotonic cursor cannot be used here because outer `pos`
+  // can resume behind positions already visited by inner `searchPos`.
   function fenceRegionAt(index: number): CodeRegion | undefined {
-    return fenceRegions.find((r) => index >= r.start && index < r.end);
+    let low = 0;
+    let high = fenceRegions.length - 1;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const region = fenceRegions[mid];
+      if (index < region.start) {
+        high = mid - 1;
+      } else if (index >= region.end) {
+        low = mid + 1;
+      } else {
+        return region;
+      }
+    }
+    return undefined;
+  }
+
+  function nextFenceStartFrom(from: number): number {
+    let low = 0;
+    let high = fenceRegions.length;
+    while (low < high) {
+      const mid = Math.floor((low + high) / 2);
+      if (fenceRegions[mid].start < from) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    return low < fenceRegions.length ? fenceRegions[low].start : src.length;
   }
 
   // A blank line (a `\n`, only whitespace, then another `\n`) always ends a
   // paragraph in Markdown, and an inline code span cannot cross that boundary
   // — same as it cannot cross into a fenced code block. `nextParagraphBreak`
   // finds the earliest such boundary at or after `from`.
-  const blankLineRe = /\n[ \t]*\n/g;
+  const blankLineRe = /\r?\n[ \t]*\r?\n/g;
   function nextParagraphBreak(from: number): number {
     blankLineRe.lastIndex = from;
     const m = blankLineRe.exec(src);
@@ -97,29 +127,32 @@ function findCodeRegions(src: string): CodeRegion[] {
       continue;
     }
 
-    if (src[pos] !== '`') {
-      pos += 1;
+    const tickIdx = src.indexOf('`', pos);
+    if (tickIdx === -1) break;
+
+    const fenceAtTick = fenceRegionAt(tickIdx);
+    if (fenceAtTick) {
+      pos = fenceAtTick.end;
       continue;
     }
 
-    let openEnd = pos;
+    pos = tickIdx;
+    let openEnd = tickIdx;
     while (openEnd < src.length && src[openEnd] === '`') openEnd++;
     const openLen = openEnd - pos;
-    const searchLimit = nextParagraphBreak(openEnd);
+    // Inline code spans cross neither a paragraph break nor a fenced block.
+    const searchLimit = Math.min(nextParagraphBreak(openEnd), nextFenceStartFrom(openEnd));
 
     let searchPos = openEnd;
     let closeStart = -1;
     while (searchPos < searchLimit) {
-      const fenceAhead = fenceRegionAt(searchPos);
-      if (fenceAhead) break;
-      if (src[searchPos] !== '`') {
-        searchPos += 1;
-        continue;
-      }
-      let candEnd = searchPos;
+      const candidate = src.indexOf('`', searchPos);
+      if (candidate === -1 || candidate >= searchLimit) break;
+
+      let candEnd = candidate;
       while (candEnd < src.length && src[candEnd] === '`') candEnd++;
-      if (candEnd - searchPos === openLen) {
-        closeStart = searchPos;
+      if (candEnd - candidate === openLen) {
+        closeStart = candidate;
         break;
       }
       // Different-length run: not our closer. Per CommonMark this run is

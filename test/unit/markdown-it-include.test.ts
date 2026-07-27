@@ -71,6 +71,17 @@ describe('markdownItInclude', () => {
     assert.equal(out, 'Stray ` backtick.\n\nIncluded content.');
   });
 
+  it('expands an include after a CRLF paragraph break', () => {
+    const src = 'Stray ` backtick.\r\n\r\n:[a](part.md) and `code` here.';
+    const out = expand(src, tmpDir);
+    assert.equal(out, 'Stray ` backtick.\r\n\r\nIncluded content. and `code` here.');
+  });
+
+  it('leaves a tilde fence that interrupts a paragraph unchanged', () => {
+    const src = 'Text with stray `backtick.\n~~~txt\nraw\n~~~\nLater `ok` here.';
+    assert.equal(expand(src, tmpDir), src);
+  });
+
   // Regression test for a real-world bug: on documents with enough inline
   // code spans, an unmatched/odd backtick run could pair with a backtick
   // several paragraphs later, treating everything in between — including a
