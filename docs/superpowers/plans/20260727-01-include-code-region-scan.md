@@ -252,7 +252,7 @@ git commit -m "docs: add changelog entry for include duplication fix"
 
 回帰テストにはしない（実行環境依存で不安定なため）。手元で 1 回計測し、develop 同等に戻ったことを確認する。
 
-- [ ] **Step 4-1: 計測**
+- [x] **Step 4-1: 計測**
 
 一時スクリプトをスクラッチパッドに置き、`markdownItInclude` の core rule のみを呼んで合成文書 3 種（フェンス 50 / 500 / 2000）と実文書（`docs/superpowers/plans/20260420-01-math-support.md`）を通す。リポジトリには一時ファイルを残さない。
 
@@ -263,9 +263,28 @@ git commit -m "docs: add changelog entry for include duplication fix"
 | 49KB / フェンス 500 | 1.1 ms | 14.0 ms | develop 同等 |
 | 200KB / フェンス 2000 | 14.5 ms | 197.2 ms | develop 同等 |
 
-- [ ] **Step 4-2: 正しさの最終確認**
+- [x] **Step 4-2: 正しさの最終確認**
 
 実文書で入力とバイト一致すること、および include フィクスチャ 3 件の展開結果が develop と一致することを確認する。
+
+### 実測結果（2026-07-27）
+
+`markdownItInclude` の core rule のみを minimal な ruler stub で呼び出した。合成文書は各セクションにインラインコード 1 個とバックティックフェンス 1 個を含め、25 回のウォームアップ後に計測した。
+
+| フェンス数 | バイト数 | 計測回数 | 中央値 | 最小 | 最大 |
+|---:|---:|---:|---:|---:|---:|
+| 50 | 4,810 | 100 | 0.036 ms | 0.033 ms | 0.301 ms |
+| 500 | 50,060 | 60 | 0.386 ms | 0.368 ms | 0.684 ms |
+| 2,000 | 205,560 | 40 | 1.728 ms | 1.615 ms | 2.545 ms |
+
+500 / 2,000 フェンスはいずれも PR #444 のベースライン（約 14 ms / 約 197 ms）を大きく下回り、オーダーとスケーリングは develop 相当だった。絶対時間は実行環境に依存するため、同一プロセスで比較していない値から直接の高速化倍率は主張しない。
+
+正しさの確認結果:
+
+- `docs/superpowers/plans/20260420-01-math-support.md`: 67,102 bytes、入力と出力がバイト一致（SHA-256: `70d841ce…a04`）
+- current と develop の core rule 出力がバイト一致: `include.md`（203 bytes、`e1b31fd0…25d5e`）、`include-missing.md`（214 bytes、`21dd972e…55be`）、`include-codeblock.md`（367 bytes、`0e1ce072…ab52`）
+- `markdown-it-include` の対象 unit test は 9 pass / 0 fail（重複回帰、CRLF、チルダフェンスを含む）
+- スクラッチを削除し、worktree がクリーンであることを確認
 
 ---
 
