@@ -269,7 +269,9 @@ git commit -m "docs: add changelog entry for include duplication fix"
 
 ### 実測結果（2026-07-27）
 
-`markdownItInclude` の core rule のみを minimal な ruler stub で呼び出した。合成文書は各セクションにインラインコード 1 個とバックティックフェンス 1 個を含め、25 回のウォームアップ後に計測した。
+`markdownItInclude` の core rule のみを minimal な ruler stub で呼び出した。測定対象は scanner 実装 `fe0aa14`、develop 比較は `1f312a7`。環境は Node.js v24.6.0、Windows_NT 10.0.26200 x64、AMD Ryzen 5 5600X（論理 CPU 12）である。このプランへの記録コミット（`09c1110` 以降）は、測定対象の本番コードを変更していない。
+
+合成文書は各セクションにインラインコード 1 個とバックティックフェンス 1 個を含め、25 回のウォームアップ後に計測した。
 
 | フェンス数 | バイト数 | 計測回数 | 中央値 | 最小 | 最大 |
 |---:|---:|---:|---:|---:|---:|
@@ -277,12 +279,23 @@ git commit -m "docs: add changelog entry for include duplication fix"
 | 500 | 50,060 | 60 | 0.386 ms | 0.368 ms | 0.684 ms |
 | 2,000 | 205,560 | 40 | 1.728 ms | 1.615 ms | 2.545 ms |
 
-500 / 2,000 フェンスはいずれも PR #444 のベースライン（約 14 ms / 約 197 ms）を大きく下回り、オーダーとスケーリングは develop 相当だった。絶対時間は実行環境に依存するため、同一プロセスで比較していない値から直接の高速化倍率は主張しない。
+上表は主要計測の絶対値である。入力が 50,060 bytes から 205,560 bytes（約 4.1 倍）になると中央値は 0.386 ms から 1.728 ms（約 4.48 倍）となり、PR #444 で見られた二次関数的な増大は再発しなかった。別の同一プロセス・同一ハーネス比較では、500 フェンスで current 0.160 ms / develop 0.161 ms、2,000 フェンスで current 0.603 ms / develop 0.607 ms となり、両規模で develop 相当を確認した。
+
+500 / 2,000 フェンスの主要計測値は PR #444 の履歴ベースライン（約 14 ms / 約 197 ms）を大きく下回った。ただし絶対時間は実行環境に依存し、履歴値は同一プロセス比較ではないため、そこから直接の高速化倍率は算出しない。
+
+実文書も同じ core-rule-only ハーネスで 25 回ウォームアップ後に 100 回計測した。
+
+| revision | バイト数 | 中央値 | 最小 | 最大 | 出力 |
+|---|---:|---:|---:|---:|---|
+| current (`fe0aa14`) | 67,102 | 0.217 ms | 0.188 ms | 0.804 ms | 入力とバイト一致 |
+| develop (`1f312a7`) | 67,102 | 0.325 ms | 0.279 ms | 2.146 ms | 入力と不一致 |
+
+develop は出力内容が異なるため、実文書の 2 行は同等ワークロードの性能比較には使用しない。
 
 正しさの確認結果:
 
-- `docs/superpowers/plans/20260420-01-math-support.md`: 67,102 bytes、入力と出力がバイト一致（SHA-256: `70d841ce…a04`）
-- current と develop の core rule 出力がバイト一致: `include.md`（203 bytes、`e1b31fd0…25d5e`）、`include-missing.md`（214 bytes、`21dd972e…55be`）、`include-codeblock.md`（367 bytes、`0e1ce072…ab52`）
+- `docs/superpowers/plans/20260420-01-math-support.md`: current の入力と出力がバイト一致（SHA-256: `70d841ce284f616f355157edf3382fa458cdc14085c2ff92f409cee245d52a04`）。develop 出力の SHA-256 は `20c240c2d91582ddf7bc611e4550a601a2c6fa15482eccfa8c392111fd5fb0b0`
+- current と develop の core rule 出力がバイト一致: `include.md`（203 bytes、SHA-256: `e1b31fd0e55c10273dc09d12a88b3b6ce6ea46ab3acd6e27431eb7dbbcf25d5e`）、`include-missing.md`（214 bytes、SHA-256: `21dd972e2d1bf330b63a160c205340515db67300d7be841f25e320bc7e6655be`）、`include-codeblock.md`（367 bytes、SHA-256: `0e1ce072a24cd91dd10ff6fed68a8cad137aa1b8f75edb10654a2fd086ddab52`）
 - `markdown-it-include` の対象 unit test は 9 pass / 0 fail（重複回帰、CRLF、チルダフェンスを含む）
 - スクラッチを削除し、worktree がクリーンであることを確認
 
