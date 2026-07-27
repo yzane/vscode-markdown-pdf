@@ -1,5 +1,11 @@
 # Change Log
 
+## X.Y.Z (YYYY/MM/DD)
+
+### Fixes
+
+* Fix: Documents containing an unmatched backtick before a fenced code block no longer have a chunk of content duplicated as raw Markdown in the export. The `markdown-it-include` code-region scanner could pair an opening backtick with a closing backtick on the far side of a fenced block, producing overlapping protected regions that were emitted twice. Affects 2.0.0 through 2.1.0; the include scan runs on every export because `markdown-pdf.markdown-it-include.enable` defaults to `true` [#443](https://github.com/yzane/vscode-markdown-pdf/issues/443) [#444](https://github.com/yzane/vscode-markdown-pdf/pull/444)
+
 ## 2.1.0 (2026/05/24)
 
 ### Breaking Changes
