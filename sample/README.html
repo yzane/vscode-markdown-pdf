@@ -367,10 +367,7 @@ code {
   </script>
 <h1 id="markdown-pdf">Markdown PDF</h1>
 <p>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/banner-dark.svg">
-    <img src="images/banner.svg" alt="Markdown PDF" width="400">
-  </picture>
+  <img src="images/banner.png" alt="Markdown PDF" width="400">
 </p>
 <p>This VS Code extension converts Markdown files to pdf, html, png or jpeg files.</p>
 <p><a href="README.ja.md">Japanese README</a></p>
@@ -388,12 +385,19 @@ code {
 <li><a href="#known-issues">Known Issues</a></li>
 <li><a href="#change-log">Change Log</a></li>
 <li><a href="#license">License</a></li>
+<li><a href="#sponsor">Sponsor</a></li>
 <li><a href="#special-thanks">Special thanks</a></li>
 </ul>
 <!-- /TOC -->
 <div class="page"/>
 <h2 id="whats-new">What's New</h2>
 <p>Highlights of new features and improvements since v2. See <a href="#breaking-changes">Breaking Changes</a> for changes that may affect existing behavior.</p>
+<h3 id="220">2.2.0</h3>
+<ul>
+<li>Improve error notifications with actionable hints and a Show Details button (<a href="#how-do-i-troubleshoot-a-failed-export">details</a>)</li>
+<li>Add detailed logging to the new Markdown PDF output channel (<a href="#how-do-i-troubleshoot-a-failed-export">details</a>)</li>
+<li>Add <code>Markdown PDF: Output Diagnostics</code> command for bug reports (<a href="#how-do-i-troubleshoot-a-failed-export">details</a>)</li>
+</ul>
 <h3 id="210">2.1.0</h3>
 <ul>
 <li>Add PlantUML fenced code block support (<a href="#plantuml">details</a>)</li>
@@ -402,6 +406,14 @@ code {
 </ul>
 <h2 id="breaking-changes">Breaking Changes</h2>
 <p>Changes since v2 that may affect existing behavior. See the <a href="#faq">FAQ</a> section for details.</p>
+<h3 id="220-1">2.2.0</h3>
+<ul>
+<li>With <code>markdown-pdf.sanitize: &quot;gfm&quot;</code> (default) or <code>&quot;gfm-allow-style&quot;</code>, block-level <code>&lt;style&gt;</code>, <code>&lt;script&gt;</code>, and <code>&lt;iframe&gt;</code> elements are now removed together with their content, instead of being escaped and left as visible text in the output. A notification reports what was removed during an export.
+<ul>
+<li>Details: <a href="#why-is-my-raw-html-being-escaped-or-removed">Why is my raw HTML being escaped or removed?</a></li>
+</ul>
+</li>
+</ul>
 <h3 id="210-1">2.1.0</h3>
 <ul>
 <li>Security hardening: To mitigate XSS-like risk (<a href="https://github.com/yzane/vscode-markdown-pdf/issues/411">#411</a>), raw HTML in Markdown is now sanitized by default following the <a href="https://github.github.com/gfm/#disallowed-raw-html-extension-">GFM Disallowed Raw HTML extension</a>. Tags such as <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;style&gt;</code>, and <code>on*</code> / <code>javascript:</code> attributes are stripped from Markdown body content. The behavior is controlled by the new <a href="#markdown-pdfsanitize">markdown-pdf.sanitize</a> setting.
@@ -695,6 +707,7 @@ x - y &= 4
 </ul>
 </li>
 </ol>
+<p>To collect environment information for a bug report, run <code>Markdown PDF: Output Diagnostics</code>. See <a href="#how-do-i-troubleshoot-a-failed-export">How do I troubleshoot a failed export?</a> in the FAQ.</p>
 <p><img src="images/usage1.gif" alt="usage1"></p>
 <h3 id="menu">Menu</h3>
 <ol>
@@ -1420,13 +1433,16 @@ x - y &= 4
 </tbody>
 </table>
 <p><strong>What <code>&quot;gfm&quot;</code> removes</strong></p>
-<p>Tags (opening and closing forms are both escaped to visible text):
+<p>Disallowed tags:
 <code>&lt;title&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;style&gt;</code>, <code>&lt;xmp&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;noembed&gt;</code>, <code>&lt;noframes&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;plaintext&gt;</code></p>
+<p>Starting with 2.2.0, block-level <code>&lt;style&gt;</code> / <code>&lt;script&gt;</code> / <code>&lt;iframe&gt;</code> elements are removed together with their content, so CSS or JavaScript source no longer appears as literal text in the output. All other cases — the remaining disallowed tags, and inline occurrences of any disallowed tag — have their opening <code>&lt;</code> escaped to <code>&amp;lt;</code> (content preserved as visible text). In 2.1.0, everything was escaped.</p>
 <p>Attributes:</p>
 <ul>
 <li><code>on*</code> event handlers (<code>onclick</code>, <code>onload</code>, …)</li>
 <li><code>href</code> / <code>src</code> whose value starts with <code>javascript:</code></li>
 </ul>
+<p><strong>Sanitize notification</strong></p>
+<p>Starting with 2.2.0, when elements are removed or attributes are stripped during an export, a notification summarizes what was neutralized: a toast with a &quot;Show Details&quot; button on manual export, or an entry in the &quot;Markdown PDF&quot; output channel on <a href="#auto-convert">Auto convert</a>.</p>
 <p><strong>Migrating from inline <code>&lt;style&gt;</code></strong></p>
 <p>If you used to customize PDF layout by writing <code>&lt;style&gt;</code> directly inside a Markdown file, move that CSS into a <code>.css</code> file and reference it via <code>markdown-pdf.styles</code>. External stylesheets are loaded from your VS Code settings, not from the Markdown body, so they are not affected by sanitization.</p>
 <p>Caveats for external CSS:</p>
@@ -1446,6 +1462,14 @@ x - y &= 4
 <li>The extension's built-in stylesheets and HTML template</li>
 <li>HTML emitted by the extension itself (mermaid, highlight.js, emoji, PlantUML)</li>
 </ul>
+<h3 id="how-do-i-troubleshoot-a-failed-export">How do I troubleshoot a failed export?</h3>
+<p>Starting with 2.2.0, the extension writes detailed logs to the <strong>Markdown PDF</strong> output channel. Open it via <strong>View</strong> &gt; <strong>Output</strong> and select <strong>Markdown PDF</strong> in the dropdown.</p>
+<ul>
+<li>When an export fails, the error toast describes what failed and, for common causes (Chromium launch failure, locked output file, permission denied, disk full, invalid output directory), adds a one-line hint. The <strong>Show Details</strong> button opens the log with the full context, error message, and stack trace.</li>
+<li>Every export logs an environment snapshot and conversion context block at the start, so the log alone is usually enough to see what happened.</li>
+<li>Run <code>Markdown PDF: Output Diagnostics</code> from the Command Palette to print environment and configuration diagnostics: extension version, VS Code / OS information, the Chromium path and how it was selected, and relevant settings. Home directory paths are masked.</li>
+</ul>
+<p>When filing an issue, please attach the output of <code>Markdown PDF: Output Diagnostics</code> and the log shown by <strong>Show Details</strong>.</p>
 <h3 id="how-is-the-chromium-browser-selected">How is the Chromium browser selected?</h3>
 <p>Markdown PDF resolves a Chromium-based browser in the following order:</p>
 <ol>
@@ -1523,6 +1547,8 @@ x - y &= 4
 <p>See <a href="CHANGELOG.md">CHANGELOG.md</a> for the full change history.</p>
 <h2 id="license">License</h2>
 <p>MIT</p>
+<h2 id="sponsor">Sponsor</h2>
+<p>If you find Markdown PDF useful, you can support continued development via <a href="https://github.com/sponsors/yzane">GitHub Sponsors</a>.</p>
 <h2 id="special-thanks">Special thanks</h2>
 <ul>
 <li><a href="https://github.com/puppeteer/puppeteer">puppeteer/puppeteer</a></li>
@@ -1533,6 +1559,8 @@ x - y &= 4
 <li><a href="https://github.com/markdown-it/markdown-it-container">markdown-it/markdown-it-container</a></li>
 <li><a href="https://github.com/gmunguia/markdown-it-plantuml">gmunguia/markdown-it-plantuml</a></li>
 <li><a href="https://github.com/mermaid-js/mermaid">mermaid-js/mermaid</a></li>
+<li><a href="https://github.com/KaTeX/KaTeX">KaTeX/KaTeX</a></li>
+<li><a href="https://github.com/microsoft/vscode-markdown-it-katex">microsoft/vscode-markdown-it-katex</a></li>
 </ul>
 
 </body>
