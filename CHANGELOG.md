@@ -1,10 +1,25 @@
 # Change Log
 
-## X.Y.Z (YYYY/MM/DD)
+## 2.2.0 (2026/07/28)
+
+### Breaking Changes
+
+* Sanitization behavior change: with `markdown-pdf.sanitize` set to `"gfm"` (default) or `"gfm-allow-style"`, block-level `<style>`, `<script>`, and `<iframe>` elements in the Markdown body are now removed entirely — tag and content — instead of having the opening `<` escaped and the content left as visible text in the output. This prevents CSS / JavaScript source code from appearing as literal text in exported files. Inline occurrences are still escaped as before. When something is removed during an export, a notification summarizes what was removed: a toast with a "Show Details" button on manual export, or an entry in the "Markdown PDF" output channel on automatic convert-on-save [#437](https://github.com/yzane/vscode-markdown-pdf/issues/437)
+
+### Changes
+
+* Add `Markdown PDF: Output Diagnostics` command (Command Palette) that writes environment and configuration diagnostics — extension version, VS Code / OS info, Chromium path and its resolution source, and relevant settings — to the "Markdown PDF" output channel. Home directory paths are masked. Attach its output when filing an issue
+* Add a "Markdown PDF" output channel (log level aware) that collects all extension logs, and log an environment snapshot and conversion context at the start of each export to make failure reports diagnosable [#437](https://github.com/yzane/vscode-markdown-pdf/issues/437)
+* Improve error notifications: toasts now describe what failed in plain language instead of showing internal function names, add a one-line hint for common causes (Chromium launch failure, locked output file / permission denied, disk full, invalid output directory — with an "Open Settings" shortcut where applicable), and provide a "Show Details" button that opens the log with the full context, error message, and stack trace [#437](https://github.com/yzane/vscode-markdown-pdf/issues/437)
+* Chromium resolution failures now report the underlying reason — network / proxy download failure, `markdown-pdf.chromium.autoDownload` disabled, or no usable browser found — instead of a generic "Chromium does not exist" message [#436](https://github.com/yzane/vscode-markdown-pdf/issues/436)
+* Error logs now follow `Error.cause` chains and expand `AggregateError`, and missing shared system libraries (a common Chromium launch failure on minimal Linux environments) are detected and called out explicitly
 
 ### Fixes
 
 * Fix: Documents containing an unmatched backtick before a fenced code block no longer have a chunk of content duplicated as raw Markdown in the export. The `markdown-it-include` code-region scanner could pair an opening backtick with a closing backtick on the far side of a fenced block, producing overlapping protected regions that were emitted twice. Affects 2.0.0 through 2.1.0; the include scan runs on every export because `markdown-pdf.markdown-it-include.enable` defaults to `true` [#443](https://github.com/yzane/vscode-markdown-pdf/issues/443) [#444](https://github.com/yzane/vscode-markdown-pdf/pull/444)
+* Fix: Export no longer hangs indefinitely when `markdown-pdf.sanitize` is `"none"` and the document contains scripts that open blocking dialogs (`alert()`, `confirm()`, `prompt()`, `beforeunload`). Such dialogs are now auto-dismissed during rendering and recorded in the output channel
+* Fix: When HTML generation fails, the export is now skipped instead of writing a corrupted file. Previously the literal string `undefined` or template-wrapped garbage was written to the output path, silently overwriting a previous good export
+* Fix: The `Exporting (pdf) ...` progress notification no longer stays open indefinitely when post-export cleanup stalls. Browser shutdown is now bounded by a timeout, and the temporary HTML file is reliably removed [#374](https://github.com/yzane/vscode-markdown-pdf/issues/374)
 
 ## 2.1.0 (2026/05/24)
 

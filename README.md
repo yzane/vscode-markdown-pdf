@@ -33,6 +33,12 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
 
+### 2.2.0
+
+- Improve error notifications with actionable hints and a Show Details button ([details](#how-do-i-troubleshoot-a-failed-export))
+- Add detailed logging to the new Markdown PDF output channel ([details](#how-do-i-troubleshoot-a-failed-export))
+- Add `Markdown PDF: Output Diagnostics` command for bug reports ([details](#how-do-i-troubleshoot-a-failed-export))
+
 ### 2.1.0
 
 - Add PlantUML fenced code block support ([details](#plantuml))
@@ -42,6 +48,11 @@ Highlights of new features and improvements since v2. See [Breaking Changes](#br
 ## Breaking Changes
 
 Changes since v2 that may affect existing behavior. See the [FAQ](#faq) section for details.
+
+### 2.2.0
+
+- With `markdown-pdf.sanitize: "gfm"` (default) or `"gfm-allow-style"`, block-level `<style>`, `<script>`, and `<iframe>` elements are now removed together with their content, instead of being escaped and left as visible text in the output. A notification reports what was removed during an export.
+    - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
 
 ### 2.1.0
 
@@ -310,6 +321,8 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
    * `markdown-pdf: Export (all: pdf, html, png, jpeg)`
+
+To collect environment information for a bug report, run `Markdown PDF: Output Diagnostics`. See [How do I troubleshoot a failed export?](#how-do-i-troubleshoot-a-failed-export) in the FAQ.
 
 ![usage1](images/usage1.gif)
 
@@ -867,12 +880,18 @@ Starting with 2.1.0, raw HTML inside the Markdown body is sanitized by default p
 
 **What `"gfm"` removes**
 
-Tags (opening and closing forms are both escaped to visible text):
+Disallowed tags:
 `<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+Starting with 2.2.0, block-level `<style>` / `<script>` / `<iframe>` elements are removed together with their content, so CSS or JavaScript source no longer appears as literal text in the output. All other cases — the remaining disallowed tags, and inline occurrences of any disallowed tag — have their opening `<` escaped to `&lt;` (content preserved as visible text). In 2.1.0, everything was escaped.
 
 Attributes:
 - `on*` event handlers (`onclick`, `onload`, …)
 - `href` / `src` whose value starts with `javascript:`
+
+**Sanitize notification**
+
+Starting with 2.2.0, when elements are removed or attributes are stripped during an export, a notification summarizes what was neutralized: a toast with a "Show Details" button on manual export, or an entry in the "Markdown PDF" output channel on [Auto convert](#auto-convert).
 
 **Migrating from inline `<style>`**
 
@@ -893,6 +912,16 @@ Not sanitized:
 - External CSS loaded via `markdown-pdf.styles` (by design — user-configured trust boundary)
 - The extension's built-in stylesheets and HTML template
 - HTML emitted by the extension itself (mermaid, highlight.js, emoji, PlantUML)
+
+### How do I troubleshoot a failed export?
+
+Starting with 2.2.0, the extension writes detailed logs to the **Markdown PDF** output channel. Open it via **View** > **Output** and select **Markdown PDF** in the dropdown.
+
+- When an export fails, the error toast describes what failed and, for common causes (Chromium launch failure, locked output file, permission denied, disk full, invalid output directory), adds a one-line hint. The **Show Details** button opens the log with the full context, error message, and stack trace.
+- Every export logs an environment snapshot and conversion context block at the start, so the log alone is usually enough to see what happened.
+- Run `Markdown PDF: Output Diagnostics` from the Command Palette to print environment and configuration diagnostics: extension version, VS Code / OS information, the Chromium path and how it was selected, and relevant settings. Home directory paths are masked.
+
+When filing an issue, please attach the output of `Markdown PDF: Output Diagnostics` and the log shown by **Show Details**.
 
 ### How is the Chromium browser selected?
 
