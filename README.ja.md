@@ -31,6 +31,12 @@
 
 バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
 
+### 2.2.0
+
+- エラー通知を改善し、対処ヒントと Show Details ボタンを追加（[詳細](#how-do-i-troubleshoot-a-failed-export)）
+- 新しい Markdown PDF 出力チャネルへの詳細ログ出力を追加（[詳細](#how-do-i-troubleshoot-a-failed-export)）
+- 不具合報告用の `Markdown PDF: Output Diagnostics` コマンドを追加（[詳細](#how-do-i-troubleshoot-a-failed-export)）
+
 ### 2.1.0
 
 - `` ```plantuml `` フェンスドコードブロック記法のサポートを追加（[詳細](#plantuml)）
@@ -40,6 +46,11 @@
 ## 仕様変更
 
 バージョン 2 以降で既存動作に影響する変更です。詳細は [FAQ](#faq) セクションを参照してください。
+
+### 2.2.0
+
+- `markdown-pdf.sanitize` が `"gfm"`（既定）または `"gfm-allow-style"` の場合、ブロックレベルの `<style>` / `<script>` / `<iframe>` 要素はエスケープして可視テキストとして残す代わりに、中身ごと除去されるようになりました。エクスポート時に除去が発生した場合は通知で報告されます。
+    - 詳細: [Raw HTML がエスケープ／除去されるのはなぜ？](#why-is-my-raw-html-being-escaped-or-removed)
 
 ### 2.1.0
 
@@ -308,6 +319,8 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
    * `markdown-pdf: Export (all: pdf, html, png, jpeg)`
+
+不具合報告用の環境情報を収集するには `Markdown PDF: Output Diagnostics` を実行します。FAQ の [エクスポート失敗時のトラブルシューティング方法は？](#how-do-i-troubleshoot-a-failed-export) を参照してください。
 
 ![usage1](images/usage1.gif)
 
@@ -872,12 +885,18 @@ BOM 付きファイルは引き続きサポートされます。
 
 **`"gfm"` で除去される対象**
 
-タグ（開きタグ・閉じタグとも `<` が `&lt;` にエスケープされ、可視テキストとして残ります）:
+禁止タグ:
 `<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+バージョン 2.2.0 から、ブロックレベルの `<style>` / `<script>` / `<iframe>` 要素は中身ごと除去されるため、CSS や JavaScript のソースコードが可視テキストとして出力に残ることはなくなりました。それ以外のケース — 上記のその他の禁止タグ、および任意の禁止タグのインライン出現 — は開きの `<` が `&lt;` にエスケープされ、中身は可視テキストとして残ります。2.1.0 ではすべてがエスケープされていました。
 
 属性:
 - `on*` イベントハンドラ（`onclick`, `onload` 等）
 - `href` / `src` の値が `javascript:` で始まるもの
+
+**サニタイズ通知**
+
+バージョン 2.2.0 から、エクスポート時に要素の除去や属性の除去が発生した場合、その内容が通知で報告されます: 手動エクスポート時は「Show Details」ボタン付きトースト、[自動変換](#自動変換)時は「Markdown PDF」出力チャネルへの記録となります。
 
 **本文内 `<style>` からの移行**
 
@@ -898,6 +917,18 @@ PDF レイアウト調整のために Markdown 本文内で `<style>` を使っ�
 - `markdown-pdf.styles` で指定された外部 CSS（意図的に対象外。ユーザー設定による明示指定が信頼境界）
 - 拡張内蔵の CSS およびテンプレート HTML
 - 拡張自身が生成する HTML（mermaid、highlight.js、emoji、PlantUML の出力）
+
+<a id="how-do-i-troubleshoot-a-failed-export"></a>
+
+### エクスポート失敗時のトラブルシューティング方法は？
+
+バージョン 2.2.0 から、拡張は詳細ログを **Markdown PDF** 出力チャネルに記録します。**表示** > **出力** を開き、ドロップダウンから **Markdown PDF** を選択してください。
+
+- エクスポートが失敗すると、エラートーストに何が失敗したかが表示され、よくある原因（Chromium の起動失敗、出力ファイルのロック、権限不足、ディスク容量不足、出力先ディレクトリの不正）には対処ヒントが 1 行添えられます。**Show Details** ボタンを押すと、コンテキスト・エラーメッセージ・スタックトレースを含むログが開きます。
+- 各エクスポートの開始時に環境スナップショットと変換コンテキストがログに記録されるため、通常はログだけで状況を把握できます。
+- コマンドパレットから `Markdown PDF: Output Diagnostics` を実行すると、環境・設定の診断情報（拡張のバージョン、VS Code / OS 情報、Chromium のパスと選択経緯、関連設定）が出力されます。ホームディレクトリのパスはマスクされます。
+
+issue を発行する際は、`Markdown PDF: Output Diagnostics` の出力と **Show Details** で表示されるログを添付してください。
 
 <a id="how-is-the-chromium-browser-selected"></a>
 

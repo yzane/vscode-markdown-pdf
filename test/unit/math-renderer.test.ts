@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { renderMath } from '../../src/math-renderer';
+import * as logger from '../../src/logger';
 
 describe('renderMath', () => {
   it('should render inline math as a <span class="katex"> element', () => {
@@ -43,5 +44,17 @@ describe('renderMath', () => {
   it('should not throw on empty input', () => {
     assert.doesNotThrow(() => renderMath('', false, {}));
     assert.doesNotThrow(() => renderMath('', true, {}));
+  });
+
+  it('logs a warning via logger when falling back to <code>', () => {
+    const calls: unknown[][] = [];
+    logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+    try {
+      renderMath(undefined as unknown as string, false, {});
+      assert.equal(calls.length, 1);
+      assert.match(String(calls[0][0]), /KaTeX render failure/);
+    } finally {
+      logger.setLogSink(undefined);
+    }
   });
 });

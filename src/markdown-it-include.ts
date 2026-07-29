@@ -58,67 +58,118 @@ function findCodeRegions(src: string): CodeRegion[] {
     }
   }
 
-  // Pass 2: find inline code (backtick sequences) outside fenced blocks
+  // Fence regions are discovered above in a single left-to-right pass, so they
+  // are already sorted by start position at this point.
+  const fenceRegions = regions.slice();
+
+  // fenceRegions is sorted by start and non-overlapping because Pass 1 scans
+  // left to right. A monotonic cursor cannot be used here because outer `pos`
+  // can resume behind positions already visited by inner `searchPos`.
+  function fenceRegionAt(index: number): CodeRegion | undefined {
+    let low = 0;
+    let high = fenceRegions.length - 1;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const region = fenceRegions[mid];
+      if (index < region.start) {
+        high = mid - 1;
+      } else if (index >= region.end) {
+        low = mid + 1;
+      } else {
+        return region;
+      }
+    }
+    return undefined;
+  }
+
+  function nextFenceStartFrom(from: number): number {
+    let low = 0;
+    let high = fenceRegions.length;
+    while (low < high) {
+      const mid = Math.floor((low + high) / 2);
+      if (fenceRegions[mid].start < from) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    return low < fenceRegions.length ? fenceRegions[low].start : src.length;
+  }
+
+  // A blank line (a `\n`, only whitespace, then another `\n`) always ends a
+  // paragraph in Markdown, and an inline code span cannot cross that boundary
+  // — same as it cannot cross into a fenced code block. `nextParagraphBreak`
+  // finds the earliest such boundary at or after `from`.
+  const blankLineRe = /\r?\n[ \t]*\r?\n/g;
+  function nextParagraphBreak(from: number): number {
+    blankLineRe.lastIndex = from;
+    const m = blankLineRe.exec(src);
+    return m ? m.index : src.length;
+  }
+
+  // Pass 2: find inline code spans outside fenced blocks, following the same
+  // "backtick string" rule CommonMark/markdown-it use: a run of N backticks
+  // opens a code span, which is closed by the *next* run of exactly N
+  // backticks *within the same paragraph*. Runs of a different length
+  // encountered while searching for the closer are just content — they are
+  // never reinterpreted as a fresh opener mid-search. Crucially, hitting a
+  // fenced block or a blank line while searching ends the search as "no
+  // closer found" rather than skipping past it: a fence or a blank line is a
+  // block-level boundary a code span can never cross, so treating them as
+  // something to leapfrog over is what previously let an opener latch onto
+  // an unrelated, much later backtick and swallow everything — fenced blocks
+  // included — into one bogus region.
   let pos = 0;
   while (pos < src.length) {
+    const fenceHere = fenceRegionAt(pos);
+    if (fenceHere) {
+      pos = fenceHere.end;
+      continue;
+    }
+
     const tickIdx = src.indexOf('`', pos);
     if (tickIdx === -1) break;
 
-    // Skip if inside a fenced code block
-    if (regions.some((r) => tickIdx >= r.start && tickIdx < r.end)) {
-      pos = regions.find((r) => tickIdx >= r.start && tickIdx < r.end)!.end;
+    const fenceAtTick = fenceRegionAt(tickIdx);
+    if (fenceAtTick) {
+      pos = fenceAtTick.end;
       continue;
     }
 
-    // Count consecutive backticks
-    let tickCount = 0;
-    let tickEnd = tickIdx;
-    while (tickEnd < src.length && src[tickEnd] === '`') {
-      tickCount++;
-      tickEnd++;
+    pos = tickIdx;
+    let openEnd = tickIdx;
+    while (openEnd < src.length && src[openEnd] === '`') openEnd++;
+    const openLen = openEnd - pos;
+    // Inline code spans cross neither a paragraph break nor a fenced block.
+    const searchLimit = Math.min(nextParagraphBreak(openEnd), nextFenceStartFrom(openEnd));
+
+    let searchPos = openEnd;
+    let closeStart = -1;
+    while (searchPos < searchLimit) {
+      const candidate = src.indexOf('`', searchPos);
+      if (candidate === -1 || candidate >= searchLimit) break;
+
+      let candEnd = candidate;
+      while (candEnd < src.length && src[candEnd] === '`') candEnd++;
+      if (candEnd - candidate === openLen) {
+        closeStart = candidate;
+        break;
+      }
+      // Different-length run: not our closer. Per CommonMark this run is
+      // ordinary content for the span we're still looking to close, so skip
+      // past it and keep searching — do not treat it as a new opener here.
+      searchPos = candEnd;
     }
 
-    // If this is 3+ backticks at line start, it was already handled as fenced block
-    if (tickCount >= 3 && (tickIdx === 0 || src[tickIdx - 1] === '\n')) {
-      pos = tickEnd;
-      continue;
-    }
-
-    // Find matching closing backtick sequence (exact count)
-    const closingTicks = '`'.repeat(tickCount);
-    let searchFrom = tickEnd;
-    let closingIdx = -1;
-    while (searchFrom < src.length) {
-      const candidate = src.indexOf(closingTicks, searchFrom);
-      if (candidate === -1) break;
-
-      // Verify exact match: not followed by another backtick
-      if (candidate + tickCount < src.length && src[candidate + tickCount] === '`') {
-        searchFrom = candidate + 1;
-        continue;
-      }
-      // Not preceded by a backtick (beyond our opening sequence)
-      if (candidate > tickEnd && candidate > 0 && src[candidate - 1] === '`') {
-        searchFrom = candidate + 1;
-        continue;
-      }
-
-      // Skip if inside a fenced code block
-      if (regions.some((r) => candidate >= r.start && candidate < r.end)) {
-        searchFrom = regions.find((r) => candidate >= r.start && candidate < r.end)!.end;
-        continue;
-      }
-
-      closingIdx = candidate;
-      break;
-    }
-
-    if (closingIdx !== -1) {
-      const end = closingIdx + tickCount;
-      regions.push({ start: tickIdx, end });
-      pos = end;
+    if (closeStart === -1) {
+      // No closer within this paragraph: this backtick run is literal text,
+      // not a delimiter. Resume scanning right after it so any later,
+      // genuinely-paired span is still found on its own.
+      pos = openEnd;
     } else {
-      pos = tickEnd;
+      const end = closeStart + openLen;
+      regions.push({ start: pos, end });
+      pos = end;
     }
   }
 

@@ -2,7 +2,7 @@
   "name": "markdown-pdf",
   "displayName": "Markdown PDF",
   "description": "Convert Markdown to PDF",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "publisher": "yzane",
   "icon": "images/icon.png",
   "engines": {
@@ -34,6 +34,7 @@
     "onCommand:extension.markdown-pdf.png",
     "onCommand:extension.markdown-pdf.jpeg",
     "onCommand:extension.markdown-pdf.all",
+    "onCommand:extension.markdown-pdf.diagnostics",
     "onLanguage:markdown"
   ],
   "main": "./dist/extension",
@@ -68,6 +69,11 @@
         "command": "extension.markdown-pdf.all",
         "title": "Markdown PDF: Export (all: pdf, html, png, jpeg)",
         "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.diagnostics",
+        "title": "Markdown PDF: Output Diagnostics",
+        "group": "markdown-pdf"
       }
     ],
     "menus": {
@@ -95,6 +101,9 @@
         {
           "when": "resourceLangId == markdown",
           "command": "extension.markdown-pdf.all"
+        },
+        {
+          "command": "extension.markdown-pdf.diagnostics"
         }
       ],
       "editor/context": [

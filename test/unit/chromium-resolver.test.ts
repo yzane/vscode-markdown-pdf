@@ -357,7 +357,11 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath(existingExecutablePath, '/cache', { autoDownload: true });
-        assert.strictEqual(result, existingExecutablePath);
+        assert.ok(result.ok);
+        if (result.ok) {
+          assert.strictEqual(result.path, existingExecutablePath);
+          assert.strictEqual(result.source, 'user-setting');
+        }
         assert.strictEqual(installCalled, false);
       } finally {
         Object.defineProperty(PB, 'install', originalInstall!);
@@ -400,7 +404,11 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
-        assert.strictEqual(result, '/cache/chrome/installed-latest');
+        assert.ok(result.ok);
+        if (result.ok) {
+          assert.strictEqual(result.path, '/cache/chrome/installed-latest');
+          assert.strictEqual(result.source, 'latest');
+        }
         assert.strictEqual(installCalls.length, 1);
         assert.strictEqual((installCalls[0] as { buildId: string }).buildId, '131.0.6778.85');
       } finally {
@@ -444,7 +452,11 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: true });
-        assert.strictEqual(result, '/cache/chrome/130');
+        assert.ok(result.ok);
+        if (result.ok) {
+          assert.strictEqual(result.path, '/cache/chrome/130');
+          assert.strictEqual(result.source, 'cached');
+        }
         assert.strictEqual(installCalled, false);
       } finally {
         Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
@@ -491,7 +503,11 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
-        assert.strictEqual(result, '/cache/chrome/bundled');
+        assert.ok(result.ok);
+        if (result.ok) {
+          assert.strictEqual(result.path, '/cache/chrome/bundled');
+          assert.strictEqual(result.source, 'bundled-fallback');
+        }
         assert.strictEqual(installCalls.length, 1);
         assert.strictEqual((installCalls[0] as { buildId: string }).buildId, chromiumResolver.getExpectedBuildId());
       } finally {
@@ -537,7 +553,11 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: false });
-        assert.strictEqual(result, '/cache/chrome/130');
+        assert.ok(result.ok);
+        if (result.ok) {
+          assert.strictEqual(result.path, '/cache/chrome/130');
+          assert.strictEqual(result.source, 'cached');
+        }
         assert.strictEqual(installCalled, false);
         assert.strictEqual(fetchCalled, false);
       } finally {
@@ -573,7 +593,10 @@ describe('chromium-resolver', function () {
 
       try {
         const result = await chromiumResolver.resolveChromiumPath('', '/cache', { autoDownload: false });
-        assert.strictEqual(result, null);
+        assert.ok(!result.ok);
+        if (!result.ok) {
+          assert.strictEqual(result.reason, 'autodownload-disabled');
+        }
         assert.strictEqual(installCalled, false);
       } finally {
         Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
@@ -582,6 +605,148 @@ describe('chromium-resolver', function () {
           Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
         }
       }
+    });
+
+    it('should return reason "network" when the latest download fails with a network error', async function () {
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true, enumerable: true, value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'computeExecutablePath', {
+        configurable: true, enumerable: true, value: function () { return '/cache/chrome/missing'; }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true, enumerable: true, value: async function () { return []; }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true, enumerable: true,
+        value: async function () { throw new Error('connect ETIMEDOUT 1.2.3.4:443'); }
+      });
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
+        assert.ok(!result.ok);
+        if (!result.ok) {
+          assert.strictEqual(result.reason, 'network');
+        }
+      } finally {
+        Object.defineProperty(PB, 'install', originalInstall!);
+        Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath!);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+
+    it('should return reason "download-failed" for a non-network download error', async function () {
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true, enumerable: true, value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'computeExecutablePath', {
+        configurable: true, enumerable: true, value: function () { return '/cache/chrome/missing'; }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true, enumerable: true, value: async function () { return []; }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true, enumerable: true,
+        value: async function () { throw new Error('unexpected install failure'); }
+      });
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        return { channels: { Stable: { version: '131.0.6778.85' } } };
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
+        assert.ok(!result.ok);
+        if (!result.ok) {
+          assert.strictEqual(result.reason, 'download-failed');
+        }
+      } finally {
+        Object.defineProperty(PB, 'install', originalInstall!);
+        Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath!);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+
+    it('should propagate a JSON-fetch network failure to reason "network" even if the bundled download fails non-network', async function () {
+      const originalInstall = Object.getOwnPropertyDescriptor(PB, 'install');
+      const originalComputeExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeExecutablePath');
+      const originalGetInstalledBrowsers = Object.getOwnPropertyDescriptor(PB, 'getInstalledBrowsers');
+      const originalComputeSystemExecutablePath = Object.getOwnPropertyDescriptor(PB, 'computeSystemExecutablePath');
+
+      Object.defineProperty(PB, 'computeSystemExecutablePath', {
+        configurable: true, enumerable: true, value: function () { throw new Error('not found'); }
+      });
+      Object.defineProperty(PB, 'computeExecutablePath', {
+        configurable: true, enumerable: true, value: function () { return '/cache/chrome/missing'; }
+      });
+      Object.defineProperty(PB, 'getInstalledBrowsers', {
+        configurable: true, enumerable: true, value: async function () { return []; }
+      });
+      Object.defineProperty(PB, 'install', {
+        configurable: true, enumerable: true,
+        value: async function () { throw new Error('unexpected install failure'); }
+      });
+      // JSON fetch fails with a network error -> latestBuildId null -> bundled fallback path.
+      chromiumResolver.setJsonFetcherForTesting(async function () {
+        throw new Error('ECONNREFUSED');
+      });
+
+      try {
+        const result = await chromiumResolver.resolveChromiumPath('', tmpDir, { autoDownload: true });
+        assert.ok(!result.ok);
+        if (!result.ok) {
+          assert.strictEqual(result.reason, 'network');
+        }
+      } finally {
+        Object.defineProperty(PB, 'install', originalInstall!);
+        Object.defineProperty(PB, 'computeExecutablePath', originalComputeExecutablePath!);
+        Object.defineProperty(PB, 'getInstalledBrowsers', originalGetInstalledBrowsers!);
+        if (originalComputeSystemExecutablePath) {
+          Object.defineProperty(PB, 'computeSystemExecutablePath', originalComputeSystemExecutablePath);
+        }
+      }
+    });
+  });
+
+  describe('isNetworkError', function () {
+    it('returns true for network error codes', function () {
+      for (const code of ['ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ECONNRESET']) {
+        const e = new Error('x');
+        (e as NodeJS.ErrnoException).code = code;
+        assert.strictEqual(chromiumResolver.isNetworkError(e), true);
+      }
+    });
+    it('returns true via message token', function () {
+      assert.strictEqual(chromiumResolver.isNetworkError(new Error('connect ETIMEDOUT 1.2.3.4:443')), true);
+      assert.strictEqual(chromiumResolver.isNetworkError(new Error('getaddrinfo ENOTFOUND example.com')), true);
+    });
+    it('returns false for non-network errors', function () {
+      const e = new Error('disk full');
+      (e as NodeJS.ErrnoException).code = 'ENOSPC';
+      assert.strictEqual(chromiumResolver.isNetworkError(e), false);
+      assert.strictEqual(chromiumResolver.isNetworkError(new Error('totally unrelated')), false);
+    });
+    it('returns false for non-Error values', function () {
+      assert.strictEqual(chromiumResolver.isNetworkError(null), false);
+      assert.strictEqual(chromiumResolver.isNetworkError('a string'), false);
     });
   });
 });

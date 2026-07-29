@@ -4,11 +4,43 @@
 import fs from 'fs';
 import path from 'path';
 import * as PB from '@puppeteer/browsers';
+import { logInfo, logWarn, logError } from './logger';
+import type { ChromiumSource } from './diagnostics';
 
 // PUPPETEER_REVISIONS is a named export on the CJS module but not on the default export type.
 // Use require() to access it reliably at runtime.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const puppeteerModule: { PUPPETEER_REVISIONS: { chrome: string } } = require('puppeteer-core');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const puppeteerPkg: { version: string } = require('puppeteer-core/package.json');
+
+export type ChromiumResolution =
+  | { ok: true; path: string; source: ChromiumSource }
+  | { ok: false; reason: ChromiumFailureReason };
+
+// Why resolution failed, surfaced to the export error toast (extension.ts maps
+// these to user-facing messages + actions). Determined where the raw error is in
+// hand (download/fetch), not flattened to a bare null.
+export type ChromiumFailureReason = 'autodownload-disabled' | 'network' | 'download-failed';
+
+const NETWORK_ERROR_CODES = ['ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ECONNRESET'];
+
+// True when the error looks like a network/proxy failure. code-first (stable,
+// locale-independent), message-fallback (for errors that lost their code through
+// wrapping). Null-safe.
+export function isNetworkError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  if (typeof code === 'string' && NETWORK_ERROR_CODES.indexOf(code) !== -1) {
+    return true;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  return /ETIMEDOUT|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ECONNRESET|getaddrinfo|socket hang up/i.test(message);
+}
+
+/** Returns the installed puppeteer-core package version (for diagnostics). */
+export function getPuppeteerCoreVersion(): string {
+  return typeof puppeteerPkg.version === 'string' ? puppeteerPkg.version : '(unknown)';
+}
 
 /** Resolves the Chromium executable path from a user-configured setting. */
 export function findChromiumFromUserSetting(executablePath: string): string | null {
@@ -20,7 +52,7 @@ export function findChromiumFromUserSetting(executablePath: string): string | nu
     fs.accessSync(executablePath);
     return executablePath;
   } catch (error) {
-    console.warn('[Markdown PDF] Configured executablePath not found: ' + executablePath);
+    logWarn('Configured executablePath not found: ' + executablePath);
     return null;
   }
 }
@@ -126,6 +158,10 @@ const defaultJsonFetcher: JsonFetcher = async function (url) {
 let jsonFetcher: JsonFetcher = defaultJsonFetcher;
 let cachedLatestBuildId: string | null = null;
 let cachedLatestFetchFailed: boolean = false;
+// Whether the last failed latest-version fetch looked like a network/proxy error.
+// Lets resolveChromiumPath report reason 'network' even when the fetch (not the
+// download) was the network failure.
+let cachedLatestFetchNetworkError: boolean = false;
 
 /** Replaces the JSON fetcher used by fetchLatestStableBuildId; intended for unit tests. */
 export function setJsonFetcherForTesting(fetcher: JsonFetcher): void {
@@ -136,6 +172,7 @@ export function setJsonFetcherForTesting(fetcher: JsonFetcher): void {
 export function resetLatestBuildIdCache(): void {
   cachedLatestBuildId = null;
   cachedLatestFetchFailed = false;
+  cachedLatestFetchNetworkError = false;
   jsonFetcher = defaultJsonFetcher;
 }
 
@@ -153,15 +190,17 @@ export async function fetchLatestStableBuildId(): Promise<string | null> {
     const version = extractStableVersion(json);
     if (!version || !BUILD_ID_PATTERN.test(version)) {
       cachedLatestFetchFailed = true;
-      console.warn('[Markdown PDF] Latest Chromium version response had unexpected shape');
+      cachedLatestFetchNetworkError = false;
+      logWarn('Latest Chromium version response had unexpected shape');
       return null;
     }
     cachedLatestBuildId = version;
     return version;
   } catch (error) {
     cachedLatestFetchFailed = true;
+    cachedLatestFetchNetworkError = isNetworkError(error);
     const msg = error && (error as Error).message ? (error as Error).message : String(error);
-    console.warn('[Markdown PDF] Failed to fetch latest Chromium version: ' + msg);
+    logWarn('Failed to fetch latest Chromium version: ' + msg);
     return null;
   }
 }
@@ -239,13 +278,13 @@ export async function cleanupOldChromium(cacheDir: string, keepBuildId: string):
           cacheDir: cacheDir,
           platform: installedBrowser.platform
         });
-        console.log('[Markdown PDF] Removed old Chromium: ' + installedBrowser.buildId);
+        logInfo('Removed old Chromium: ' + installedBrowser.buildId);
       } catch (error) {
-        console.warn('[Markdown PDF] Failed to remove old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+        logWarn('Failed to remove old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
       }
     }
   } catch (error) {
-    console.warn('[Markdown PDF] Failed to cleanup old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+    logWarn('Failed to cleanup old Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
   }
 }
 
@@ -317,47 +356,57 @@ export async function resolveChromiumPath(
   userExecutablePath: string,
   cacheDir: string,
   options?: ResolveChromiumPathOptions
-): Promise<string | null> {
+): Promise<ChromiumResolution> {
   const autoDownload = options?.autoDownload !== false;
   const onProgress = options?.onProgress;
 
-  let executablePath: string | null = findChromiumFromUserSetting(userExecutablePath);
-  if (executablePath) {
-    return executablePath;
+  // A download failure is 'network' if either this error or the earlier
+  // latest-version fetch looked like a network/proxy problem; else 'download-failed'.
+  const downloadFailureReason = (error: unknown): ChromiumFailureReason =>
+    (isNetworkError(error) || cachedLatestFetchNetworkError) ? 'network' : 'download-failed';
+
+  const userPath = findChromiumFromUserSetting(userExecutablePath);
+  if (userPath) {
+    return { ok: true, path: userPath, source: 'user-setting' };
   }
 
-  executablePath = findChromiumFromSystem();
-  if (executablePath) {
-    return executablePath;
+  const systemPath = findChromiumFromSystem();
+  if (systemPath) {
+    return { ok: true, path: systemPath, source: 'system' };
   }
 
   if (!autoDownload) {
-    return await findLatestCachedChromium(cacheDir);
+    const cached = await findLatestCachedChromium(cacheDir);
+    return cached
+      ? { ok: true, path: cached, source: 'cached' }
+      : { ok: false, reason: 'autodownload-disabled' };
   }
 
   const latestBuildId = await fetchLatestStableBuildId();
   if (latestBuildId) {
     try {
-      return await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+      const latestPath = await ensureChromiumDownloaded(cacheDir, latestBuildId, onProgress);
+      return { ok: true, path: latestPath, source: 'latest' };
     } catch (error) {
-      console.error('[Markdown PDF] Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
-      return null;
+      logError('Failed to download latest Chromium: ' + (error && (error as Error).message ? (error as Error).message : error));
+      return { ok: false, reason: downloadFailureReason(error) };
     }
   }
 
   // JSON fetch failed: prefer existing cache, then fall back to bundled puppeteer-core build id.
   const cachedPath = await findLatestCachedChromium(cacheDir);
   if (cachedPath) {
-    console.warn('[Markdown PDF] Falling back to cached Chromium build');
-    return cachedPath;
+    logWarn('Falling back to cached Chromium build');
+    return { ok: true, path: cachedPath, source: 'cached' };
   }
 
   const fallbackBuildId = getExpectedBuildId();
-  console.warn('[Markdown PDF] Falling back to bundled Chromium build: ' + fallbackBuildId);
+  logWarn('Falling back to bundled Chromium build: ' + fallbackBuildId);
   try {
-    return await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
+    const bundled = await ensureChromiumDownloaded(cacheDir, fallbackBuildId, onProgress);
+    return { ok: true, path: bundled, source: 'bundled-fallback' };
   } catch (error) {
-    console.error('[Markdown PDF] All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
-    return null;
+    logError('All Chromium acquisition attempts failed: ' + (error && (error as Error).message ? (error as Error).message : error));
+    return { ok: false, reason: downloadFailureReason(error) };
   }
 }

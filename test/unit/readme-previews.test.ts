@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'assert';
+import path from 'path';
 import {
   buildMermaidRenderHtml,
   buildPlantumlImageUrl,
@@ -137,7 +138,7 @@ describe('readme-previews', function () {
         false,
         '/workspace'
       ),
-      '/workspace/sample/PlantUML.png'
+      path.join('/workspace', 'sample', 'PlantUML.png')
     );
   });
 
@@ -150,7 +151,7 @@ describe('readme-previews', function () {
         false,
         undefined
       ),
-      '/tmp/sample/PlantUML.png'
+      path.join('/tmp', 'sample', 'PlantUML.png')
     );
   });
 

@@ -8,6 +8,7 @@ import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import plantumlEncoder from 'plantuml-encoder';
 import { githubSlugify } from './markdown-it-named-headers';
+import { logWarn, formatError } from './logger';
 
 /** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
 export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
@@ -72,7 +73,7 @@ export function transformTemplate(templateText: string): string {
 
 /**
  * Reads a file synchronously, stripping file:// URI prefixes beforehand.
- * Returns '' on any I/O failure; warnings are logged to console and errors are never re-thrown.
+ * Returns '' on any I/O failure; warnings are logged via logWarn (not-found vs read-error) and errors are never re-thrown.
  */
 export function readFile(filename: string, encode?: BufferEncoding | null): string | Buffer {
   if (filename.length === 0) {
@@ -89,14 +90,15 @@ export function readFile(filename: string, encode?: BufferEncoding | null): stri
       filename = filename.replace(/^file:\/\//, '');
     }
   }
-  if (isExistsPath(filename)) {
-    try {
-      return fs.readFileSync(filename, encode);
-    } catch (error: unknown) {
-      console.warn((error as Error).message);
-      return '';
+  try {
+    return fs.readFileSync(filename, encode);
+  } catch (error: unknown) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      logWarn(`File not found: ${filename}`);
+    } else {
+      logWarn(`Failed to read file: ${filename}`, formatError(error));
     }
-  } else {
     return '';
   }
 }
@@ -811,21 +813,30 @@ export function buildPlantumlImgTag(source: string, server: string): string {
 // GitHub Flavored Markdown; 'gfm-allow-style' keeps <style>; 'none' disables.
 export type SanitizeMode = 'gfm' | 'gfm-allow-style' | 'none';
 
-/**
- * Removes dangerous attributes from a single HTML opening/closing tag string.
- * - on* event handlers (onclick, onload, etc.), case-insensitive
- * - href/src whose value begins with 'javascript:' (ignoring leading whitespace), case-insensitive
- *
- * The input `tag` must be the full tag including '<' and '>'. Closing tags
- * ('</tagname>') are returned unchanged. Comments are not handled here.
- */
-function stripDangerousAttributes(tag: string): string {
+export interface SanitizeReport {
+  // Tag names of block-level elements removed with their content (one entry per occurrence).
+  removedElements: string[];
+  // Identifiers of attributes stripped (e.g. 'onclick', 'href(javascript:)'), one per occurrence.
+  strippedAttributes: string[];
+}
+
+export interface SanitizeOptions {
+  // true = block context: remove style/script/iframe with their content.
+  // false/omitted = inline context: escape them like the other disallowed tags.
+  removeWithContent?: boolean;
+}
+
+// Disallowed tags removed with their content (block context only). They render as
+// noise or are unsafe in a PDF: <style>/<script> dump text; <iframe> cannot function.
+const REMOVE_WITH_CONTENT = new Set(['style', 'script', 'iframe']);
+
+function stripDangerousAttributes(tag: string): { tag: string; stripped: string[] } {
+  const stripped: string[] = [];
   // Skip closing tags and bail out cheaply on malformed input.
   if (tag.length < 2 || tag[1] === '/') {
-    return tag;
+    return { tag, stripped };
   }
 
-  // Find where the tag name ends.
   let nameEnd = 1;
   while (nameEnd < tag.length && /[a-z0-9-]/i.test(tag[nameEnd])) {
     nameEnd++;
@@ -834,7 +845,6 @@ function stripDangerousAttributes(tag: string): string {
   let result = tag.slice(0, nameEnd);
   let i = nameEnd;
   while (i < tag.length) {
-    // Capture any whitespace leading to the next token.
     const wsStart = i;
     while (i < tag.length && /\s/.test(tag[i])) {
       i++;
@@ -846,7 +856,6 @@ function stripDangerousAttributes(tag: string): string {
       break;
     }
 
-    // Tag-closing delimiters ('/' or '>'): preserve the leading whitespace.
     if (tag[i] === '/' || tag[i] === '>') {
       result += ws;
       result += tag[i];
@@ -854,20 +863,17 @@ function stripDangerousAttributes(tag: string): string {
       continue;
     }
 
-    // Parse attribute name.
     const attrStart = i;
     while (i < tag.length && !/[\s=/>]/.test(tag[i])) {
       i++;
     }
     const attrName = tag.slice(attrStart, i);
 
-    // Skip whitespace between attribute name and optional '='.
     let afterName = i;
     while (afterName < tag.length && /\s/.test(tag[afterName])) {
       afterName++;
     }
 
-    // Parse optional value.
     let attrEnd = afterName;
     let attrValue: string | null = null;
     if (afterName < tag.length && tag[afterName] === '=') {
@@ -879,7 +885,6 @@ function stripDangerousAttributes(tag: string): string {
         const quote = tag[valueStart];
         const close = tag.indexOf(quote, valueStart + 1);
         if (close === -1) {
-          // Malformed: consume rest of tag.
           attrValue = tag.slice(valueStart + 1);
           attrEnd = tag.length;
         } else {
@@ -887,7 +892,6 @@ function stripDangerousAttributes(tag: string): string {
           attrEnd = close + 1;
         }
       } else {
-        // Unquoted value: read until whitespace, '/', or '>'.
         let valueEnd = valueStart;
         while (valueEnd < tag.length && !/[\s/>]/.test(tag[valueEnd])) {
           valueEnd++;
@@ -898,31 +902,25 @@ function stripDangerousAttributes(tag: string): string {
     }
 
     const lowerName = attrName.toLowerCase();
-    // Strip inline event handler attributes (onclick, onload, onmouseover, ...).
-    // The regex requires 'on' + at least 3 more letters because every real HTML
-    // event handler name has at least three characters after 'on' (the shortest
-    // being oncut/oncopy/ondrag). This intentionally excludes short non-handler
-    // names that also start with 'on', such as 'one' or 'only' used in custom
-    // data-like attributes, so they pass through unchanged.
-    const dangerous =
-      /^on[a-z]{3}/i.test(lowerName) ||
-      ((lowerName === 'href' || lowerName === 'src') &&
-        attrValue !== null &&
-        /^\s*javascript:/i.test(attrValue));
+    const isEventHandler = /^on[a-z]{3}/i.test(lowerName);
+    const isJavascriptUrl =
+      (lowerName === 'href' || lowerName === 'src') &&
+      attrValue !== null &&
+      /^\s*javascript:/i.test(attrValue);
 
-    if (!dangerous) {
-      // Emit the leading whitespace and this safe attribute verbatim.
+    if (!isEventHandler && !isJavascriptUrl) {
       result += ws;
       result += attrName;
       if (attrEnd > afterName) {
-        // Include the '=' and value section verbatim.
         result += tag.slice(i, attrEnd);
       }
+    } else {
+      // Record what was stripped for the sanitize report.
+      stripped.push(isEventHandler ? lowerName : lowerName + '(javascript:)');
     }
-    // If dangerous: drop both ws AND the attribute span (emit nothing).
     i = attrEnd;
   }
-  return result;
+  return { tag: result, stripped };
 }
 
 /**
@@ -942,19 +940,26 @@ export function getDisallowedTags(mode: SanitizeMode): Set<string> {
 }
 
 /**
- * Sanitizes raw HTML per GFM's disallowed raw HTML extension.
- * - Escapes the leading '<' of disallowed tags to '&lt;' (both opening and closing forms)
- * - Removes on* event handler attributes from non-disallowed tags
- * - Removes href/src attributes whose value starts with 'javascript:'
- *
- * Returns the input unchanged when mode is 'none' or input is empty.
- * Operates on the raw HTML string only; does not parse CSS or attribute content
- * beyond what is required for the rules above.
+ * Sanitizes raw HTML per GFM's disallowed raw HTML extension, returning the
+ * sanitized string and a report of what was neutralized.
+ * - With `options.removeWithContent` (block context): <style>/<script>/<iframe>
+ *   are removed together with their content; other disallowed tags are escaped.
+ * - Without it (inline context, default): all disallowed tags have their leading
+ *   '<' escaped to '&lt;' (content preserved as text).
+ * - on* event handlers and href/src="javascript:..." attributes are stripped from
+ *   non-disallowed tags. HTML comments are preserved verbatim.
+ * Returns the input unchanged with an empty report when mode is 'none' or input is empty.
  */
-export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
+export function sanitizeRawHtml(
+  html: string,
+  mode: SanitizeMode,
+  options?: SanitizeOptions,
+): { html: string; report: SanitizeReport } {
+  const report: SanitizeReport = { removedElements: [], strippedAttributes: [] };
   if (mode === 'none' || !html) {
-    return html;
+    return { html, report };
   }
+  const removeWithContent = options?.removeWithContent === true;
   const disallowed = getDisallowedTags(mode);
   let result = '';
   let index = 0;
@@ -963,7 +968,8 @@ export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
     if (html.startsWith('<!--', index)) {
       const commentEnd = html.indexOf('-->', index + 4);
       if (commentEnd === -1) {
-        return result + html.slice(index);
+        result += html.slice(index);
+        break;
       }
       result += html.slice(index, commentEnd + 3);
       index = commentEnd + 3;
@@ -978,19 +984,136 @@ export function sanitizeRawHtml(html: string, mode: SanitizeMode): string {
 
     const tagEnd = findHtmlTagEnd(html, index + 1);
     if (tagEnd === -1) {
-      return result + html.slice(index);
+      result += html.slice(index);
+      break;
     }
 
     const tag = html.slice(index, tagEnd + 1);
     const tagName = getTagName(tag);
+
     if (tagName && disallowed.has(tagName)) {
-      // GFM rule: replace leading '<' with '&lt;'. Preserves tag content so the
-      // user still sees what was in the source as visible text.
+      if (removeWithContent && REMOVE_WITH_CONTENT.has(tagName)) {
+        if (tag[1] === '/') {
+          // Stray closing tag of a remove-set element: drop silently.
+          index = tagEnd + 1;
+          continue;
+        }
+        // Opening tag: remove through the matching closing tag (inclusive).
+        // tagName comes from REMOVE_WITH_CONTENT (style/script/iframe) — no regex
+        // metacharacters, so interpolating it directly is safe.
+        const closeRe = new RegExp('</' + tagName + '\\s*>', 'i');
+        const match = closeRe.exec(html.slice(tagEnd + 1));
+        if (match) {
+          index = tagEnd + 1 + match.index + match[0].length;
+        } else {
+          // No closing tag in this token: drop just the opening tag (graceful degrade).
+          index = tagEnd + 1;
+        }
+        report.removedElements.push(tagName);
+        continue;
+      }
+      // Escape set, or remove-set in inline context: GFM escape of leading '<'.
       result += '&lt;' + tag.slice(1);
-    } else {
-      result += stripDangerousAttributes(tag);
+      index = tagEnd + 1;
+      continue;
     }
+
+    const stripResult = stripDangerousAttributes(tag);
+    result += stripResult.tag;
+    report.strippedAttributes.push(...stripResult.stripped);
     index = tagEnd + 1;
   }
-  return result;
+  return { html: result, report };
+}
+
+// Counts occurrences of each string, preserving first-seen order.
+function tallyOccurrences(items: string[]): Array<{ name: string; count: number }> {
+  const order: string[] = [];
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    if (!counts.has(item)) {
+      order.push(item);
+    }
+    counts.set(item, (counts.get(item) || 0) + 1);
+  }
+  return order.map(function (name) {
+    // name is always present in counts here (it was added to `order` on first sight).
+    return { name: name, count: counts.get(name)! };
+  });
+}
+
+// Short, human-facing summary for the warning toast (no counts; kinds only).
+export function buildSanitizeSummary(report: SanitizeReport): string {
+  const parts: string[] = [];
+  const removedKinds = tallyOccurrences(report.removedElements).map(function (e) {
+    return '<' + e.name + '>';
+  });
+  if (removedKinds.length > 0) {
+    parts.push('removed ' + removedKinds.join(', '));
+  }
+  if (report.strippedAttributes.length > 0) {
+    parts.push('stripped unsafe attribute(s)');
+  }
+  // Fall back to a generic phrase for an empty report so the sentence stays well-formed
+  // (the only caller guards against empty, but keep the function safe in isolation).
+  const body = parts.length > 0 ? parts.join('; ') : 'sanitized raw HTML';
+  return 'Markdown PDF: ' + body + ' for security. See output for details.';
+}
+
+// Detailed line(s) for the output channel, including mode and per-kind counts.
+export function buildSanitizeLogDetail(report: SanitizeReport, mode: SanitizeMode): string {
+  const segments: string[] = [];
+  const removed = tallyOccurrences(report.removedElements).map(function (e) {
+    return '<' + e.name + '>×' + e.count;
+  });
+  const stripped = tallyOccurrences(report.strippedAttributes).map(function (e) {
+    return e.name + '×' + e.count;
+  });
+  if (removed.length > 0) {
+    segments.push('removed ' + removed.join(', '));
+  }
+  if (stripped.length > 0) {
+    segments.push('stripped ' + stripped.join(', '));
+  }
+  const head = 'Sanitized raw HTML (mode: ' + mode + ')';
+  const lines: string[] = [segments.length > 0 ? head + ': ' + segments.join('; ') + '.' : head + '.'];
+  if (report.removedElements.indexOf('style') !== -1) {
+    lines.push('Tip: to keep <style>, set "markdown-pdf.sanitize": "gfm-allow-style".');
+  }
+  return lines.join('\n');
+}
+
+export type AwaitWithTimeoutResult<T> =
+  | { timedOut: false; value: T }
+  | { timedOut: true };
+
+export async function awaitWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<AwaitWithTimeoutResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+
+  const observedPromise = promise.catch((error) => {
+    if (timedOut) {
+      return undefined as T;
+    }
+    throw error;
+  });
+
+  try {
+    const timeoutPromise = new Promise<AwaitWithTimeoutResult<T>>((resolve) => {
+      timeoutId = setTimeout(() => {
+        timedOut = true;
+        resolve({ timedOut: true });
+      }, timeoutMs);
+    });
+
+    const valuePromise = observedPromise.then((value): AwaitWithTimeoutResult<T> => {
+      return { timedOut: false, value };
+    });
+
+    return await Promise.race([valuePromise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
 }

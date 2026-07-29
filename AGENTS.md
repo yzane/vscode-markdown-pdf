@@ -38,6 +38,15 @@ Rules:
 - Before any merge operation (integration into another branch, including `git merge` and PR merges), show a confirmation message and wait for user approval — even in auto-accept mode.
 - When delegating to subagents, always pass the current branch name and require them to stay on it.
 
+# Release Process
+
+The full step-by-step procedure for cutting a Marketplace release (release branch → master merge → tag → GitHub Release → `vsce publish`) lives in [`docs/release-process.md`](docs/release-process.md). Reference it whenever a `release/x.x.x` branch is being prepared.
+
+Naming conventions encoded in past releases (immutable):
+
+- Release tags use the unprefixed `x.x.x` form (annotated). The series `1.0.0` … `2.1.0` is unbroken.
+- The `master` merge commit message at publish time follows `Merge branch 'develop' into master for x.x.x release`.
+
 # Branch Completion
 
 - On branch completion, default to a local merge into `develop` (still subject to the merge-confirmation rule above).
