@@ -708,6 +708,7 @@ function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | und
     const highlight = vscode.workspace.getConfiguration('markdown-pdf')['highlight'];
     const markdownStyles = vscode.workspace.getConfiguration('markdown')['styles'] || [];
     const markdownPdfStyles = vscode.workspace.getConfiguration('markdown-pdf')['styles'] || '';
+    const stylesInline = vscode.workspace.getConfiguration('markdown-pdf')['stylesInline'] || false;
 
     let style = utils.buildStyleTags({
       includeDefaultStyles: includeDefaultStyles,
@@ -715,6 +716,7 @@ function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | und
       highlightStyle: highlightStyle,
       markdownStyles: markdownStyles,
       markdownPdfStyles: markdownPdfStyles,
+      stylesInline: stylesInline,
       baseDir: EXTENSION_ROOT,
       onMissingHighlightStyle: function (requestedStyle: string, resolvedStyle: string) {
         vscode.window.showWarningMessage(

@@ -199,6 +199,11 @@
           "default": false,
           "description": "If markdown-pdf.stylesRelativePathFile option is set to true, the relative path set with markdown-pdf.styles is interpreted as relative from the file"
         },
+        "markdown-pdf.stylesInline": {
+          "type": "boolean",
+          "default": false,
+          "description": "If set to true, embed the contents of markdown-pdf.styles as inline <style> tags instead of <link> references. Useful when opening HTML output on a different OS (e.g. WSL to Windows)."
+        },
         "markdown-pdf.includeDefaultStyles": {
           "type": "boolean",
           "default": true,
