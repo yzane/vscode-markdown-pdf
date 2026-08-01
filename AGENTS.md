@@ -52,11 +52,6 @@ Naming conventions encoded in past releases (immutable):
 - On branch completion, default to a local merge into `develop` (still subject to the merge-confirmation rule above).
 - Do not present the default completion-options menu unless the user explicitly asks for alternatives.
 
-# Code Exploration
-
-- Use the `cocoindex-code` MCP first; fall back to Grep/Glob if unavailable.
-- Prefer semantic search over broad file reads. Read the minimum context needed. Make narrow changes and run narrow validation first.
-
 # Precedence
 
 1. Explicit user instruction

@@ -17,7 +17,6 @@ work/
 
 # AI tools
 .claude/settings.local.json
-.cocoindex_code/
 .codex
 .eslintrc.json
 .superpowers/
