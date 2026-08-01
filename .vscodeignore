@@ -6,7 +6,6 @@ tsconfig.json
 .vscode/**
 .github/**
 .vscode-test/**
-.cocoindex_code/**
 .claude/**
 .worktrees/**
 .superpowers/**
