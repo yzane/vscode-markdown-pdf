@@ -116,33 +116,71 @@ describe('utils', function () {
     });
   });
 
-  describe('transformTemplate', function () {
+  describe('transformDateTemplate', function () {
     it('should replace %%ISO-DATE%% with YYYY-MM-DD format', function () {
-      const result = utils.transformTemplate('Date: %%ISO-DATE%%');
+      const result = utils.transformDateTemplate('Date: %%ISO-DATE%%');
       assert.match(result, /^Date: \d{4}-\d{2}-\d{2}$/);
     });
 
     it('should replace %%ISO-DATETIME%% with YYYY-MM-DD hh:mm:ss format', function () {
-      const result = utils.transformTemplate('DateTime: %%ISO-DATETIME%%');
+      const result = utils.transformDateTemplate('DateTime: %%ISO-DATETIME%%');
       assert.match(result, /^DateTime: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
     });
 
     it('should replace %%ISO-TIME%% with hh:mm:ss format', function () {
-      const result = utils.transformTemplate('Time: %%ISO-TIME%%');
+      const result = utils.transformDateTemplate('Time: %%ISO-TIME%%');
       assert.match(result, /^Time: \d{2}:\d{2}:\d{2}$/);
     });
 
     it('should return text unchanged when no placeholders are present', function () {
-      assert.strictEqual(utils.transformTemplate('no placeholders here'), 'no placeholders here');
+      assert.strictEqual(utils.transformDateTemplate('no placeholders here'), 'no placeholders here');
     });
 
     it('should handle multiple different placeholders', function () {
-      const result = utils.transformTemplate('%%ISO-DATE%% at %%ISO-TIME%%');
+      const result = utils.transformDateTemplate('%%ISO-DATE%% at %%ISO-TIME%%');
       assert.match(result, /^\d{4}-\d{2}-\d{2} at \d{2}:\d{2}:\d{2}$/);
     });
 
+    it('should handle multiple of the same placeholders', function () {
+      const result = utils.transformDateTemplate('%%ISO-DATE%% at %%ISO-DATE%%');
+      assert.match(result, /^\d{4}-\d{2}-\d{2} at \d{4}-\d{2}-\d{2}$/);
+    });
+
     it('should handle empty string', function () {
-      assert.strictEqual(utils.transformTemplate(''), '');
+      assert.strictEqual(utils.transformDateTemplate(''), '');
+    });
+  });
+
+  describe('transformNameTemplate', function () {
+    it('should replace %%BASENAME%% with the provided filename format', function () {
+      assert.strictEqual(utils.transformNameTemplate('%%BASENAME%%.test', 'myFile', ''), 'myFile.test');
+    });
+
+    it('should replace %%ISO-DATE%% with YYYY-MM-DD format', function () {
+      const result = utils.transformNameTemplate('Date: %%ISO-DATE%%', '', '');
+      assert.match(result, /^Date: \d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('should replace %%ISO-DATETIME%% with YYYY-MM-DD hh:mm:ss format', function () {
+      const result = utils.transformNameTemplate('DateTime: %%ISO-DATETIME%%', '', '');
+      assert.match(result, /^DateTime: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    });
+
+    it('should replace %%ISO-TIME%% with hh:mm:ss format', function () {
+      const result = utils.transformNameTemplate('Time: %%ISO-TIME%%', '', '');
+      assert.match(result, /^Time: \d{2}:\d{2}:\d{2}$/);
+    });
+
+    it('should return text unchanged when no placeholders are present', function () {
+      assert.strictEqual(utils.transformNameTemplate('no placeholders here', '', ''), 'no placeholders here');
+    });
+
+    it('should mutliple placeholders and not touch non-placeholder text', function () {
+      assert.strictEqual(utils.transformNameTemplate('test-%%BASENAME%%_and_%%BASENAME%%.test.%%EXT%%', 'myFile', 'pdf'), 'test-myFile_and_myFile.test.pdf');
+    });
+
+    it('should handle empty string', function () {
+      assert.strictEqual(utils.transformNameTemplate('', '', ''), '');
     });
   });
 
@@ -226,7 +264,7 @@ describe('utils', function () {
 
     it('logs "File not found" via logWarn for a non-existent file', function () {
       const calls: unknown[][] = [];
-      logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+      logger.setLogSink({ info() { }, warn: (...a: unknown[]) => { calls.push(a); }, error() { }, show() { } });
       try {
         const result = utils.readFile('/nonexistent/file.txt');
         assert.strictEqual(result, '');
@@ -239,7 +277,7 @@ describe('utils', function () {
 
     it('logs "Failed to read file" via logWarn when given a directory', function () {
       const calls: unknown[][] = [];
-      logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+      logger.setLogSink({ info() { }, warn: (...a: unknown[]) => { calls.push(a); }, error() { }, show() { } });
       try {
         const result = utils.readFile(__dirname);
         assert.strictEqual(result, '');
