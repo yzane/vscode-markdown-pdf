@@ -57,19 +57,33 @@ export function Slug(string: string): string {
 }
 
 /** Substitutes %%ISO-DATETIME%%, %%ISO-DATE%%, and %%ISO-TIME%% placeholders with the current values. */
-export function transformTemplate(templateText: string): string {
-  if (templateText.indexOf('%%ISO-DATETIME%%') !== -1) {
+export function transformDateTemplate(templateText: string): string {
+  while (templateText.indexOf('%%ISO-DATETIME%%') !== -1) {
     templateText = templateText.replace('%%ISO-DATETIME%%', new Date().toISOString().substr(0, 19).replace('T', ' '));
   }
-  if (templateText.indexOf('%%ISO-DATE%%') !== -1) {
+  while (templateText.indexOf('%%ISO-DATE%%') !== -1) {
     templateText = templateText.replace('%%ISO-DATE%%', new Date().toISOString().substr(0, 10));
   }
-  if (templateText.indexOf('%%ISO-TIME%%') !== -1) {
+  while (templateText.indexOf('%%ISO-TIME%%') !== -1) {
     templateText = templateText.replace('%%ISO-TIME%%', new Date().toISOString().substr(11, 8));
   }
 
   return templateText;
 }
+
+/** Substitutes %%ISO-DATETIME%%, %%ISO-DATE%%, %%ISO-TIME%%, %%BASENAME%%, and %%EXT%% placeholders with the current values. */
+export function transformNameTemplate(templateText: string, basename: string, ext: string): string {
+  while (templateText.indexOf('%%BASENAME%%') !== -1) {
+    templateText = templateText.replace('%%BASENAME%%', basename);
+  }
+  while (templateText.indexOf('%%EXT%%') !== -1) {
+    templateText = templateText.replace('%%EXT%%', ext);
+  }
+
+  return transformDateTemplate(templateText);
+}
+
+
 
 /**
  * Reads a file synchronously, stripping file:// URI prefixes beforehand.
@@ -377,8 +391,8 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
     path: config.path,
     scale: config.scale,
     displayHeaderFooter: config.displayHeaderFooter,
-    headerTemplate: transformTemplate(config.headerTemplate || ''),
-    footerTemplate: transformTemplate(config.footerTemplate || ''),
+    headerTemplate: transformDateTemplate(config.headerTemplate || ''),
+    footerTemplate: transformDateTemplate(config.footerTemplate || ''),
     printBackground: config.printBackground,
     landscape: config.orientation === 'landscape',
     pageRanges: config.pageRanges,

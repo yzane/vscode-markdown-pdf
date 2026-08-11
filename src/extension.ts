@@ -500,7 +500,7 @@ function exportPdf(
   }
   const StatusbarMessageTimeout = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
   vscode.window.setStatusBarMessage('');
-  const exportFilename = getOutputDir(filename, uri);
+  const exportFilename = getOutputDir(path.join(path.dirname(filename), utils.transformNameTemplate(vscode.workspace.getConfiguration('markdown-pdf')['outputName'] || '%%BASENAME%%.%%EXT%%', path.basename(filename, path.extname(filename)), type)), uri);
 
   if (!exportFilename) {
     return Promise.resolve();  // getOutputDir already showed an error toast

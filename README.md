@@ -440,6 +440,20 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ],
 ```
 
+#### `markdown-pdf.outputName`
+- Output Name
+
+```javascript
+"markdown-pdf.outputName": "md-to-pdf-%%BASENAME%%.%%EXT%%",
+```
+
+- Supports template parameters:
+  - `%%BASENAME%%`: The basename of the markdown file, for `myFile.md` this would be `myFile`
+  - `%%EXT%%`: The file extension of the output file, either `html`, `pdf`, `png`, or `jpeg`
+  - `%%ISO-DATETIME%%` : current date and time in ISO-based format (`YYYY-MM-DD hh:mm:ss`)
+  - `%%ISO-DATE%%` : current date in ISO-based format (`YYYY-MM-DD`)
+  - `%%ISO-TIME%%` : current time in ISO-based format (`hh:mm:ss`)
+
 #### `markdown-pdf.outputDirectory`
   - Output Directory
   - All `\` need to be written as `\\` (Windows)

@@ -171,6 +171,11 @@
           "default": "",
           "description": "Output Directory."
         },
+        "markdown-pdf.outputName": {
+          "type": "string",
+          "default": "%%BASENAME%%.%%EXT%%",
+          "description": "Output file name, supports %%ISO-DATETIME%%, %%ISO-DATE%%, %%ISO-TIME%%, %%BASENAME%%, and %%EXT%% template placeholders."
+        },
         "markdown-pdf.outputDirectoryRelativePathFile": {
           "type": "boolean",
           "default": false,
