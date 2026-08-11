@@ -970,7 +970,7 @@
     "@vscode/markdown-it-katex": "^1.1.2",
     "emoji-images": "^0.1.1",
     "highlight.js": "^11.11.1",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.3.1",
     "katex": "^0.16.45",
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^4.0.0",
