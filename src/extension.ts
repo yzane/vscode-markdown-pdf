@@ -192,7 +192,14 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
           }
           // Report is identical across export types (same source + mode); keep the latest.
           sanitizeReport = converted.report;
-          const html = makeHtml(converted.html, uri, ctx, homeDir);
+          let content = converted.html;
+          if (type === 'pdf') {
+            const outlineDepthFrom = vscode.workspace.getConfiguration('markdown-pdf', uri)['outlineDepthFrom'] || 1;
+            const outlineDepthTo = vscode.workspace.getConfiguration('markdown-pdf', uri)['outlineDepthTo'] || 6;
+            const outlineStartMarker = vscode.workspace.getConfiguration('markdown-pdf', uri)['outlineStartMarker'] || '';
+            content = utils.filterHeadingLevels(content, outlineDepthFrom, outlineDepthTo, outlineStartMarker);
+          }
+          const html = makeHtml(content, uri, ctx, homeDir);
           if (html === undefined) {
             // makeHtml already logged the failure and showed an error toast. Skip this type.
             continue;
@@ -605,6 +612,7 @@ function exportPdf(
               bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
               left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
             },
+            outline: vscode.workspace.getConfiguration('markdown-pdf', uri)['outline'] !== false,
           };
           const pdfOptions = utils.buildPdfOptions(pdfConfig);
           await page.pdf(pdfOptions);
@@ -727,6 +735,18 @@ function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | und
         return fixHref(uri, href) || '';
       },
     }) || '';
+
+    // Add CSS shim for filtered headings (div.h1, etc.)
+    style += `
+<style>
+  div.h1, div.h2, div.h3, div.h4, div.h5, div.h6 { display: block; font-weight: bold; }
+  div.h1 { font-size: 2em; margin: .67em 0; }
+  div.h2 { font-size: 1.5em; margin: .83em 0; }
+  div.h3 { font-size: 1.17em; margin: 1em 0; }
+  div.h4 { font-size: 1em; margin: 1.33em 0; }
+  div.h5 { font-size: .83em; margin: 1.67em 0; }
+  div.h6 { font-size: .67em; margin: 2.33em 0; }
+</style>`;
 
     // Inline KaTeX CSS with data: URI fonts only when the body actually
     // contains KaTeX output. This keeps unrelated documents small and avoids

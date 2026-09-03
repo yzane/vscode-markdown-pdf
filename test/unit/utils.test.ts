@@ -868,10 +868,12 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: true,
       });
       assert.strictEqual(result.format, 'A4');
       assert.strictEqual(result.width, '');
       assert.strictEqual(result.height, '');
+      assert.strictEqual(result.outline, true);
     });
 
     it('should clear format when width is specified', function () {
@@ -888,9 +890,11 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.format, '');
       assert.strictEqual(result.width, '10cm');
+      assert.strictEqual(result.outline, false);
     });
 
     it('should clear format when height is specified', function () {
@@ -907,6 +911,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.format, '');
       assert.strictEqual(result.height, '15cm');
@@ -926,6 +931,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.landscape, true);
     });
@@ -944,6 +950,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.landscape, false);
     });
@@ -962,6 +969,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.ok((result.headerTemplate as string).match(/^\d{4}-\d{2}-\d{2}$/), 'headerTemplate should be a date: ' + result.headerTemplate);
       assert.ok((result.footerTemplate as string).match(/^\d{2}:\d{2}:\d{2}$/), 'footerTemplate should be a time: ' + result.footerTemplate);
@@ -1281,6 +1289,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: margin,
+        outline: false,
       });
       assert.deepStrictEqual(result.margin, margin);
     });
@@ -1299,6 +1308,7 @@ describe('utils', function () {
         printBackground: true,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
+        outline: false,
       });
       assert.strictEqual(result.headerTemplate, '');
       assert.strictEqual(result.footerTemplate, '');
@@ -1774,6 +1784,50 @@ describe('utils', function () {
       const result = utils.parseFrontMatter(text);
       assert.deepStrictEqual(result.data, { breaks: true });
       assert.strictEqual(result.content, '');
+    });
+  });
+
+  describe('filterHeadingLevels', function () {
+    it('should replace headings outside the range with div tags', function () {
+      const html = '<h1>H1</h1><h2>H2</h2><h3>H3</h3><h4>H4</h4>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<div class="h1">H1</div><h2>H2</h2><h3>H3</h3><div class="h4">H4</div>');
+    });
+
+    it('should preserve attributes on headings', function () {
+      const html = '<h1 id="top" class="main">Title</h1>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<div class="h1" id="top" class="main">Title</div>');
+    });
+
+    it('should handle multiline headings', function () {
+      const html = '<h1>\nLine 1\nLine 2\n</h1>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<div class="h1">\nLine 1\nLine 2\n</div>');
+    });
+
+    it('should not change headings within the range', function () {
+      const html = '<h2>H2</h2>';
+      const result = utils.filterHeadingLevels(html, 2, 3);
+      assert.strictEqual(result, '<h2>H2</h2>');
+    });
+
+    it('should handle all headings being filtered out', function () {
+      const html = '<h1>H1</h1>';
+      const result = utils.filterHeadingLevels(html, 2, 2);
+      assert.strictEqual(result, '<div class="h1">H1</div>');
+    });
+
+    it('should handle none being filtered out', function () {
+      const html = '<h1>H1</h1>';
+      const result = utils.filterHeadingLevels(html, 1, 6);
+      assert.strictEqual(result, '<h1>H1</h1>');
+    });
+
+    it('should replace headings before the start marker with div tags', function () {
+      const html = '<h1>Before</h1><!-- /TOC --><h1>After</h1>';
+      const result = utils.filterHeadingLevels(html, 1, 6, '<!-- /TOC -->');
+      assert.strictEqual(result, '<div class="h1">Before</div><!-- /TOC --><h1>After</h1>');
     });
   });
 

@@ -364,6 +364,7 @@ interface PdfConfig {
   printBackground: boolean;
   pageRanges: string;
   margin: { top: string; right: string; bottom: string; left: string };
+  outline: boolean;
 }
 
 /** Builds the options object passed to Puppeteer's page.pdf() call. */
@@ -386,6 +387,7 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
     width: config.width,
     height: config.height,
     margin: config.margin,
+    outline: config.outline,
     timeout: 0,
   };
 }
@@ -424,6 +426,33 @@ export function buildImageOptions(config: ImageConfig): Record<string, unknown> 
     fullPage: true,
     omitBackground: config.omitBackground,
   };
+}
+
+/**
+ * Replaces heading tags (h1-h6) with div tags if they are outside the specified range
+ * or before the specified start marker.
+ * This is used to exclude certain heading levels from the PDF outline.
+ */
+export function filterHeadingLevels(html: string, from: number, to: number, startMarker?: string): string {
+  let startIndex = 0;
+  if (startMarker) {
+    const markerIndex = html.indexOf(startMarker);
+    if (markerIndex !== -1) {
+      startIndex = markerIndex + startMarker.length;
+    }
+  }
+
+  const headingRegex = /<h([1-6])(.*?)>([\s\S]*?)<\/h\1>/gi;
+  return html.replace(headingRegex, (match, level, attrs, content, offset) => {
+    const l = parseInt(level);
+    const isOutOfRange = l < from || l > to;
+    const isBeforeStart = offset < startIndex;
+
+    if (isOutOfRange || isBeforeStart) {
+      return `<div class="h${l}"${attrs}>${content}</div>`;
+    }
+    return match;
+  });
 }
 
 /** Returns a markdown-it highlight callback that renders mermaid blocks as <div> and other languages via highlight.js. */
