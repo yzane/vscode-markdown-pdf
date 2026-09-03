@@ -20,6 +20,10 @@ work/
 .cocoindex_code/
 .codex
 .eslintrc.json
+.superpowers/
 
 # Visual inspection output
 tmp/
+
+# Transient workspace for update-readme-previews
+.tmp-readme-previews/

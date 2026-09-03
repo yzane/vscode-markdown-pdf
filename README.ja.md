@@ -1,10 +1,15 @@
 # Markdown PDF
 
-この拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
+<p>
+  <img src="images/banner.png" alt="Markdown PDF" width="400">
+</p>
+
+この VS Code 拡張機能は Markdown ファイルを pdf、html、png、jpeg ファイルに変換します。
 
 ## 目次
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
+- [What's New](#whats-new)
 - [仕様変更](#仕様変更)
 - [機能](#機能)
 - [Chromium](#chromium)
@@ -13,107 +18,141 @@
 - [オプション](#オプション)
 - [FAQ](#faq)
 - [既知の問題](#既知の問題)
-- [Release Notes](#release-notes)
+- [Change Log](#change-log)
 - [License](#license)
+- [Sponsor](#sponsor)
 - [Special thanks](#special-thanks)
 
 <!-- /TOC -->
 
 <div class="page"/>
 
+## What's New
+
+バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
+
+### 2.2.0
+
+- エラー通知を改善し、対処ヒントと Show Details ボタンを追加（[詳細](#how-do-i-troubleshoot-a-failed-export)）
+- 新しい Markdown PDF 出力チャネルへの詳細ログ出力を追加（[詳細](#how-do-i-troubleshoot-a-failed-export)）
+- 不具合報告用の `Markdown PDF: Output Diagnostics` コマンドを追加（[詳細](#how-do-i-troubleshoot-a-failed-export)）
+
+### 2.1.0
+
+- `` ```plantuml `` フェンスドコードブロック記法のサポートを追加（[詳細](#plantuml)）
+- KaTeX による数式描画のサポートを追加（[詳細](#math)）
+- Chrome Stable 最新版の自動ダウンロードに対応（[詳細](#markdown-pdfchromiumautodownload)）
+
 ## 仕様変更
 
-バージョン 2.0.0 では、既存の動作に影響する可能性がある変更が含まれます。詳細は [FAQ](#faq) セクションを参照してください。
+バージョン 2 以降で既存動作に影響する変更です。詳細は [FAQ](#faq) セクションを参照してください。
 
-- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
-- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
-- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
-- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
+### 2.2.0
+
+- `markdown-pdf.sanitize` が `"gfm"`（既定）または `"gfm-allow-style"` の場合、ブロックレベルの `<style>` / `<script>` / `<iframe>` 要素はエスケープして可視テキストとして残す代わりに、中身ごと除去されるようになりました。エクスポート時に除去が発生した場合は通知で報告されます。
+    - 詳細: [Raw HTML がエスケープ／除去されるのはなぜ？](#why-is-my-raw-html-being-escaped-or-removed)
+
+### 2.1.0
+
+- セキュリティ強化: XSS のリスクに対応するため（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）、Markdown 内の Raw HTML が既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠してサニタイズされるようになりました。`<script>` / `<iframe>` / `<style>` 等のタグおよび `on*` / `javascript:` 属性が Markdown 本文から除去されます。挙動は新しい [markdown-pdf.sanitize](#markdown-pdfsanitize) 設定で制御できます。
+    - 詳細: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
+
+### 2.0.0
+
+- 見出し ID の生成が GitHub 互換の VS Code slug 生成に変わりました。既存ドキュメント内の内部アンカーが変わる可能性があります。
+    - 詳細: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
+- highlight.js がバージョン 9 から 11 にアップグレードされました。一部のハイライトスタイル名が変更または削除されています。
+    - 詳細: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
+- フロントマターの解析がより厳格になりました。従来受け入れられていた一部の形式が拒否される場合があります。
+    - 詳細: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
+- Chromium はインストール済みの Chrome/Edge を優先して解決され、見つからなければ初回使用時に自動ダウンロードされます。
+    - 詳細: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ## 機能
 
-| 機能 | 説明 | 記法例 |
-|---|---|---|
-| [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
-| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
-| [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー生成 | `# 見出し` → `#見出し` |
-| [Container](#container) | 注記ブロック | `::: warning` |
-| [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
-| [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
-| [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
+Markdown PDF は、Markdown を PDF / HTML / PNG / JPEG に変換する際、標準の Markdown レンダラーに以下の機能を追加します。
 
-サンプルファイル
- * [pdf](sample/README.pdf)
- * [html](sample/README.html)
- * [png](sample/README.png)
- * [jpeg](sample/README.jpeg)
+### List
 
-### Heading IDs
+| カテゴリ | 機能 | 説明 | 記法例 |
+|---|---|---|---|
+| [Basic syntax extensions](#basic-syntax-extensions) | [Syntax highlighting](https://highlightjs.org/demo) | highlight.js によるコードブロックのハイライト | ` ```js ` |
+| | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
+| | [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
+| | [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー | `# Heading` → `#heading` |
+| [Content composition](#content-composition) | [Container](#container) | 注記ブロック | `::: warning` |
+| | [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
+| [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
+| | [Mermaid](#mermaid) | フェンスドコードブロックから図を生成 | ` ```mermaid ` |
+| | [Math](#math) | KaTeX による LaTeX 数式 | `$E = mc^2$` |
 
-見出しには GitHub 互換のアンカー ID が自動的に付与されます。例:
+### Basic syntax extensions
+
+#### Checkbox
+
+`- [ ]` / `- [x]` のタスクリスト項目を、GitHub と同様に無効化済みのチェックボックスとしてレンダリングします。エクスポート後の出力でステータスを視認できるようにしたい進捗表やチェックリストに有用です。
+
+Markdown
+```
+- [ ] Task A
+- [x] Task B
+```
+
+Preview
+
+![checkbox](images/checkbox.png)
+
+#### Heading IDs
+
+見出しには GitHub 互換のアンカー ID が自動的に付与されるため、`[Section](#section)` のような内部リンクが GitHub と同じ挙動になります。ASCII の見出しは小文字化され空白はハイフンに、非 ASCII の見出しは元の文字がそのまま使われます。
 
 | 見出し | 生成される ID |
 |---|---|
 | `# My Heading` | `#my-heading` |
-| `# API リファレンス` | `#api-リファレンス` |
+| `# API Reference` | `#api-reference` |
 | `# 日本語見出し` | `#日本語見出し` |
 
-詳細は FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change) を参照してください。
+See also: FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change)
 
-### Checkbox
+### Content composition
 
-INPUT
-```
-- [ ] タスク A
-- [x] タスク B
-```
+#### Container
 
-OUTPUT
-```html
-<ul>
-  <li><input type="checkbox" disabled> タスク A</li>
-  <li><input type="checkbox" disabled checked> タスク B</li>
-</ul>
-```
+[markdown-it-container](https://github.com/markdown-it/markdown-it-container) による注記風ブロック。`:::` の後ろに書いた識別子がブロックの CSS クラスになるため、[markdown-pdf.styles](#markdown-pdfstyles) と組み合わせて警告・ヒント・補足などのスタイルを与えられます。
 
-### Container
-
-[markdown-it-container](https://github.com/markdown-it/markdown-it-container) を使った注記ブロックです。
-
-INPUT
+Markdown
 ```
 ::: warning
-*here be dragons*
+**Warning:** here be dragons
 :::
 ```
 
-OUTPUT
-``` html
-<div class="warning">
-<p><em>here be dragons</em></p>
-</div>
+スタイルシート（例: `markdown-pdf.css`）
+```css
+.warning {
+  border-left: 4px solid #f0ad4e;
+  background: #fff8e1;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
 ```
 
-### PlantUML
-
-[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) の UML 図を生成します。
-
-INPUT
-```
-@startuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-@enduml
+設定
+```json
+"markdown-pdf.styles": ["markdown-pdf.css"]
 ```
 
-OUTPUT
+Preview
 
-![PlantUML](images/PlantUML.png)
+![container](images/container.png)
 
-### Include
+See also: [markdown-pdf.styles](#markdown-pdfstyles)
 
-Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+#### Include
+
+`:[alternate-text](relative-path-to-file.md)` で別の Markdown ファイルの内容をインラインで埋め込みます。参照先のフラグメントを読み込めない場合（ファイルが存在しない、権限エラーなど）は、Include 記述位置にエラーを表示したうえで残りのドキュメントのエクスポートは継続されます。
+
+以下のディレクトリ構成（`README.md` がエクスポート対象のドキュメント）を例にします:
 
 ```
 ├── [plugins]
@@ -122,7 +161,7 @@ Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 └── README.md
 ```
 
-INPUT
+Markdown
 ```
 README Content
 
@@ -131,7 +170,7 @@ README Content
 :[Changelog](CHANGELOG.md)
 ```
 
-OUTPUT
+Preview
 ```
 Content of README.md
 
@@ -140,11 +179,52 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### Mermaid
+See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)
 
-[Mermaid](https://mermaid-js.github.io/mermaid/) のフェンスドコードブロックから図を生成します。
+### Diagrams & math
 
-INPUT
+#### PlantUML
+
+[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) で UML 図をレンダリングします。2 つの等価な記法をサポートし、いずれも同じ `<img>` タグを生成し、[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) 設定を共有します。
+
+##### Fenced code block
+
+```` ```plantuml ```` のフェンスドコードブロック記法です。これは PlantUML のエコシステムで一般的なフェンス記法（例: PlantUML 連携が有効なとき [GitLab はこの記法をネイティブにレンダリング](https://docs.gitlab.com/administration/integration/plantuml/) します）。
+
+Markdown
+
+````
+```plantuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+```
+````
+
+##### Block markers
+
+`@startuml` / `@enduml` ブロックマーカーです。マーカーは [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) / [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker) でカスタマイズ可能です。
+
+Markdown
+
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+Preview (either form produces the same image)
+
+![PlantUML](images/PlantUML.png)
+
+See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
+
+#### Mermaid
+
+[Mermaid](https://mermaid-js.github.io/mermaid/) によってフェンスドコードブロックから図をレンダリングします。Mermaid のライブラリは [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) で指定された URL から読み込まれます（既定値は CDN）。
+
+Markdown
+
 <pre>
 ```mermaid
 stateDiagram
@@ -156,9 +236,61 @@ stateDiagram
 ```
 </pre>
 
-OUTPUT
+Preview
 
 ![mermaid](images/mermaid.png)
+
+#### Math
+
+[KaTeX](https://katex.org/) による LaTeX 数式レンダリング。`$…$` / `$$…$$` / `\begin{env}…\end{env}` は [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)（VS Code 標準の Markdown プレビューと同じプラグイン）で、`\(…\)` / `\[…\]` のブラケット区切りは自前の小さなプラグインで処理します。レンダリングは Node 上で実行され、ネットワーク接続は不要です。
+
+対応記法:
+
+- インライン: `$E = mc^2$`, `\(E = mc^2\)`
+- ディスプレイ: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
+- LaTeX 環境: `\begin{aligned}a &= b\\c &= d\end{aligned}`
+- フェンスドコードブロック:
+
+    ````
+    ```math
+    \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+    ```
+    ````
+
+Markdown
+
+<pre>
+Inline: $E = mc^2$
+
+Display:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX environment:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
+</pre>
+
+Preview
+
+![math](images/math.png)
+
+See also:
+
+- [markdown-pdf.math.enabled](#markdown-pdfmathenabled) — 数式レンダリングの無効化
+- [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) — KaTeX のユーザー定義マクロ
+
+### Sample files
+
+この README を各形式に変換したサンプル:
+
+- [pdf](sample/README.pdf)
+- [html](sample/README.html)
+- [png](sample/README.png)
+- [jpeg](sample/README.jpeg)
 
 ## Chromium
 
@@ -166,7 +298,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 1. [markdown-pdf.executablePath](#markdown-pdfexecutablepath) で指定されたパス
 2. システムにインストール済みの Google Chrome / Microsoft Edge / Chromium
-3. 初回使用時に自動ダウンロードされる管理済み Chromium
+3. 初回使用時に自動ダウンロードされ、以降は VS Code 起動ごとに最新の Chrome Stable に追従して更新される管理済み Chromium（[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) で無効化可能）
 
 詳細は FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) および [Where is Chromium downloaded?](#where-is-chromium-downloaded) を参照してください。
 
@@ -187,6 +319,8 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
    * `markdown-pdf: Export (all: pdf, html, png, jpeg)`
+
+不具合報告用の環境情報を収集するには `Markdown PDF: Output Diagnostics` を実行します。FAQ の [エクスポート失敗時のトラブルシューティング方法は？](#how-do-i-troubleshoot-a-failed-export) を参照してください。
 
 ![usage1](images/usage1.gif)
 
@@ -240,6 +374,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 |[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)| |
 |[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)| |
 |[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)| |
+||[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)| |
 |[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)| |
 |[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|resource|
 ||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|resource|
@@ -265,6 +400,9 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
+||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
+|[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
 
@@ -424,6 +562,16 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
 ```
 
+#### `markdown-pdf.chromium.autoDownload`
+  - インストール済みブラウザが見つからないとき、管理済み Chromium を自動ダウンロードするかを指定します
+  - boolean. Default: true
+  - `false` の場合、Markdown PDF は Chromium を自動ダウンロードせず、[markdown-pdf.executablePath](#markdown-pdfexecutablepath) または インストール済みの Google Chrome / Microsoft Edge / Chromium のみを使用します。どれも見つからない場合、エクスポートはエラーになります。
+  - 完全な解決順序は FAQ の [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) を参照してください
+
+```javascript
+"markdown-pdf.chromium.autoDownload": true
+```
+
 ### Common Options
 
 #### `markdown-pdf.scale`
@@ -568,11 +716,11 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - plantuml パーサーの開始区切り文字
+  - `@startuml` / `@enduml` ブロックマーカー記法で使用する開始区切り文字です。別の開始マーカーを使いたい場合に変更します。
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
-  - plantuml パーサーの終了区切り文字
+  - `@startuml` / `@enduml` ブロックマーカー記法で使用する終了区切り文字です。別の終了マーカーを使いたい場合に変更します。
   - Default: @enduml
 
 #### `markdown-pdf.plantumlServer`
@@ -596,7 +744,49 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
-<div class="page"/>
+### math options
+
+#### `markdown-pdf.math.enabled`
+  - `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, ` ```math ` フェンスドコードブロックを KaTeX で数式としてレンダリングするかを切り替えます。
+  - VS Code 標準の Markdown プレビューの挙動と一致します。
+  - `false` に設定すると `$` / `\(` / `\[` / ` ```math ` をそのままのテキストとして保持します（`$X$` のようなプレースホルダが文書内にあり、数式として解釈されてほしくない場合に使用）。
+  - 単一ドキュメントだけ数式を無効化したい場合は、該当箇所の `$` を `\$` にエスケープするか、YAML フロントマターで設定を上書きします:
+
+    ```yaml
+    ---
+    math:
+      enabled: false
+    ---
+    ```
+  - boolean. Default: true
+
+#### `markdown-pdf.math.katex.macros`
+  - KaTeX レンダラーに渡す、ユーザー定義の [KaTeX マクロ](https://katex.org/docs/options.html)。
+  - 例: `{ "\\RR": "\\mathbb{R}" }`
+  - ドキュメントごとのマクロは YAML フロントマターで指定でき、この設定より優先されます:
+
+    ```yaml
+    ---
+    math:
+      katex:
+        macros:
+          "\\RR": "\\mathbb{R}"
+    ---
+    ```
+  - Default: {}
+
+### Sanitize options
+
+#### `markdown-pdf.sanitize`
+  - Markdown 内の Raw HTML のサニタイズモード
+  - `"gfm"`: GFM の禁止タグおよび危険な属性を除去（既定）
+  - `"gfm-allow-style"`: `"gfm"` と同様、ただし `<style>` 要素は残す
+  - `"none"`: サニタイズ無効（従来の動作、非推奨）
+  - Default: `"gfm"`
+
+```javascript
+"markdown-pdf.sanitize": "gfm",
+```
 
 ## FAQ
 
@@ -679,6 +869,67 @@ title: My Document
 
 BOM 付きファイルは引き続きサポートされます。
 
+<a id="why-is-my-raw-html-being-escaped-or-removed"></a>
+
+### Raw HTML がエスケープ／除去されるのはなぜ？
+
+以前のバージョンでは Markdown 内の Raw HTML を検証せずにそのままレンダラに渡していたため、`<script>` や `<iframe>` 等がプレビュー／PDF 生成時に実行される可能性があり、信頼できない Markdown を開いたときに XSS のリスクがありました（[#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)）。
+
+バージョン 2.1.0 から、Markdown 本文内の Raw HTML は既定で [GFM Disallowed Raw HTML 拡張](https://github.github.com/gfm/#disallowed-raw-html-extension-) に準拠したサニタイズが適用されます。挙動は `markdown-pdf.sanitize` で制御します:
+
+| モード | 挙動 |
+| --- | --- |
+| `"gfm"` (既定) | GFM の禁止タグおよび危険な属性を除去。他者が作成した Markdown を開く可能性がある通常利用に推奨。 |
+| `"gfm-allow-style"` | `"gfm"` と同様、ただし `<style>` は残す。自身で書いた Markdown に CSS を同梱して 1 ファイル完結の PDF を作成したい場合向け。**信頼できるコンテンツに限って使用してください** — `<script>` を許可しなくても、CSS の `url(...)` / `@import` / `@font-face` 経由で攻撃者が指定する URL にリクエストを発生させて情報を漏えいさせる手口 (CSS exfiltration) が知られています。 |
+| `"none"` | サニタイズ無効。従来互換。基本的に非推奨。 |
+
+**`"gfm"` で除去される対象**
+
+禁止タグ:
+`<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+バージョン 2.2.0 から、ブロックレベルの `<style>` / `<script>` / `<iframe>` 要素は中身ごと除去されるため、CSS や JavaScript のソースコードが可視テキストとして出力に残ることはなくなりました。それ以外のケース — 上記のその他の禁止タグ、および任意の禁止タグのインライン出現 — は開きの `<` が `&lt;` にエスケープされ、中身は可視テキストとして残ります。2.1.0 ではすべてがエスケープされていました。
+
+属性:
+- `on*` イベントハンドラ（`onclick`, `onload` 等）
+- `href` / `src` の値が `javascript:` で始まるもの
+
+**サニタイズ通知**
+
+バージョン 2.2.0 から、エクスポート時に要素の除去や属性の除去が発生した場合、その内容が通知で報告されます: 手動エクスポート時は「Show Details」ボタン付きトースト、[自動変換](#自動変換)時は「Markdown PDF」出力チャネルへの記録となります。
+
+**本文内 `<style>` からの移行**
+
+PDF レイアウト調整のために Markdown 本文内で `<style>` を使っていた場合、CSS を別ファイルに移し `markdown-pdf.styles` で読み込むことで同等のカスタマイズが可能です。外部スタイルシートは VS Code 設定から読み込まれるため、本文の Raw HTML とは異なりサニタイズの影響を受けません。
+
+外部 CSS の注意点:
+
+- CSS は `@import url(...)`, `background: url(...)`, 属性セレクタ + `url(...)` 等によって外部送信が可能です。信頼できる CSS ファイルのみを指定してください。
+- `markdown-pdf.stylesRelativePathFile: true` の場合、スタイルシートのパスは開いた Markdown ファイルからの相対として解決されます。信頼できない場所にある Markdown を開くと、隣接する悪意ある `.css` を読み込む可能性があります。
+
+**サニタイズの適用範囲**
+
+サニタイズ対象:
+- Markdown 本文内に書かれた Raw HTML（markdown-it の `html_block` / `html_inline` として処理されるもの）
+- Include 機能（`:[label](path.md)`）でインクルードされたファイルの内容（同じレンダラを通るため自動的に適用されます）
+
+サニタイズ対象外:
+- `markdown-pdf.styles` で指定された外部 CSS（意図的に対象外。ユーザー設定による明示指定が信頼境界）
+- 拡張内蔵の CSS およびテンプレート HTML
+- 拡張自身が生成する HTML（mermaid、highlight.js、emoji、PlantUML の出力）
+
+<a id="how-do-i-troubleshoot-a-failed-export"></a>
+
+### エクスポート失敗時のトラブルシューティング方法は？
+
+バージョン 2.2.0 から、拡張は詳細ログを **Markdown PDF** 出力チャネルに記録します。**表示** > **出力** を開き、ドロップダウンから **Markdown PDF** を選択してください。
+
+- エクスポートが失敗すると、エラートーストに何が失敗したかが表示され、よくある原因（Chromium の起動失敗、出力ファイルのロック、権限不足、ディスク容量不足、出力先ディレクトリの不正）には対処ヒントが 1 行添えられます。**Show Details** ボタンを押すと、コンテキスト・エラーメッセージ・スタックトレースを含むログが開きます。
+- 各エクスポートの開始時に環境スナップショットと変換コンテキストがログに記録されるため、通常はログだけで状況を把握できます。
+- コマンドパレットから `Markdown PDF: Output Diagnostics` を実行すると、環境・設定の診断情報（拡張のバージョン、VS Code / OS 情報、Chromium のパスと選択経緯、関連設定）が出力されます。ホームディレクトリのパスはマスクされます。
+
+issue を発行する際は、`Markdown PDF: Output Diagnostics` の出力と **Show Details** で表示されるログを添付してください。
+
 <a id="how-is-the-chromium-browser-selected"></a>
 
 ### Chromium ブラウザはどのように選択されますか？
@@ -731,6 +982,19 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 
 ダウンロード中はステータスバーに `Installing Chromium` が表示されます。
 
+**ダウンロードされる Chromium のビルド**
+
+Markdown PDF はまず [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json) から最新の Chrome Stable の build id を取得しようとします。最新 build id の確認は VS Code セッションごとに 1 回実行され、Chrome Stable の新版がリリースされていれば次回エクスポート時に新しいビルドをダウンロードし、以前のキャッシュ済みビルドは削除されます。同一セッション内では取得した build id がメモ化されるため、リリース直後の新版を取り込むには VS Code を再起動してください。
+
+API に到達できない場合は、以下の順にフォールバックします:
+
+1. 上表のグローバルストレージディレクトリに残る最新のキャッシュ済みビルド
+2. バンドルされた `puppeteer-core` に固定された build id（最終フォールバック）
+
+**自動ダウンロードの無効化**
+
+[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) を `false` に設定すると、自動ダウンロードを完全にスキップします。その場合、Markdown PDF は [markdown-pdf.executablePath](#markdown-pdfexecutablepath) または インストール済みの Google Chrome / Microsoft Edge / Chromium のみに依存し、どれも見つからないとエクスポートはエラーになります。
+
 <div class="page"/>
 
 ## 既知の問題
@@ -739,24 +1003,18 @@ VS Code Insiders や VSCodium を使用している場合は、ベースパス�
 * オンラインCSS (https://xxx/xxx.css) は JPG と PNG では正しく適用されますが、PDF では問題が発生します [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 
-## [Release Notes](CHANGELOG.md)
+## [Change Log](CHANGELOG.md)
 
-### 2.0.1 (2026/04/14)
-* Fix: 自己閉じタグ `<div class="page" />` で改ページが正しく動作するよう修正 [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
-
-### 2.0.0 (2026/04/13)
-* Breaking: 見出し ID の slug 生成、フロントマター解析、Chromium 解決ロジックが変更されました。詳細は [FAQ](#faq) を参照してください。
-* Change: ソースコードを TypeScript に移行し、esbuild でバンドルするよう変更
-* Change: `puppeteer-core` をバンドルし、内製の `chromium-resolver` で Chromium を管理 (インストール済み Chrome/Edge を優先し、見つからなければ自動ダウンロード)
-* Change: `markdown-it-include` / `markdown-it-named-headers` / `markdown-it-checkbox` を内製実装に置換
-* Change: `cheerio` / `mustache` / `gray-matter` 依存を削除
-* Add: ユニットテストと統合テスト (`vscode-test-cli`)
-
-詳細は [Change Log](CHANGELOG.md) を参照してください。
+変更履歴の全文は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ## License
 
 MIT
+
+
+## Sponsor
+
+Markdown PDF が役に立ったら、[GitHub Sponsors](https://github.com/sponsors/yzane) で開発を支援いただけます。
 
 
 ## Special thanks
@@ -768,3 +1026,5 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
+* [KaTeX/KaTeX](https://github.com/KaTeX/KaTeX)
+* [microsoft/vscode-markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)

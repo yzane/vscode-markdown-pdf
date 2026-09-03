@@ -6,7 +6,9 @@ import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
+import plantumlEncoder from 'plantuml-encoder';
 import { githubSlugify } from './markdown-it-named-headers';
+import { logWarn, formatError } from './logger';
 
 /** Returns `a` when `a` is a defined boolean (including false); otherwise returns `b`. */
 export function setBooleanValue(a: boolean | undefined | null, b: boolean | undefined): boolean | undefined {
@@ -71,7 +73,7 @@ export function transformTemplate(templateText: string): string {
 
 /**
  * Reads a file synchronously, stripping file:// URI prefixes beforehand.
- * Returns '' on any I/O failure; warnings are logged to console and errors are never re-thrown.
+ * Returns '' on any I/O failure; warnings are logged via logWarn (not-found vs read-error) and errors are never re-thrown.
  */
 export function readFile(filename: string, encode?: BufferEncoding | null): string | Buffer {
   if (filename.length === 0) {
@@ -88,14 +90,15 @@ export function readFile(filename: string, encode?: BufferEncoding | null): stri
       filename = filename.replace(/^file:\/\//, '');
     }
   }
-  if (isExistsPath(filename)) {
-    try {
-      return fs.readFileSync(filename, encode);
-    } catch (error: unknown) {
-      console.warn((error as Error).message);
-      return '';
+  try {
+    return fs.readFileSync(filename, encode);
+  } catch (error: unknown) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      logWarn(`File not found: ${filename}`);
+    } else {
+      logWarn(`Failed to read file: ${filename}`, formatError(error));
     }
-  } else {
     return '';
   }
 }
@@ -108,6 +111,53 @@ export function makeCss(filename: string): string {
   } else {
     return '';
   }
+}
+
+const KATEX_FONT_MIME: Record<string, string> = {
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+};
+
+/**
+ * Builds an inline <style> tag for KaTeX CSS with every url(fonts/...)
+ * reference rewritten to a base64 data: URI. Produces a fully self-contained
+ * stylesheet so the generated HTML stays portable when copied or moved.
+ * Returns '' when the KaTeX CSS file is not present at the expected location.
+ */
+export function buildKatexStyleTag(baseDir: string): string {
+  const cssPath = path.join(baseDir, 'styles', 'katex', 'katex.min.css');
+  const rawCss = readFile(cssPath);
+  if (typeof rawCss !== 'string' || !rawCss) {
+    return '';
+  }
+  const katexDir = path.join(baseDir, 'styles', 'katex');
+  const urlRe = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
+  const inlined = rawCss.replace(urlRe, function (match, _quote, href: string) {
+    // Skip URLs that are already absolute or data: URIs.
+    if (/^(data:|https?:|file:)/i.test(href)) {
+      return match;
+    }
+    const normalized = href.replace(/^\.\//, '').split('?')[0].split('#')[0];
+    const fontPath = path.join(katexDir, normalized);
+    // Guard against path traversal: only allow files below styles/katex/.
+    const relative = path.relative(katexDir, fontPath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      return match;
+    }
+    if (!isExistsPath(fontPath)) {
+      return match;
+    }
+    const ext = path.extname(fontPath).toLowerCase();
+    const mime = KATEX_FONT_MIME[ext];
+    if (!mime) {
+      return match;
+    }
+    const buffer = fs.readFileSync(fontPath);
+    const base64 = buffer.toString('base64');
+    return 'url(data:' + mime + ';base64,' + base64 + ')';
+  });
+  return '\n<style>\n' + inlined + '\n</style>\n';
 }
 
 /** Resolves an image src to an absolute file:// URL, or returns the original src for remote URLs. */
@@ -775,4 +825,324 @@ export function buildContainerRenderer(): { validate: (name: string) => number; 
 export function generateTmpHtmlFilename(filename: string): string {
   const f = path.parse(filename);
   return path.join(f.dir, f.name + '_tmp.html');
+}
+
+/**
+ * Builds an <img> tag for a PlantUML source string. Produces the same
+ * structural <img> format as markdown-it-plantuml (same server, /svg/
+ * endpoint, alt="uml diagram") so that both the @startuml/@enduml path
+ * and the ```plantuml fence path render equivalent diagrams.
+ */
+export function buildPlantumlImgTag(source: string, server: string): string {
+  const encoded = plantumlEncoder.encode(source);
+  return '<img src="' + server + '/svg/' + encoded + '" alt="uml diagram">';
+}
+
+// Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per
+// GitHub Flavored Markdown; 'gfm-allow-style' keeps <style>; 'none' disables.
+export type SanitizeMode = 'gfm' | 'gfm-allow-style' | 'none';
+
+export interface SanitizeReport {
+  // Tag names of block-level elements removed with their content (one entry per occurrence).
+  removedElements: string[];
+  // Identifiers of attributes stripped (e.g. 'onclick', 'href(javascript:)'), one per occurrence.
+  strippedAttributes: string[];
+}
+
+export interface SanitizeOptions {
+  // true = block context: remove style/script/iframe with their content.
+  // false/omitted = inline context: escape them like the other disallowed tags.
+  removeWithContent?: boolean;
+}
+
+// Disallowed tags removed with their content (block context only). They render as
+// noise or are unsafe in a PDF: <style>/<script> dump text; <iframe> cannot function.
+const REMOVE_WITH_CONTENT = new Set(['style', 'script', 'iframe']);
+
+function stripDangerousAttributes(tag: string): { tag: string; stripped: string[] } {
+  const stripped: string[] = [];
+  // Skip closing tags and bail out cheaply on malformed input.
+  if (tag.length < 2 || tag[1] === '/') {
+    return { tag, stripped };
+  }
+
+  let nameEnd = 1;
+  while (nameEnd < tag.length && /[a-z0-9-]/i.test(tag[nameEnd])) {
+    nameEnd++;
+  }
+
+  let result = tag.slice(0, nameEnd);
+  let i = nameEnd;
+  while (i < tag.length) {
+    const wsStart = i;
+    while (i < tag.length && /\s/.test(tag[i])) {
+      i++;
+    }
+    const ws = tag.slice(wsStart, i);
+
+    if (i >= tag.length) {
+      result += ws;
+      break;
+    }
+
+    if (tag[i] === '/' || tag[i] === '>') {
+      result += ws;
+      result += tag[i];
+      i++;
+      continue;
+    }
+
+    const attrStart = i;
+    while (i < tag.length && !/[\s=/>]/.test(tag[i])) {
+      i++;
+    }
+    const attrName = tag.slice(attrStart, i);
+
+    let afterName = i;
+    while (afterName < tag.length && /\s/.test(tag[afterName])) {
+      afterName++;
+    }
+
+    let attrEnd = afterName;
+    let attrValue: string | null = null;
+    if (afterName < tag.length && tag[afterName] === '=') {
+      let valueStart = afterName + 1;
+      while (valueStart < tag.length && /\s/.test(tag[valueStart])) {
+        valueStart++;
+      }
+      if (valueStart < tag.length && (tag[valueStart] === '"' || tag[valueStart] === "'")) {
+        const quote = tag[valueStart];
+        const close = tag.indexOf(quote, valueStart + 1);
+        if (close === -1) {
+          attrValue = tag.slice(valueStart + 1);
+          attrEnd = tag.length;
+        } else {
+          attrValue = tag.slice(valueStart + 1, close);
+          attrEnd = close + 1;
+        }
+      } else {
+        let valueEnd = valueStart;
+        while (valueEnd < tag.length && !/[\s/>]/.test(tag[valueEnd])) {
+          valueEnd++;
+        }
+        attrValue = tag.slice(valueStart, valueEnd);
+        attrEnd = valueEnd;
+      }
+    }
+
+    const lowerName = attrName.toLowerCase();
+    const isEventHandler = /^on[a-z]{3}/i.test(lowerName);
+    const isJavascriptUrl =
+      (lowerName === 'href' || lowerName === 'src') &&
+      attrValue !== null &&
+      /^\s*javascript:/i.test(attrValue);
+
+    if (!isEventHandler && !isJavascriptUrl) {
+      result += ws;
+      result += attrName;
+      if (attrEnd > afterName) {
+        result += tag.slice(i, attrEnd);
+      }
+    } else {
+      // Record what was stripped for the sanitize report.
+      stripped.push(isEventHandler ? lowerName : lowerName + '(javascript:)');
+    }
+    i = attrEnd;
+  }
+  return { tag: result, stripped };
+}
+
+/**
+ * Returns the set of lowercase tag names to strip for the given sanitize mode.
+ * See GFM 6.11 Disallowed Raw HTML extension:
+ * https://github.github.com/gfm/#disallowed-raw-html-extension-
+ */
+export function getDisallowedTags(mode: SanitizeMode): Set<string> {
+  if (mode === 'none') {
+    return new Set();
+  }
+  const tags = new Set(['title', 'textarea', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'script', 'plaintext']);
+  if (mode === 'gfm-allow-style') {
+    tags.delete('style');
+  }
+  return tags;
+}
+
+/**
+ * Sanitizes raw HTML per GFM's disallowed raw HTML extension, returning the
+ * sanitized string and a report of what was neutralized.
+ * - With `options.removeWithContent` (block context): <style>/<script>/<iframe>
+ *   are removed together with their content; other disallowed tags are escaped.
+ * - Without it (inline context, default): all disallowed tags have their leading
+ *   '<' escaped to '&lt;' (content preserved as text).
+ * - on* event handlers and href/src="javascript:..." attributes are stripped from
+ *   non-disallowed tags. HTML comments are preserved verbatim.
+ * Returns the input unchanged with an empty report when mode is 'none' or input is empty.
+ */
+export function sanitizeRawHtml(
+  html: string,
+  mode: SanitizeMode,
+  options?: SanitizeOptions,
+): { html: string; report: SanitizeReport } {
+  const report: SanitizeReport = { removedElements: [], strippedAttributes: [] };
+  if (mode === 'none' || !html) {
+    return { html, report };
+  }
+  const removeWithContent = options?.removeWithContent === true;
+  const disallowed = getDisallowedTags(mode);
+  let result = '';
+  let index = 0;
+  while (index < html.length) {
+    // Preserve HTML comments verbatim.
+    if (html.startsWith('<!--', index)) {
+      const commentEnd = html.indexOf('-->', index + 4);
+      if (commentEnd === -1) {
+        result += html.slice(index);
+        break;
+      }
+      result += html.slice(index, commentEnd + 3);
+      index = commentEnd + 3;
+      continue;
+    }
+
+    if (html[index] !== '<') {
+      result += html[index];
+      index++;
+      continue;
+    }
+
+    const tagEnd = findHtmlTagEnd(html, index + 1);
+    if (tagEnd === -1) {
+      result += html.slice(index);
+      break;
+    }
+
+    const tag = html.slice(index, tagEnd + 1);
+    const tagName = getTagName(tag);
+
+    if (tagName && disallowed.has(tagName)) {
+      if (removeWithContent && REMOVE_WITH_CONTENT.has(tagName)) {
+        if (tag[1] === '/') {
+          // Stray closing tag of a remove-set element: drop silently.
+          index = tagEnd + 1;
+          continue;
+        }
+        // Opening tag: remove through the matching closing tag (inclusive).
+        // tagName comes from REMOVE_WITH_CONTENT (style/script/iframe) — no regex
+        // metacharacters, so interpolating it directly is safe.
+        const closeRe = new RegExp('</' + tagName + '\\s*>', 'i');
+        const match = closeRe.exec(html.slice(tagEnd + 1));
+        if (match) {
+          index = tagEnd + 1 + match.index + match[0].length;
+        } else {
+          // No closing tag in this token: drop just the opening tag (graceful degrade).
+          index = tagEnd + 1;
+        }
+        report.removedElements.push(tagName);
+        continue;
+      }
+      // Escape set, or remove-set in inline context: GFM escape of leading '<'.
+      result += '&lt;' + tag.slice(1);
+      index = tagEnd + 1;
+      continue;
+    }
+
+    const stripResult = stripDangerousAttributes(tag);
+    result += stripResult.tag;
+    report.strippedAttributes.push(...stripResult.stripped);
+    index = tagEnd + 1;
+  }
+  return { html: result, report };
+}
+
+// Counts occurrences of each string, preserving first-seen order.
+function tallyOccurrences(items: string[]): Array<{ name: string; count: number }> {
+  const order: string[] = [];
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    if (!counts.has(item)) {
+      order.push(item);
+    }
+    counts.set(item, (counts.get(item) || 0) + 1);
+  }
+  return order.map(function (name) {
+    // name is always present in counts here (it was added to `order` on first sight).
+    return { name: name, count: counts.get(name)! };
+  });
+}
+
+// Short, human-facing summary for the warning toast (no counts; kinds only).
+export function buildSanitizeSummary(report: SanitizeReport): string {
+  const parts: string[] = [];
+  const removedKinds = tallyOccurrences(report.removedElements).map(function (e) {
+    return '<' + e.name + '>';
+  });
+  if (removedKinds.length > 0) {
+    parts.push('removed ' + removedKinds.join(', '));
+  }
+  if (report.strippedAttributes.length > 0) {
+    parts.push('stripped unsafe attribute(s)');
+  }
+  // Fall back to a generic phrase for an empty report so the sentence stays well-formed
+  // (the only caller guards against empty, but keep the function safe in isolation).
+  const body = parts.length > 0 ? parts.join('; ') : 'sanitized raw HTML';
+  return 'Markdown PDF: ' + body + ' for security. See output for details.';
+}
+
+// Detailed line(s) for the output channel, including mode and per-kind counts.
+export function buildSanitizeLogDetail(report: SanitizeReport, mode: SanitizeMode): string {
+  const segments: string[] = [];
+  const removed = tallyOccurrences(report.removedElements).map(function (e) {
+    return '<' + e.name + '>×' + e.count;
+  });
+  const stripped = tallyOccurrences(report.strippedAttributes).map(function (e) {
+    return e.name + '×' + e.count;
+  });
+  if (removed.length > 0) {
+    segments.push('removed ' + removed.join(', '));
+  }
+  if (stripped.length > 0) {
+    segments.push('stripped ' + stripped.join(', '));
+  }
+  const head = 'Sanitized raw HTML (mode: ' + mode + ')';
+  const lines: string[] = [segments.length > 0 ? head + ': ' + segments.join('; ') + '.' : head + '.'];
+  if (report.removedElements.indexOf('style') !== -1) {
+    lines.push('Tip: to keep <style>, set "markdown-pdf.sanitize": "gfm-allow-style".');
+  }
+  return lines.join('\n');
+}
+
+export type AwaitWithTimeoutResult<T> =
+  | { timedOut: false; value: T }
+  | { timedOut: true };
+
+export async function awaitWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<AwaitWithTimeoutResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+
+  const observedPromise = promise.catch((error) => {
+    if (timedOut) {
+      return undefined as T;
+    }
+    throw error;
+  });
+
+  try {
+    const timeoutPromise = new Promise<AwaitWithTimeoutResult<T>>((resolve) => {
+      timeoutId = setTimeout(() => {
+        timedOut = true;
+        resolve({ timedOut: true });
+      }, timeoutMs);
+    });
+
+    const valuePromise = observedPromise.then((value): AwaitWithTimeoutResult<T> => {
+      return { timedOut: false, value };
+    });
+
+    return await Promise.race([valuePromise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
+  }
 }

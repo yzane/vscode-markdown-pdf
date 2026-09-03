@@ -1,6 +1,9 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'assert';
+import path from 'path';
 import * as utils from '../../src/utils';
+import * as logger from '../../src/logger';
+import { fileUri } from './helpers/path-platform';
 
 describe('utils', function () {
   describe('setBooleanValue', function () {
@@ -220,6 +223,32 @@ describe('utils', function () {
       assert.strictEqual(result.charCodeAt(0), 0xFEFF, 'Expected BOM at start of file');
       assert.ok(result.indexOf('hello BOM') !== -1, 'Expected content after BOM');
     });
+
+    it('logs "File not found" via logWarn for a non-existent file', function () {
+      const calls: unknown[][] = [];
+      logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+      try {
+        const result = utils.readFile('/nonexistent/file.txt');
+        assert.strictEqual(result, '');
+        assert.strictEqual(calls.length, 1);
+        assert.match(String(calls[0][0]), /^File not found:/);
+      } finally {
+        logger.setLogSink(undefined);
+      }
+    });
+
+    it('logs "Failed to read file" via logWarn when given a directory', function () {
+      const calls: unknown[][] = [];
+      logger.setLogSink({ info() {}, warn: (...a: unknown[]) => { calls.push(a); }, error() {}, show() {} });
+      try {
+        const result = utils.readFile(__dirname);
+        assert.strictEqual(result, '');
+        assert.strictEqual(calls.length, 1);
+        assert.match(String(calls[0][0]), /^Failed to read file:/);
+      } finally {
+        logger.setLogSink(undefined);
+      }
+    });
   });
 
   describe('makeCss', function () {
@@ -250,11 +279,11 @@ describe('utils', function () {
 
   describe('convertImgPath', function () {
     it('should convert a relative path to a file URI', function () {
-      assert.strictEqual(utils.convertImgPath('image.png', '/home/user/doc.md'), 'file:///home/user/image.png');
+      assert.strictEqual(utils.convertImgPath('image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'image.png')));
     });
 
     it('should convert an absolute path to a file URI', function () {
-      assert.strictEqual(utils.convertImgPath('/images/photo.png', '/home/user/doc.md'), 'file:///images/photo.png');
+      assert.strictEqual(utils.convertImgPath('/images/photo.png', '/home/user/doc.md'), fileUri(path.resolve('/images/photo.png')));
     });
 
     it('should return https URLs unchanged', function () {
@@ -285,11 +314,11 @@ describe('utils', function () {
     });
 
     it('should handle path with spaces', function () {
-      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+      assert.strictEqual(utils.convertImgPath('my image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'my image.png')));
     });
 
     it('should resolve ../ in relative path', function () {
-      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), 'file:///home/user/assets/img.png');
+      assert.strictEqual(utils.convertImgPath('../../assets/img.png', '/home/user/docs/sub/doc.md'), fileUri(path.resolve('/home/user/docs/sub', '../../assets/img.png')));
     });
 
     it('should return data: URL unchanged', function () {
@@ -297,9 +326,7 @@ describe('utils', function () {
     });
 
     it('should handle empty string src', function () {
-      const path = require('path');
-      const expected = 'file://' + path.resolve('/home/user', '');
-      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), expected);
+      assert.strictEqual(utils.convertImgPath('', '/home/user/doc.md'), fileUri(path.resolve('/home/user', '')));
     });
 
     (process.platform === 'win32' ? it : it.skip)('should handle Windows absolute path', function () {
@@ -307,7 +334,7 @@ describe('utils', function () {
     });
 
     it('should decode %20 encoded spaces in path', function () {
-      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), 'file:///home/user/my image.png');
+      assert.strictEqual(utils.convertImgPath('my%20image.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', 'my image.png')));
     });
 
     it('should return https URL with query string unchanged', function () {
@@ -319,7 +346,7 @@ describe('utils', function () {
     });
 
     it('should convert Unicode relative path to file URI', function () {
-      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), 'file:///home/user/画像/テスト.png');
+      assert.strictEqual(utils.convertImgPath('画像/テスト.png', '/home/user/doc.md'), fileUri(path.resolve('/home/user', '画像/テスト.png')));
     });
 
     it('should escape all # characters in path', function () {
@@ -442,7 +469,7 @@ describe('utils', function () {
     it('should handle relative path with spaces', function () {
       assert.strictEqual(
         utils.resolveHref('my styles/custom.css', '/home/user/doc.md', false, '/workspace'),
-        'file:///workspace/my styles/custom.css'
+        'file://' + path.join('/workspace', 'my styles/custom.css')
       );
     });
 
@@ -1410,19 +1437,20 @@ describe('utils', function () {
 
     it('should rewrite the real src attribute and preserve data-src', function () {
       const result = utils.transformHtmlBlock('<img data-src="lazy.png" src="real.png">', '/doc/test.md');
+      const realUri = fileUri(path.resolve('/doc', 'real.png'));
       assert.ok(result.indexOf('data-src="lazy.png"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/real.png"') >= 0);
-      assert.ok(result.indexOf('data-src="lazy.png" src="file:///doc/real.png"') >= 0);
+      assert.ok(result.indexOf('src="' + realUri + '"') >= 0);
+      assert.ok(result.indexOf('data-src="lazy.png" src="' + realUri + '"') >= 0);
     });
 
     it('should handle spacing around src equals', function () {
       const result = utils.transformHtmlBlock('<img src = "photo.png">', '/doc/test.md');
-      assert.strictEqual(result, '<img src = "file:///doc/photo.png">');
+      assert.strictEqual(result, '<img src = "' + fileUri(path.resolve('/doc', 'photo.png')) + '">');
     });
 
     it('should handle unquoted src attributes', function () {
       const result = utils.transformHtmlBlock('<img src=photo.png>', '/doc/test.md');
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.ok(result.indexOf('src="' + fileUri(path.resolve('/doc', 'photo.png')) + '"') >= 0);
     });
 
     it('should handle multiple images with mixed attribute ordering', function () {
@@ -1430,9 +1458,11 @@ describe('utils', function () {
         '<img data-src="lazy.png" src="real.png"><img alt="desc" src = "photo.png">',
         '/doc/test.md',
       );
+      const realUri = fileUri(path.resolve('/doc', 'real.png'));
+      const photoUri = fileUri(path.resolve('/doc', 'photo.png'));
       assert.strictEqual(
         result,
-        '<img data-src="lazy.png" src="file:///doc/real.png"><img alt="desc" src = "file:///doc/photo.png">',
+        '<img data-src="lazy.png" src="' + realUri + '"><img alt="desc" src = "' + photoUri + '">',
       );
     });
 
@@ -1446,18 +1476,18 @@ describe('utils', function () {
       const result = utils.transformHtmlBlock('<img alt="desc" src="photo.png" width="100">', '/doc/test.md');
       assert.ok(result.indexOf('alt="desc"') >= 0);
       assert.ok(result.indexOf('width="100"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.ok(result.indexOf('src="' + fileUri(path.resolve('/doc', 'photo.png')) + '"') >= 0);
     });
 
     it('should handle quotes that contain a greater-than sign', function () {
       const result = utils.transformHtmlBlock('<img alt="a > b" src="photo.png">', '/doc/test.md');
       assert.ok(result.indexOf('alt="a > b"') >= 0);
-      assert.ok(result.indexOf('src="file:///doc/photo.png"') >= 0);
+      assert.ok(result.indexOf('src="' + fileUri(path.resolve('/doc', 'photo.png')) + '"') >= 0);
     });
 
     it('should preserve quoted non-src attributes that contain src text', function () {
       const result = utils.transformHtmlBlock('<img alt="look src=bad.png" src="real.png">', '/doc/test.md');
-      assert.strictEqual(result, '<img alt="look src=bad.png" src="file:///doc/real.png">');
+      assert.strictEqual(result, '<img alt="look src=bad.png" src="' + fileUri(path.resolve('/doc', 'real.png')) + '">');
     });
 
     it('should ignore img text inside comments', function () {
@@ -1492,7 +1522,7 @@ describe('utils', function () {
 
     it('should handle whitespace before the closing raw-text tag', function () {
       const result = utils.transformHtmlBlock('<script>const html = "<img src=x.png>";</script ><img src=real.png>', '/doc/test.md');
-      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="file:///doc/real.png">');
+      assert.strictEqual(result, '<script>const html = "<img src=x.png>";</script ><img src="' + fileUri(path.resolve('/doc', 'real.png')) + '">');
     });
 
     it('should preserve surrounding html', function () {
@@ -1798,6 +1828,375 @@ describe('utils', function () {
       const html = '<h1>Before</h1><!-- /TOC --><h1>After</h1>';
       const result = utils.filterHeadingLevels(html, 1, 6, '<!-- /TOC -->');
       assert.strictEqual(result, '<div class="h1">Before</div><!-- /TOC --><h1>After</h1>');
+    });
+  });
+
+  describe('getDisallowedTags', function () {
+    it('should return GFM disallowed tag set for "gfm" mode', function () {
+      const tags = utils.getDisallowedTags('gfm');
+      const expected = ['title', 'textarea', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'script', 'plaintext'];
+      for (const tag of expected) {
+        assert.ok(tags.has(tag), `expected tag "${tag}" to be disallowed in gfm mode`);
+      }
+      assert.strictEqual(tags.size, expected.length);
+    });
+
+    it('should exclude <style> in "gfm-allow-style" mode', function () {
+      const tags = utils.getDisallowedTags('gfm-allow-style');
+      assert.strictEqual(tags.has('style'), false);
+      assert.ok(tags.has('script'));
+      assert.ok(tags.has('iframe'));
+    });
+
+    it('should return empty set for "none" mode', function () {
+      const tags = utils.getDisallowedTags('none');
+      assert.strictEqual(tags.size, 0);
+    });
+  });
+
+  describe('sanitizeRawHtml', function () {
+    describe('disallowed tags (gfm mode)', function () {
+      it('should escape opening < of <script> tag', function () {
+        const result = utils.sanitizeRawHtml('<script>alert(1)</script>', 'gfm').html;
+        assert.strictEqual(result, '&lt;script>alert(1)&lt;/script>');
+      });
+
+      it('should escape <iframe>', function () {
+        const result = utils.sanitizeRawHtml('<iframe src="a"></iframe>', 'gfm').html;
+        assert.strictEqual(result, '&lt;iframe src="a">&lt;/iframe>');
+      });
+
+      it('should escape <style> in gfm mode', function () {
+        const result = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm').html;
+        assert.strictEqual(result, '&lt;style>body{}&lt;/style>');
+      });
+
+      it('should keep <style> in gfm-allow-style mode', function () {
+        const result = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm-allow-style').html;
+        assert.strictEqual(result, '<style>body{}</style>');
+      });
+
+      it('should escape <textarea>, <title>, <xmp>, <noembed>, <noframes>, <plaintext>', function () {
+        const tags = ['textarea', 'title', 'xmp', 'noembed', 'noframes', 'plaintext'];
+        for (const tag of tags) {
+          const input = `<${tag}>x</${tag}>`;
+          const expected = `&lt;${tag}>x&lt;/${tag}>`;
+          assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm').html, expected, `tag: ${tag}`);
+        }
+      });
+
+      it('should be case-insensitive', function () {
+        const result = utils.sanitizeRawHtml('<SCRIPT>x</SCRIPT>', 'gfm').html;
+        assert.strictEqual(result, '&lt;SCRIPT>x&lt;/SCRIPT>');
+      });
+
+      it('should leave normal tags untouched', function () {
+        const result = utils.sanitizeRawHtml('<div class="note">text</div>', 'gfm').html;
+        assert.strictEqual(result, '<div class="note">text</div>');
+      });
+
+      it('should leave <b>, <i>, <a> etc untouched', function () {
+        const result = utils.sanitizeRawHtml('<b>bold</b> <i>italic</i> <a href="x">link</a>', 'gfm').html;
+        assert.strictEqual(result, '<b>bold</b> <i>italic</i> <a href="x">link</a>');
+      });
+
+      it('should pass through everything in none mode', function () {
+        const input = '<script>alert(1)</script><div onclick="x">y</div>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'none').html, input);
+      });
+
+      it('should handle empty string', function () {
+        assert.strictEqual(utils.sanitizeRawHtml('', 'gfm').html, '');
+      });
+
+      it('should preserve HTML comments', function () {
+        const input = '<!-- <script>not a tag</script> -->';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm').html, input);
+      });
+
+      it('should handle text without any tags', function () {
+        assert.strictEqual(utils.sanitizeRawHtml('plain text', 'gfm').html, 'plain text');
+      });
+
+      it('should preserve whitespace before self-closing tag slash', function () {
+        const input = '<div class="page" />';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm').html, input);
+      });
+
+      it('should escape <plaintext> together with a nested <script>', function () {
+        const result = utils.sanitizeRawHtml('<plaintext><script>x</script>', 'gfm').html;
+        assert.strictEqual(result, '&lt;plaintext>&lt;script>x&lt;/script>');
+      });
+    });
+
+    describe('on* event attributes', function () {
+      it('should strip onclick attribute (double-quoted)', function () {
+        const result = utils.sanitizeRawHtml('<div onclick="alert(1)">x</div>', 'gfm').html;
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should strip onload attribute (single-quoted)', function () {
+        const result = utils.sanitizeRawHtml("<body onload='x()'>y</body>", 'gfm').html;
+        assert.strictEqual(result, '<body>y</body>');
+      });
+
+      it('should strip unquoted on* attribute', function () {
+        const result = utils.sanitizeRawHtml('<div onclick=foo()>x</div>', 'gfm').html;
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should strip on* without value', function () {
+        const result = utils.sanitizeRawHtml('<div onclick>x</div>', 'gfm').html;
+        assert.strictEqual(result, '<div>x</div>');
+      });
+
+      it('should preserve other attributes when stripping on*', function () {
+        const result = utils.sanitizeRawHtml('<a href="x" onclick="y" class="z">t</a>', 'gfm').html;
+        assert.strictEqual(result, '<a href="x" class="z">t</a>');
+      });
+
+      it('should be case-insensitive for attribute name', function () {
+        const result = utils.sanitizeRawHtml('<div ONCLICK="x">y</div>', 'gfm').html;
+        assert.strictEqual(result, '<div>y</div>');
+      });
+
+      it('should not treat "one" or "only" as on* attribute', function () {
+        const result = utils.sanitizeRawHtml('<div one="1" only="2">x</div>', 'gfm').html;
+        assert.strictEqual(result, '<div one="1" only="2">x</div>');
+      });
+    });
+
+    describe('javascript: URLs', function () {
+      it('should strip href="javascript:..." on <a>', function () {
+        const result = utils.sanitizeRawHtml('<a href="javascript:alert(1)">x</a>', 'gfm').html;
+        assert.strictEqual(result, '<a>x</a>');
+      });
+
+      it('should strip src="javascript:..." on <img>', function () {
+        const result = utils.sanitizeRawHtml('<img src="javascript:alert(1)">', 'gfm').html;
+        assert.strictEqual(result, '<img>');
+      });
+
+      it('should tolerate leading whitespace before javascript:', function () {
+        const result = utils.sanitizeRawHtml('<a href=" javascript:x">y</a>', 'gfm').html;
+        assert.strictEqual(result, '<a>y</a>');
+      });
+
+      it('should be case-insensitive for javascript: scheme', function () {
+        const result = utils.sanitizeRawHtml('<a href="JavaScript:x">y</a>', 'gfm').html;
+        assert.strictEqual(result, '<a>y</a>');
+      });
+
+      it('should preserve normal href', function () {
+        const input = '<a href="https://example.com">x</a>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm').html, input);
+      });
+
+      it('should preserve mailto and relative URLs', function () {
+        const input = '<a href="mailto:a@b.c">x</a><a href="./page">y</a>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm').html, input);
+      });
+
+      it('should not strip javascript: on non-href/src attributes', function () {
+        const input = '<div data-note="javascript:foo">x</div>';
+        assert.strictEqual(utils.sanitizeRawHtml(input, 'gfm').html, input);
+      });
+    });
+
+    describe('removeWithContent (block context)', function () {
+      const BLOCK = { removeWithContent: true };
+
+      it('removes <style> with its content', function () {
+        const r = utils.sanitizeRawHtml('<style>body{color:red}</style>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '');
+        assert.deepEqual(r.report.removedElements, ['style']);
+      });
+
+      it('removes <script> with its content', function () {
+        const r = utils.sanitizeRawHtml('<script>alert(1)</script>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '');
+        assert.deepEqual(r.report.removedElements, ['script']);
+      });
+
+      it('removes <iframe> with its content', function () {
+        const r = utils.sanitizeRawHtml('<iframe src="x">fallback</iframe>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '');
+        assert.deepEqual(r.report.removedElements, ['iframe']);
+      });
+
+      it('removes a <style> embedded in surrounding markup, keeping the rest', function () {
+        const r = utils.sanitizeRawHtml('<div>a<style>x{}</style>b</div>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '<div>ab</div>');
+        assert.deepEqual(r.report.removedElements, ['style']);
+      });
+
+      it('is case-insensitive for the closing tag', function () {
+        const r = utils.sanitizeRawHtml('<SCRIPT>x</SCRIPT>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '');
+        assert.deepEqual(r.report.removedElements, ['script']);
+      });
+
+      it('degrades to removing only the opening tag when no closing tag is present', function () {
+        const r = utils.sanitizeRawHtml('<style>x{}', 'gfm', BLOCK);
+        assert.strictEqual(r.html, 'x{}');
+        assert.deepEqual(r.report.removedElements, ['style']);
+      });
+
+      it('keeps the escape set escaped even in block context', function () {
+        const r = utils.sanitizeRawHtml('<textarea>x</textarea>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '&lt;textarea>x&lt;/textarea>');
+        assert.deepEqual(r.report.removedElements, []);
+      });
+
+      it('does not remove <style> in gfm-allow-style mode', function () {
+        const r = utils.sanitizeRawHtml('<style>body{}</style>', 'gfm-allow-style', BLOCK);
+        assert.strictEqual(r.html, '<style>body{}</style>');
+        assert.deepEqual(r.report.removedElements, []);
+      });
+
+      it('accumulates one report entry per removed element, in order', function () {
+        const r = utils.sanitizeRawHtml('<script>a</script><style>b</style><script>c</script>', 'gfm', BLOCK);
+        assert.strictEqual(r.html, '');
+        assert.deepEqual(r.report.removedElements, ['script', 'style', 'script']);
+      });
+
+      it('drops a stray closing tag of a remove-set element without recording it', function () {
+        const r = utils.sanitizeRawHtml('text</style>more', 'gfm', BLOCK);
+        assert.strictEqual(r.html, 'textmore');
+        assert.deepEqual(r.report.removedElements, []);
+      });
+    });
+
+    describe('inline context (removeWithContent omitted = escape)', function () {
+      it('escapes <script> and reports no removal', function () {
+        const r = utils.sanitizeRawHtml('<script>', 'gfm');
+        assert.strictEqual(r.html, '&lt;script>');
+        assert.deepEqual(r.report.removedElements, []);
+      });
+    });
+
+    describe('attribute stripping report', function () {
+      it('reports stripped on* attribute', function () {
+        const r = utils.sanitizeRawHtml('<div onclick="x">y</div>', 'gfm');
+        assert.strictEqual(r.html, '<div>y</div>');
+        assert.deepEqual(r.report.strippedAttributes, ['onclick']);
+      });
+
+      it('reports stripped javascript: href', function () {
+        const r = utils.sanitizeRawHtml('<a href="javascript:alert(1)">y</a>', 'gfm');
+        assert.strictEqual(r.html, '<a>y</a>');
+        assert.deepEqual(r.report.strippedAttributes, ['href(javascript:)']);
+      });
+    });
+  });
+
+  describe('buildSanitizeSummary', function () {
+    it('lists removed element kinds and notes stripped attributes', function () {
+      const summary = utils.buildSanitizeSummary({
+        removedElements: ['style', 'script', 'script'],
+        strippedAttributes: ['onclick'],
+      });
+      assert.match(summary, /<style>/);
+      assert.match(summary, /<script>/);
+      assert.match(summary, /attribute/i);
+      assert.match(summary, /See output for details\.$/);
+    });
+
+    it('handles removals only (no attributes)', function () {
+      const summary = utils.buildSanitizeSummary({ removedElements: ['iframe'], strippedAttributes: [] });
+      assert.match(summary, /<iframe>/);
+      assert.doesNotMatch(summary, /attribute/i);
+    });
+
+    it('handles attributes only (no removals)', function () {
+      const summary = utils.buildSanitizeSummary({ removedElements: [], strippedAttributes: ['onclick'] });
+      assert.match(summary, /attribute/i);
+      assert.doesNotMatch(summary, /</);
+    });
+
+    it('stays well-formed for an empty report (no double space)', function () {
+      const summary = utils.buildSanitizeSummary({ removedElements: [], strippedAttributes: [] });
+      assert.doesNotMatch(summary, /  /);
+      assert.match(summary, /See output for details\.$/);
+    });
+  });
+
+  describe('buildSanitizeLogDetail', function () {
+    it('includes mode and per-kind counts', function () {
+      const detail = utils.buildSanitizeLogDetail({
+        removedElements: ['style', 'script', 'script'],
+        strippedAttributes: ['onclick', 'href(javascript:)'],
+      }, 'gfm');
+      assert.match(detail, /mode: gfm/);
+      assert.match(detail, /<style>×1/);
+      assert.match(detail, /<script>×2/);
+      assert.match(detail, /onclick×1/);
+      assert.match(detail, /href\(javascript:\)×1/);
+    });
+
+    it('adds the gfm-allow-style tip only when <style> was removed', function () {
+      const withStyle = utils.buildSanitizeLogDetail({ removedElements: ['style'], strippedAttributes: [] }, 'gfm');
+      assert.match(withStyle, /gfm-allow-style/);
+      const withoutStyle = utils.buildSanitizeLogDetail({ removedElements: ['script'], strippedAttributes: [] }, 'gfm');
+      assert.doesNotMatch(withoutStyle, /gfm-allow-style/);
+    });
+  });
+
+  describe('buildPlantumlImgTag', function () {
+    it('should produce an <img> tag whose src points to the encoded plantuml URL', function () {
+      const source = 'Bob -> Alice : hello\n';
+      const server = 'http://www.plantuml.com/plantuml';
+
+      const result = utils.buildPlantumlImgTag(source, server);
+
+      assert.match(result, /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]+" alt="uml diagram">$/);
+    });
+
+    it('should not throw on empty input and still return an <img> tag', function () {
+      const result = utils.buildPlantumlImgTag('', 'http://www.plantuml.com/plantuml');
+      assert.match(result, /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]*" alt="uml diagram">$/);
+    });
+
+    it('should produce the same <img> tag shape as markdown-it-plantuml plugin', async function () {
+      const MarkdownIt = (await import('markdown-it')).default;
+      const markdownItPlantuml = (await import('markdown-it-plantuml')).default;
+      const server = 'http://www.plantuml.com/plantuml';
+      const source = 'Bob -> Alice : hello\nAlice -> Bob : ok\n';
+
+      const md = new MarkdownIt();
+      md.use(markdownItPlantuml, { openMarker: '@startuml', closeMarker: '@enduml', server });
+      const pluginRendered = md.render('@startuml\n' + source + '@enduml\n').trim();
+
+      const helperRendered = utils.buildPlantumlImgTag(source, server);
+
+      // Both produce <img src="<server>/svg/<encoded>" alt="uml diagram">.
+      // Encoded payload differs across DEFLATE implementations (both valid),
+      // so compare the tag structure rather than exact bytes.
+      const imgPattern = /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]+" alt="uml diagram">$/;
+      assert.match(helperRendered, imgPattern);
+      assert.match(pluginRendered, imgPattern);
+    });
+  });
+
+  describe('buildKatexStyleTag', function () {
+    const baseDir = path.resolve(__dirname, '..', '..');
+
+    it('should return an inline <style> tag for KaTeX CSS', function () {
+      const result = utils.buildKatexStyleTag(baseDir);
+      assert.match(result, /^\s*<style>[\s\S]*<\/style>\s*$/);
+      assert.match(result, /\.katex\s*\{/);
+    });
+
+    it('should rewrite font url(...) references to base64 data: URIs', function () {
+      const result = utils.buildKatexStyleTag(baseDir);
+      assert.doesNotMatch(result, /url\(\s*['"]?fonts\//);
+      assert.doesNotMatch(result, /url\(\s*['"]?\.\//);
+      assert.match(result, /url\(\s*['"]?data:font\/woff2;base64,[A-Za-z0-9+/=]+['"]?\s*\)/);
+    });
+
+    it('should return an empty string when KaTeX CSS is missing', function () {
+      const result = utils.buildKatexStyleTag('/nonexistent-base-dir-for-test');
+      assert.strictEqual(result, '');
     });
   });
 });

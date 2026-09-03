@@ -1,13 +1,18 @@
 # Markdown PDF
 
-This extension converts Markdown files to pdf, html, png or jpeg files.
+<p>
+  <img src="images/banner.png" alt="Markdown PDF" width="400">
+</p>
+
+This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 [Japanese README](README.ja.md)
 
 ## Table of Contents
 <!-- TOC depthFrom:2 depthTo:2 updateOnSave:false -->
 
-- [Breaking Changes in 2.0.0](#breaking-changes-in-200)
+- [What's New](#whats-new)
+- [Breaking Changes](#breaking-changes)
 - [Features](#features)
 - [Chromium](#chromium)
 - [Usage](#usage)
@@ -15,45 +20,93 @@ This extension converts Markdown files to pdf, html, png or jpeg files.
 - [Options](#options)
 - [FAQ](#faq)
 - [Known Issues](#known-issues)
-- [Release Notes](#release-notes)
+- [Change Log](#change-log)
 - [License](#license)
+- [Sponsor](#sponsor)
 - [Special thanks](#special-thanks)
 
 <!-- /TOC -->
 
 <div class="page"/>
 
-## Breaking Changes in 2.0.0
+## What's New
 
-Version 2.0.0 introduces changes that may affect existing behavior. See the [FAQ](#faq) section for details.
+Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
 
-- Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change. See [Why did my heading anchors change?](#why-did-my-heading-anchors-change).
-- Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed. See [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working).
-- Front matter parsing is now stricter. Some previously accepted formats may be rejected. See [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed).
-- Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use. See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) and [Where is Chromium downloaded?](#where-is-chromium-downloaded).
+### 2.2.0
+
+- Improve error notifications with actionable hints and a Show Details button ([details](#how-do-i-troubleshoot-a-failed-export))
+- Add detailed logging to the new Markdown PDF output channel ([details](#how-do-i-troubleshoot-a-failed-export))
+- Add `Markdown PDF: Output Diagnostics` command for bug reports ([details](#how-do-i-troubleshoot-a-failed-export))
+
+### 2.1.0
+
+- Add PlantUML fenced code block support ([details](#plantuml))
+- Add math rendering via KaTeX ([details](#math))
+- Auto-download latest Chrome Stable ([details](#markdown-pdfchromiumautodownload))
+
+## Breaking Changes
+
+Changes since v2 that may affect existing behavior. See the [FAQ](#faq) section for details.
+
+### 2.2.0
+
+- With `markdown-pdf.sanitize: "gfm"` (default) or `"gfm-allow-style"`, block-level `<style>`, `<script>`, and `<iframe>` elements are now removed together with their content, instead of being escaped and left as visible text in the output. A notification reports what was removed during an export.
+    - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
+
+### 2.1.0
+
+- Security hardening: To mitigate XSS-like risk ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)), raw HTML in Markdown is now sanitized by default following the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Tags such as `<script>`, `<iframe>`, `<style>`, and `on*` / `javascript:` attributes are stripped from Markdown body content. The behavior is controlled by the new [markdown-pdf.sanitize](#markdown-pdfsanitize) setting.
+    - Details: [Why is my raw HTML being escaped or removed?](#why-is-my-raw-html-being-escaped-or-removed)
+
+### 2.0.0
+
+- Heading IDs now follow GitHub-compatible VS Code slug generation. Existing internal anchors in your documents may change.
+    - Details: [Why did my heading anchors change?](#why-did-my-heading-anchors-change)
+- Highlight.js upgraded from v9 to v11. Some highlight style names have been renamed or removed.
+    - Details: [Why did my syntax highlight style stop working?](#why-did-my-syntax-highlight-style-stop-working)
+- Front matter parsing is now stricter. Some previously accepted formats may be rejected.
+    - Details: [Why is my front matter no longer parsed?](#why-is-my-front-matter-no-longer-parsed)
+- Chromium is resolved from an installed Chrome/Edge browser first, or auto-downloaded on first use.
+    - Details: [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) / [Where is Chromium downloaded?](#where-is-chromium-downloaded)
 
 ## Features
 
-| Feature | Description | Example |
-|---|---|---|
-| [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
-| [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
-| [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
-| [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
-| [Container](#container) | Admonition-like blocks | `::: warning` |
-| [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
-| [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
-| [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
+Markdown PDF adds the following authoring features on top of the default Markdown renderer when converting to PDF, HTML, PNG, or JPEG.
 
-Sample files
- * [pdf](sample/README.pdf)
- * [html](sample/README.html)
- * [png](sample/README.png)
- * [jpeg](sample/README.jpeg)
+### List
 
-### Heading IDs
+| Category | Feature | Description | Example |
+|---|---|---|---|
+| [Basic syntax extensions](#basic-syntax-extensions) | [Syntax highlighting](https://highlightjs.org/demo) | Code block highlighting via highlight.js | ` ```js ` |
+| | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
+| | [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
+| | [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
+| [Content composition](#content-composition) | [Container](#container) | Admonition-like blocks | `::: warning` |
+| | [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
+| [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
+| | [Mermaid](#mermaid) | Diagrams from fenced code blocks | ` ```mermaid ` |
+| | [Math](#math) | LaTeX math via KaTeX | `$E = mc^2$` |
 
-Headings automatically receive GitHub-compatible anchor IDs. For example:
+### Basic syntax extensions
+
+#### Checkbox
+
+Render `- [ ]` / `- [x]` task-list items as disabled checkboxes, mirroring GitHub's task list rendering. Useful for status reports and checklists that should stay visible in the exported output.
+
+Markdown
+```
+- [ ] Task A
+- [x] Task B
+```
+
+Preview
+
+![checkbox](images/checkbox.png)
+
+#### Heading IDs
+
+Headings receive GitHub-compatible anchor IDs automatically, so internal links such as `[Section](#section)` resolve the same way they do on GitHub. ASCII headings are lowercased with spaces replaced by hyphens; non-ASCII headings keep their original characters.
 
 | Heading | Generated ID |
 |---|---|
@@ -61,61 +114,47 @@ Headings automatically receive GitHub-compatible anchor IDs. For example:
 | `# API Reference` | `#api-reference` |
 | `# 日本語見出し` | `#日本語見出し` |
 
-See [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ for details.
+See also: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ.
 
-### Checkbox
+### Content composition
 
-INPUT
-```
-- [ ] Task A
-- [x] Task B
-```
+#### Container
 
-OUTPUT
-```html
-<ul>
-  <li><input type="checkbox" disabled> Task A</li>
-  <li><input type="checkbox" disabled checked> Task B</li>
-</ul>
-```
+Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container). The identifier after `:::` becomes the block's CSS class, so you can style warnings, tips, and notes by pairing it with [markdown-pdf.styles](#markdown-pdfstyles).
 
-### Container
-
-Admonition-like blocks via [markdown-it-container](https://github.com/markdown-it/markdown-it-container).
-
-INPUT
+Markdown
 ```
 ::: warning
-*here be dragons*
+**Warning:** here be dragons
 :::
 ```
 
-OUTPUT
-``` html
-<div class="warning">
-<p><em>here be dragons</em></p>
-</div>
+Stylesheet (for example `markdown-pdf.css`)
+```css
+.warning {
+  border-left: 4px solid #f0ad4e;
+  background: #fff8e1;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
 ```
 
-### PlantUML
-
-Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml).
-
-INPUT
-```
-@startuml
-Bob -[#red]> Alice : hello
-Alice -[#0000FF]->Bob : ok
-@enduml
+Settings
+```json
+"markdown-pdf.styles": ["markdown-pdf.css"]
 ```
 
-OUTPUT
+Preview
 
-![PlantUML](images/PlantUML.png)
+![container](images/container.png)
 
-### Include
+See also: [markdown-pdf.styles](#markdown-pdfstyles).
 
-Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
+#### Include
+
+Embed the content of another Markdown file inline using `:[alternate-text](relative-path-to-file.md)`. If a referenced fragment cannot be read (missing file, permission error, etc.), the extension reports the error at the include site and continues exporting the rest of the document.
+
+Given the following directory layout (where `README.md` is the document being exported):
 
 ```
 ├── [plugins]
@@ -124,7 +163,7 @@ Include markdown fragment files: `:[alternate-text](relative-path-to-file.md)`.
 └── README.md
 ```
 
-INPUT
+Markdown
 ```
 README Content
 
@@ -133,7 +172,7 @@ README Content
 :[Changelog](CHANGELOG.md)
 ```
 
-OUTPUT
+Preview
 ```
 Content of README.md
 
@@ -142,11 +181,52 @@ Content of plugins/README.md
 Content of CHANGELOG.md
 ```
 
-### Mermaid
+See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable).
 
-Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/).
+### Diagrams & math
 
-INPUT
+#### PlantUML
+
+Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml). Two equivalent syntaxes are supported; both produce the same `<img>` tag and share the [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) setting.
+
+##### Fenced code block
+
+A ```` ```plantuml ```` fenced code block. This is the common fence convention used across the PlantUML ecosystem (for example, [GitLab renders this form natively](https://docs.gitlab.com/administration/integration/plantuml/) when the PlantUML integration is enabled).
+
+Markdown
+
+````
+```plantuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+```
+````
+
+##### Block markers
+
+`@startuml` / `@enduml` block markers. The markers can be customized via [markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker) and [markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker).
+
+Markdown
+
+```
+@startuml
+Bob -[#red]> Alice : hello
+Alice -[#0000FF]->Bob : ok
+@enduml
+```
+
+Preview (either form produces the same image)
+
+![PlantUML](images/PlantUML.png)
+
+See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver).
+
+#### Mermaid
+
+Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/). The Mermaid library is loaded from the URL configured in [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) (defaults to a CDN).
+
+Markdown
+
 <pre>
 ```mermaid
 stateDiagram
@@ -158,9 +238,61 @@ stateDiagram
 ```
 </pre>
 
-OUTPUT
+Preview
 
 ![mermaid](images/mermaid.png)
+
+#### Math
+
+Render LaTeX math via [KaTeX](https://katex.org/). Uses [@vscode/markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex) (the same plugin VS Code's built-in Markdown preview ships) for `$…$`, `$$…$$`, and `\begin{env}…\end{env}`, plus a small in-house plugin for `\(…\)` and `\[…\]` bracket delimiters. Rendering runs in Node, so no network access is required.
+
+Supported notations:
+
+- Inline: `$E = mc^2$`, `\(E = mc^2\)`
+- Display: `$$\int_0^\infty f(x)\,dx$$`, `\[\alpha\]`
+- LaTeX environments: `\begin{aligned}a &= b\\c &= d\end{aligned}`
+- Fenced code block:
+
+    ````
+    ```math
+    \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+    ```
+    ````
+
+Markdown
+
+<pre>
+Inline: $E = mc^2$
+
+Display:
+
+$$\int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2}$$
+
+LaTeX environment:
+
+\begin{aligned}
+x + y &= 10 \\
+x - y &= 4
+\end{aligned}
+</pre>
+
+Preview
+
+![math](images/math.png)
+
+See also:
+
+- [markdown-pdf.math.enabled](#markdown-pdfmathenabled) — disable math rendering
+- [markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros) — custom KaTeX macros
+
+### Sample files
+
+This README converted to each output format:
+
+- [pdf](sample/README.pdf)
+- [html](sample/README.html)
+- [png](sample/README.png)
+- [jpeg](sample/README.jpeg)
 
 ## Chromium
 
@@ -168,7 +300,7 @@ Markdown PDF uses a Chromium-based browser for PDF/PNG/JPEG export. It tries the
 
 1. The path specified in [markdown-pdf.executablePath](#markdown-pdfexecutablepath)
 2. An installed Google Chrome, Microsoft Edge, or Chromium on your system
-3. A managed Chromium automatically downloaded on first use
+3. A managed Chromium automatically downloaded on first use and refreshed to track the latest Chrome Stable on subsequent VS Code launches (can be disabled with [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload))
 
 See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) and [Where is Chromium downloaded?](#where-is-chromium-downloaded) in the FAQ for details.
 
@@ -189,6 +321,8 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
    * `markdown-pdf: Export (all: pdf, html, png, jpeg)`
+
+To collect environment information for a bug report, run `Markdown PDF: Output Diagnostics`. See [How do I troubleshoot a failed export?](#how-do-i-troubleshoot-a-failed-export) in the FAQ.
 
 ![usage1](images/usage1.gif)
 
@@ -242,6 +376,7 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 |[Markdown options](#markdown-options)|[markdown-pdf.breaks](#markdown-pdfbreaks)| |
 |[Emoji options](#emoji-options)|[markdown-pdf.emoji](#markdown-pdfemoji)| |
 |[Configuration options](#configuration-options)|[markdown-pdf.executablePath](#markdown-pdfexecutablepath)| |
+||[markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload)| |
 |[Common Options](#common-options)|[markdown-pdf.scale](#markdown-pdfscale)| |
 |[PDF options](#pdf-options)|[markdown-pdf.displayHeaderFooter](#markdown-pdfdisplayheaderfooter)|resource|
 ||[markdown-pdf.headerTemplate](#markdown-pdfheadertemplate)|resource|
@@ -267,6 +402,9 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
+|[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
+||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
+|[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
 
@@ -427,6 +565,16 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 "markdown-pdf.executablePath": "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
 ```
 
+#### `markdown-pdf.chromium.autoDownload`
+  - Automatically download a managed Chromium when no installed browser is found
+  - boolean. Default: true
+  - When `false`, Markdown PDF does not download Chromium and relies only on [markdown-pdf.executablePath](#markdown-pdfexecutablepath) or an installed Google Chrome / Microsoft Edge / Chromium. Export fails if none is available.
+  - See [How is the Chromium browser selected?](#how-is-the-chromium-browser-selected) in the FAQ for the full resolution order
+
+```javascript
+"markdown-pdf.chromium.autoDownload": true
+```
+
 ### Common Options
 
 #### `markdown-pdf.scale`
@@ -571,11 +719,11 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 ### PlantUML options
 
 #### `markdown-pdf.plantumlOpenMarker`
-  - Opening delimiter used for the plantuml parser.
+  - Opening delimiter for the `@startuml` / `@enduml` block marker syntax. Change this if you want to use a different start marker.
   - Default: @startuml
 
 #### `markdown-pdf.plantumlCloseMarker`
-  - Closing delimiter used for the plantuml parser.
+  - Closing delimiter for the `@startuml` / `@enduml` block marker syntax. Change this if you want to use a different end marker.
   - Default: @enduml
 
 #### `markdown-pdf.plantumlServer`
@@ -599,7 +747,49 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
   - mermaid server
   - Default: https://unpkg.com/mermaid/dist/mermaid.min.js
 
-<div class="page"/>
+### math options
+
+#### `markdown-pdf.math.enabled`
+  - Enable math rendering via KaTeX for `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and ` ```math ` fenced code blocks.
+  - Matches the behavior of VS Code's built-in Markdown preview.
+  - Set to `false` to keep the raw `$`, `\(`, `\[`, and ` ```math ` text (use this if your document contains `$X$`-style placeholders that should not be parsed as math).
+  - To disable math in a single document only, escape the `$` as `\$` at the call site, or override this setting via YAML front matter:
+
+    ```yaml
+    ---
+    math:
+      enabled: false
+    ---
+    ```
+  - boolean. Default: true
+
+#### `markdown-pdf.math.katex.macros`
+  - User-defined [KaTeX macros](https://katex.org/docs/options.html) passed to the KaTeX renderer.
+  - Example: `{ "\\RR": "\\mathbb{R}" }`
+  - Per-document macros can be supplied via YAML front matter, which takes precedence over this setting:
+
+    ```yaml
+    ---
+    math:
+      katex:
+        macros:
+          "\\RR": "\\mathbb{R}"
+    ---
+    ```
+  - Default: {}
+
+### Sanitize options
+
+#### `markdown-pdf.sanitize`
+  - Sanitization mode for raw HTML in Markdown
+  - `"gfm"`: Strip GFM's disallowed tags and dangerous attributes (default)
+  - `"gfm-allow-style"`: Same as `"gfm"` but keeps `<style>` elements
+  - `"none"`: Disable sanitization (legacy behavior, not recommended)
+  - Default: `"gfm"`
+
+```javascript
+"markdown-pdf.sanitize": "gfm",
+```
 
 ## FAQ
 
@@ -676,6 +866,63 @@ title: My Document
 
 BOM-prefixed files are still supported.
 
+### Why is my raw HTML being escaped or removed?
+
+Earlier versions of this extension passed all raw HTML in Markdown through to the renderer without validation. Tags such as `<script>` and `<iframe>` could therefore execute during preview or PDF rendering, creating XSS-like risk when opening untrusted Markdown files ([#411](https://github.com/yzane/vscode-markdown-pdf/issues/411)).
+
+Starting with 2.1.0, raw HTML inside the Markdown body is sanitized by default per the [GFM Disallowed Raw HTML extension](https://github.github.com/gfm/#disallowed-raw-html-extension-). Behavior is controlled by `markdown-pdf.sanitize`:
+
+| Mode | Behavior |
+| --- | --- |
+| `"gfm"` (default) | Strip GFM's disallowed tags and dangerous attributes. Recommended when opening Markdown files authored by others. |
+| `"gfm-allow-style"` | Same as `"gfm"` but keeps `<style>` so you can embed CSS directly in a Markdown file to produce a self-contained PDF. **Use only with content you trust** — even without `<script>`, CSS can issue requests to attacker-controlled URLs via `url(...)` / `@import` / `@font-face` and leak information (known as CSS exfiltration). |
+| `"none"` | Disable sanitization. Legacy behavior. Not recommended. |
+
+**What `"gfm"` removes**
+
+Disallowed tags:
+`<title>`, `<textarea>`, `<style>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`, `<script>`, `<plaintext>`
+
+Starting with 2.2.0, block-level `<style>` / `<script>` / `<iframe>` elements are removed together with their content, so CSS or JavaScript source no longer appears as literal text in the output. All other cases — the remaining disallowed tags, and inline occurrences of any disallowed tag — have their opening `<` escaped to `&lt;` (content preserved as visible text). In 2.1.0, everything was escaped.
+
+Attributes:
+- `on*` event handlers (`onclick`, `onload`, …)
+- `href` / `src` whose value starts with `javascript:`
+
+**Sanitize notification**
+
+Starting with 2.2.0, when elements are removed or attributes are stripped during an export, a notification summarizes what was neutralized: a toast with a "Show Details" button on manual export, or an entry in the "Markdown PDF" output channel on [Auto convert](#auto-convert).
+
+**Migrating from inline `<style>`**
+
+If you used to customize PDF layout by writing `<style>` directly inside a Markdown file, move that CSS into a `.css` file and reference it via `markdown-pdf.styles`. External stylesheets are loaded from your VS Code settings, not from the Markdown body, so they are not affected by sanitization.
+
+Caveats for external CSS:
+
+- CSS can still make outbound network requests through `@import url(...)`, `background: url(...)`, attribute selectors with `url(...)`, etc. Only reference stylesheet files you trust.
+- When `markdown-pdf.stylesRelativePathFile` is `true`, the stylesheet path is resolved relative to the opened Markdown file. Be cautious about opening Markdown from untrusted locations that may ship a malicious sibling `.css`.
+
+**Sanitization scope**
+
+Sanitized:
+- Raw HTML written inside the Markdown body (rendered via markdown-it's `html_block` / `html_inline`)
+- Content pulled in by the Include feature (`:[label](path.md)`) — it goes through the same renderer
+
+Not sanitized:
+- External CSS loaded via `markdown-pdf.styles` (by design — user-configured trust boundary)
+- The extension's built-in stylesheets and HTML template
+- HTML emitted by the extension itself (mermaid, highlight.js, emoji, PlantUML)
+
+### How do I troubleshoot a failed export?
+
+Starting with 2.2.0, the extension writes detailed logs to the **Markdown PDF** output channel. Open it via **View** > **Output** and select **Markdown PDF** in the dropdown.
+
+- When an export fails, the error toast describes what failed and, for common causes (Chromium launch failure, locked output file, permission denied, disk full, invalid output directory), adds a one-line hint. The **Show Details** button opens the log with the full context, error message, and stack trace.
+- Every export logs an environment snapshot and conversion context block at the start, so the log alone is usually enough to see what happened.
+- Run `Markdown PDF: Output Diagnostics` from the Command Palette to print environment and configuration diagnostics: extension version, VS Code / OS information, the Chromium path and how it was selected, and relevant settings. Home directory paths are masked.
+
+When filing an issue, please attach the output of `Markdown PDF: Output Diagnostics` and the log shown by **Show Details**.
+
 ### How is the Chromium browser selected?
 
 Markdown PDF resolves a Chromium-based browser in the following order:
@@ -724,6 +971,19 @@ If you use VS Code Insiders or VSCodium, the base path changes accordingly (for 
 
 During the download, `Installing Chromium` is shown in the status bar.
 
+**Which Chromium build is downloaded?**
+
+Markdown PDF tries to fetch the latest Chrome Stable build id from the [Chrome for Testing API](https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json). The latest build id is checked once per VS Code session: when a newer Chrome Stable has been released, Markdown PDF downloads the new build at the next export and removes the previously cached build. Within the same VS Code session the build id is memoized — restart VS Code to pick up a freshly released build.
+
+If the API is unreachable, it falls back in this order:
+
+1. The most recently cached build under the global storage directory shown above
+2. The build id pinned by the bundled `puppeteer-core` (last-resort fallback)
+
+**Disabling the auto-download**
+
+Set [markdown-pdf.chromium.autoDownload](#markdown-pdfchromiumautodownload) to `false` to skip the download entirely. Markdown PDF will then rely only on [markdown-pdf.executablePath](#markdown-pdfexecutablepath) or an installed Google Chrome / Microsoft Edge / Chromium, and export will fail with an error if none is available.
+
 <div class="page"/>
 
 ## Known Issues
@@ -732,24 +992,18 @@ During the download, `Installing Chromium` is shown in the status bar.
 * Online CSS (https://xxx/xxx.css) is applied correctly for JPG and PNG, but problems occur with PDF. [#67](https://github.com/yzane/vscode-markdown-pdf/issues/67)
 
 
-## [Release Notes](CHANGELOG.md)
+## [Change Log](CHANGELOG.md)
 
-### 2.0.1 (2026/04/14)
-* Fix: Self-closing `<div class="page" />` now correctly triggers a page break [#428](https://github.com/yzane/vscode-markdown-pdf/issues/428)
-
-### 2.0.0 (2026/04/13)
-* Breaking: Heading ID slug generation, front matter parsing, and Chromium resolution have changed. See the [FAQ](#faq) for details.
-* Change: Migrate to TypeScript and bundle with esbuild
-* Change: Bundle `puppeteer-core` and manage Chromium via the built-in `chromium-resolver` (installed Chrome/Edge preferred, auto-download fallback)
-* Change: Replace `markdown-it-include`, `markdown-it-named-headers`, and `markdown-it-checkbox` with in-repo custom implementations
-* Change: Remove `cheerio`, `mustache`, and `gray-matter` dependencies
-* Add: Unit and integration test suites (`vscode-test-cli`)
-
-For details, see [Change Log](CHANGELOG.md).
+See [CHANGELOG.md](CHANGELOG.md) for the full change history.
 
 ## License
 
 MIT
+
+
+## Sponsor
+
+If you find Markdown PDF useful, you can support continued development via [GitHub Sponsors](https://github.com/sponsors/yzane).
 
 
 ## Special thanks
@@ -761,3 +1015,5 @@ MIT
 * [markdown-it/markdown-it-container](https://github.com/markdown-it/markdown-it-container)
 * [gmunguia/markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml)
 * [mermaid-js/mermaid](https://github.com/mermaid-js/mermaid)
+* [KaTeX/KaTeX](https://github.com/KaTeX/KaTeX)
+* [microsoft/vscode-markdown-it-katex](https://github.com/microsoft/vscode-markdown-it-katex)

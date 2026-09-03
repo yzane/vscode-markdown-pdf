@@ -8,11 +8,18 @@ tsconfig.json
 .vscode-test/**
 .cocoindex_code/**
 .claude/**
+.worktrees/**
+.superpowers/**
 
 # Documentation and samples
 docs/**
 work/**
 sample/**
+
+# images/ — VS Code extensions view fetches README images from GitHub (via
+# vsce's URL rewriting). Only icon.png (extension logo) is read from the vsix.
+images/**
+!images/icon.png
 
 # Test
 test/**

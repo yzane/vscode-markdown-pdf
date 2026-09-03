@@ -8,6 +8,7 @@ const EXPECTED_DIR = path.resolve(__dirname, 'expected');
 
 function normalizeHtml(html: string): string {
   return html
+    .replace(/\r\n?/g, '\n')
     .replace(/file:\/\/\/[^\s"'<>]*/g, 'file:///NORMALIZED_PATH')
     .replace(/\d{4}-\d{2}-\d{2}/g, 'YYYY-MM-DD')
     .replace(/\d{2}:\d{2}:\d{2}/g, 'HH:MM:SS');
@@ -67,11 +68,14 @@ const HTML_FEATURES: HtmlFeature[] = [
   { name: 'include' },
   { name: 'mermaid' },
   { name: 'plantuml-custom-marker' },
+  { name: 'plantuml-fence' },
   { name: 'frontmatter-breaks' },
   { name: 'frontmatter-no-emoji' },
   { name: 'breaks' },
   { name: 'image' },
   { name: 'include-codeblock' },
+  { name: 'math' },
+  { name: 'math-disabled' },
   { name: 'page-break' },
 ];
 
@@ -107,8 +111,10 @@ suite('Integration HTML Snapshot Tests', () => {
         await waitForFile(generatedHtmlPath);
 
         const generatedHtml = normalizeHtml(fs.readFileSync(generatedHtmlPath, 'utf-8'));
-        const expectedHtml = fs.readFileSync(expectedHtmlPath, 'utf-8')
-          .replace(`<title>${expectedName}.md</title>`, `<title>${name}.md</title>`);
+        const expectedHtml = normalizeHtml(
+          fs.readFileSync(expectedHtmlPath, 'utf-8')
+            .replace(`<title>${expectedName}.md</title>`, `<title>${name}.md</title>`)
+        );
         assert.strictEqual(generatedHtml, expectedHtml);
       } finally {
         safeDelete(generatedHtmlPath);
