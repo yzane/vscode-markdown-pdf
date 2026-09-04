@@ -363,6 +363,7 @@ interface PdfConfig {
   footerTemplate: string;
   printBackground: boolean;
   pageRanges: string;
+  outline: boolean;
   margin: { top: string; right: string; bottom: string; left: string };
 }
 
@@ -386,6 +387,7 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
     width: config.width,
     height: config.height,
     margin: config.margin,
+    outline: config.outline,
     timeout: 0,
   };
 }

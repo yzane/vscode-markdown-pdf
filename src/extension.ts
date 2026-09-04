@@ -599,6 +599,7 @@ function exportPdf(
             footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || '',
             printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
             pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
+            outline: vscode.workspace.getConfiguration('markdown-pdf', uri)['outline'],
             margin: {
               top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
               right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',

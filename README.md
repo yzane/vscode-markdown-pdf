@@ -397,6 +397,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ||[markdown-pdf.clip.width](#markdown-pdfclipwidth)| |
 ||[markdown-pdf.clip.height](#markdown-pdfclipheight)| |
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)| |
+||[markdown-pdf.outline](#markdown-pdfoutline)| |
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
@@ -714,6 +715,10 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 
 #### `markdown-pdf.omitBackground`
   - Hides default white background and allows capturing screenshots with transparency
+  - boolean. Default: false
+
+#### `markdown-pdf.outline`
+  - Generates the PDF document outline. This is an experimental pupeteer PDFOptions interface feature and it not guaranteed to work in all cases.
   - boolean. Default: false
 
 ### PlantUML options

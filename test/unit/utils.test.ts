@@ -866,6 +866,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
@@ -886,6 +887,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
@@ -905,6 +907,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
@@ -924,6 +927,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
@@ -942,6 +946,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
@@ -960,6 +965,7 @@ describe('utils', function () {
         headerTemplate: '%%ISO-DATE%%',
         footerTemplate: '%%ISO-TIME%%',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
@@ -1279,6 +1285,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: margin,
       });
@@ -1297,6 +1304,7 @@ describe('utils', function () {
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,
+        outline: false,
         pageRanges: '',
         margin: { top: '', right: '', bottom: '', left: '' },
       });
