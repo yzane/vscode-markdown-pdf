@@ -395,6 +395,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.clip.width](#markdown-pdfclipwidth)| |
 ||[markdown-pdf.clip.height](#markdown-pdfclipheight)| |
 ||[markdown-pdf.omitBackground](#markdown-pdfomitbackground)| |
+||[markdown-pdf.outline](#markdown-pdfoutline)| |
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
@@ -711,6 +712,11 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 
 #### `markdown-pdf.omitBackground`
   - デフォルトの白い背景ではなく、透過によるスクリーンショットのキャプチャーを有効にします
+  - boolean. Default: false
+
+#### `markdown-pdf.outline`
+  - PDF ドキュメントのアウトラインを生成します。これは Puppeteer の PDFOptions インターフェイスにおける実験的機能であり、すべてのケースで正常に動作することは保証されていません。
+
   - boolean. Default: false
 
 ### PlantUML options

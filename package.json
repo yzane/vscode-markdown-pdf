@@ -894,6 +894,11 @@
           "default": false,
           "description": "png and jpeg only. Hides default white background and allows capturing screenshots with transparency."
         },
+        "markdown-pdf.outline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Generate PDF document outline. NOTE: This is an experimental pupeteer PDFOptions Interface feature."
+        },
         "markdown-pdf.plantumlOpenMarker": {
           "type": "string",
           "default": "@startuml",
