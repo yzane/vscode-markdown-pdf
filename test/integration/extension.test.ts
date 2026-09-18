@@ -158,6 +158,67 @@ suite('Visual Inspection Tests', () => {
 });
 
 suite('Error Handling Tests', () => {
+  test('exports the last active Markdown document when a non-text editor is active', async function () {
+    this.timeout(30000);
+
+    const mdPath = path.resolve(FIXTURES_DIR, '_other-editor.md');
+    const htmlPath = path.resolve(FIXTURES_DIR, '_other-editor.html');
+    fs.writeFileSync(mdPath, '# Export from another editor', 'utf-8');
+
+    try {
+      const doc = await vscode.workspace.openTextDocument(mdPath);
+      await vscode.window.showTextDocument(doc);
+      await vscode.commands.executeCommand('workbench.action.openSettings');
+
+      assert.strictEqual(vscode.window.activeTextEditor, undefined, 'Settings UI should be a non-text editor');
+      await vscode.commands.executeCommand('extension.markdown-pdf.html');
+      await waitForFile(htmlPath, 5000);
+      await new Promise<void>((resolve) => setTimeout(resolve, 500));
+
+      const generatedHtml = fs.readFileSync(htmlPath, 'utf-8');
+      assert.ok(
+        generatedHtml.includes('<h1 id="export-from-another-editor">Export from another editor</h1>'),
+        `Expected the exported HTML to contain the test heading, got ${generatedHtml.match(/<h1[^>]*>.*<\/h1>/)?.[0]}`
+      );
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      safeDelete(mdPath);
+      safeDelete(htmlPath);
+    }
+  });
+
+  test('does not fall back to Markdown when a non-Markdown text editor is active', async function () {
+    this.timeout(30000);
+
+    const mdPath = path.resolve(FIXTURES_DIR, '_remembered-markdown.md');
+    const txtPath = path.resolve(FIXTURES_DIR, '_active-text.txt');
+    const mdHtmlPath = path.resolve(FIXTURES_DIR, '_remembered-markdown.html');
+    const txtHtmlPath = path.resolve(FIXTURES_DIR, '_active-text.html');
+    fs.writeFileSync(mdPath, '# Remembered Markdown', 'utf-8');
+    fs.writeFileSync(txtPath, 'Active text document', 'utf-8');
+
+    try {
+      const mdDocument = await vscode.workspace.openTextDocument(mdPath);
+      await vscode.window.showTextDocument(mdDocument);
+      const textDocument = await vscode.workspace.openTextDocument(txtPath);
+      await vscode.window.showTextDocument(textDocument);
+
+      await vscode.commands.executeCommand('extension.markdown-pdf.html');
+      await new Promise<void>((resolve) => setTimeout(resolve, 500));
+
+      assert.ok(!fs.existsSync(mdHtmlPath), 'Remembered Markdown should not override the active text editor');
+      assert.ok(!fs.existsSync(txtHtmlPath), 'A non-Markdown text document should not be exported');
+    } finally {
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+      safeDelete(mdPath);
+      safeDelete(txtPath);
+      safeDelete(mdHtmlPath);
+      safeDelete(txtHtmlPath);
+    }
+  });
+
   test('should not crash when run on a non-markdown file', async function () {
     this.timeout(30000);
 

@@ -21,11 +21,13 @@ import { mathFencePlugin } from './markdown-it-math-fence';
 import { mathBracketsPlugin } from './markdown-it-math-brackets';
 import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
+import { MarkdownDocumentTracker } from './markdown-document-tracker';
 import puppeteer from 'puppeteer-core';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
 let INSTALL_CHECK = false;
 let extensionContext: vscode.ExtensionContext | null = null;
+const markdownDocumentTracker = new MarkdownDocumentTracker<vscode.TextDocument>();
 const CLOSE_BROWSER_TIMEOUT_MS = 5000;
 
 function getExtensionCacheDir(): string {
@@ -92,6 +94,15 @@ export function activate(context: vscode.ExtensionContext): void {
     () => vscode.window.createOutputChannel('Markdown PDF', { log: true })
   );
   init();
+  markdownDocumentTracker.remember(vscode.window.activeTextEditor?.document);
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor(function (editor) {
+      markdownDocumentTracker.remember(editor?.document);
+    }),
+    vscode.workspace.onDidCloseTextDocument(function (document) {
+      markdownDocumentTracker.forget(document);
+    }),
+  );
 
   const commands = [
     vscode.commands.registerCommand('extension.markdown-pdf.settings', async function () { await markdownPdf('settings'); }),
@@ -123,26 +134,27 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
   try {
 
     // check active window
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
+    const activeDocument = vscode.window.activeTextEditor?.document;
+    const document = markdownDocumentTracker.resolve(activeDocument);
+    if (!document) {
       logger.logWarn('Export aborted: no active editor.');
       vscode.window.showWarningMessage('No active Editor!');
       return;
     }
 
     // check markdown mode
-    const mode = editor.document.languageId;
+    const mode = document.languageId;
     if (mode != 'markdown') {
       logger.logWarn('Export aborted: active document is not markdown (languageId=' + mode + ').');
       vscode.window.showWarningMessage('It is not a markdown mode!');
       return;
     }
 
-    const uri = editor.document.uri;
+    const uri = document.uri;
     const mdfilename = uri.fsPath;
     const ext = path.extname(mdfilename);
     if (!utils.isExistsPath(mdfilename)) {
-      if (editor.document.isUntitled) {
+      if (document.isUntitled) {
         logger.logWarn('Export aborted: document is untitled (unsaved).');
         vscode.window.showWarningMessage('Please save the file!');
         return;
@@ -172,7 +184,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
         const type = types[i];
         if (types_format.indexOf(type) >= 0) {
           filename = mdfilename.replace(ext, '.' + type);
-          const text = editor.document.getText();
+          const text = document.getText();
           const ctx: diagnostics.ConvertContext = {
             sourceFile: mdfilename,
             outputType: type,
