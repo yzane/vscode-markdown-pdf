@@ -160,6 +160,15 @@ export function buildKatexStyleTag(baseDir: string): string {
   return '\n<style>\n' + inlined + '\n</style>\n';
 }
 
+/**
+ * Builds an inline <style> tag for GitHub Alerts CSS.
+ * Returns '' when alerts CSS is not present.
+ */
+export function buildAlertsStyleTag(baseDir: string): string {
+  const cssPath = path.join(baseDir, 'styles', 'alerts.css');
+  return makeCss(cssPath);
+}
+
 /** Resolves an image src to an absolute file:// URL, or returns the original src for remote URLs. */
 export function convertImgPath(src: string, filename: string): string {
   let href = decodeURIComponent(src);

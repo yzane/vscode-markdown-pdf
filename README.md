@@ -82,6 +82,7 @@ Markdown PDF adds the following authoring features on top of the default Markdow
 | | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | Emoji shortcodes | `:smile:` |
 | | [Checkbox](#checkbox) | GitHub-style task lists | `- [ ]` / `- [x]` |
 | | [Heading IDs](#heading-ids) | GitHub-compatible heading anchors | `# Heading` → `#heading` |
+| | [Alerts](#alerts) | GitHub-style callout alerts | `> [!NOTE]` |
 | [Content composition](#content-composition) | [Container](#container) | Admonition-like blocks | `::: warning` |
 | | [Include](#include) | Embed Markdown fragments | `:[label](path.md)` |
 | [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | UML diagrams from code blocks | `@startuml` … `@enduml` |
@@ -115,6 +116,51 @@ Headings receive GitHub-compatible anchor IDs automatically, so internal links s
 | `# 日本語見出し` | `#日本語見出し` |
 
 See also: [Why did my heading anchors change?](#why-did-my-heading-anchors-change) in the FAQ.
+
+#### Alerts
+
+GitHub-style alerts (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`) with color coded borders, titles, and icons matching GitHub Markdown.
+
+Markdown
+```md
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+```
+
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+
+```md
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+```
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+```md
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+```
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
+```md
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+```
+
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+
+```md
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
+```
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
 
 ### Content composition
 
@@ -404,6 +450,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
 ||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
+|[Alerts options](#alerts-options)|[markdown-pdf.alerts.enabled](#markdown-pdfalertsenabled)| |
 |[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
@@ -777,6 +824,21 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
     ---
     ```
   - Default: {}
+
+### Alerts options
+
+#### `markdown-pdf.alerts.enabled`
+  - Enable GitHub-style alerts (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`).
+  - Matches the styling of GitHub Markdown.
+  - Set to `false` to render as standard blockquotes.
+  - To disable alerts in a single document only, override this setting via YAML front matter:
+
+    ```yaml
+    ---
+    alerts: false
+    ---
+    ```
+  - boolean. Default: true
 
 ### Sanitize options
 

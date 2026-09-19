@@ -16,6 +16,7 @@ import { full as markdownItEmojiFull } from 'markdown-it-emoji';
 import { markdownItNamedHeaders } from './markdown-it-named-headers';
 import markdownItContainer from 'markdown-it-container';
 import markdownItPlantuml from 'markdown-it-plantuml';
+import markdownItGitHubAlerts from 'markdown-it-github-alerts';
 import markdownItKatex from '@vscode/markdown-it-katex';
 import { mathFencePlugin } from './markdown-it-math-fence';
 import { mathBracketsPlugin } from './markdown-it-math-brackets';
@@ -407,6 +408,20 @@ function convertMarkdownToHtml(
         });
       }
 
+      // GitHub style Alerts ([!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION])
+      const alertsFrontmatterRecord = getFrontMatterRecord(matterParts.data, 'alerts');
+      const alertsFrontmatter = alertsFrontmatterRecord
+        ? getFrontMatterBoolean(alertsFrontmatterRecord, 'enabled')
+        : getFrontMatterBoolean(matterParts.data, 'alerts');
+      const alertsSettings = vscode.workspace.getConfiguration('markdown-pdf').get<{ enabled?: boolean }>('alerts') || {};
+      const alertsEnabled = utils.setBooleanValue(
+        alertsFrontmatter,
+        alertsSettings.enabled,
+      ) ?? true;
+      if (alertsEnabled) {
+        md.use(markdownItGitHubAlerts);
+      }
+
       statusbarmessage.dispose();
       const html = md.render(matterParts.content);
 
@@ -733,6 +748,11 @@ function readStyles(uri: vscode.Uri, htmlBody: string | undefined): string | und
     // regenerating every existing snapshot just because math support shipped.
     if (htmlBody && htmlBody.includes('class="katex')) {
       style += utils.buildKatexStyleTag(EXTENSION_ROOT);
+    }
+
+    // Inline GitHub Alerts CSS only when the body actually contains alerts
+    if (htmlBody && htmlBody.includes('class="markdown-alert')) {
+      style += utils.buildAlertsStyleTag(EXTENSION_ROOT);
     }
 
     return style;

@@ -1,0 +1,89 @@
+/*
+ * GitHub Alerts CSS
+ * Sourced from github.com/antfu/markdown-it-github-alerts (github-base.css, github-colors-light.css)
+ * with added PDF page break fixes.
+ */
+
+:root {
+	--color-note: #0969da;
+	--color-tip: #1a7f37;
+	--color-warning: #9a6700;
+	--color-severe: #bc4c00;
+	--color-caution: #d1242f;
+	--color-important: #8250df;
+}
+
+.markdown-alert {
+	padding: 0.5rem 1rem;
+	margin-bottom: 16px;
+	color: inherit;
+	border-left: .25em solid #888;
+	page-break-inside: avoid;
+	break-inside: avoid;
+}
+
+.markdown-alert > :first-child {
+	margin-top: 0;
+}
+
+.markdown-alert > :last-child {
+	margin-bottom: 0;
+}
+
+.markdown-alert .markdown-alert-title {
+	display: flex;
+	font-weight: 500;
+	align-items: center;
+	line-height: 1;
+	page-break-after: avoid;
+	break-after: avoid;
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+	margin-right: 0.5rem;
+	display: inline-block;
+	overflow: visible !important;
+	vertical-align: text-bottom;
+	fill: currentColor;
+	flex-shrink: 0;
+}
+
+.markdown-alert.markdown-alert-note {
+	border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+	color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+	border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+	color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+	border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+	color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+	border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+	color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+	border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+	color: var(--color-caution);
+}

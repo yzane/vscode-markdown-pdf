@@ -80,6 +80,7 @@ Markdown PDF は、Markdown を PDF / HTML / PNG / JPEG に変換する際、標
 | | [Emoji](https://www.webfx.com/tools/emoji-cheat-sheet/) | 絵文字ショートコード | `:smile:` |
 | | [Checkbox](#checkbox) | GitHub 形式のタスクリスト | `- [ ]` / `- [x]` |
 | | [Heading IDs](#heading-ids) | GitHub 互換の見出しアンカー | `# Heading` → `#heading` |
+| | [Alerts](#alerts) | GitHub 形式のアラート（注記） | `> [!NOTE]` |
 | [Content composition](#content-composition) | [Container](#container) | 注記ブロック | `::: warning` |
 | | [Include](#include) | Markdown フラグメントの埋め込み | `:[label](path.md)` |
 | [Diagrams & math](#diagrams--math) | [PlantUML](#plantuml) | コードブロックから UML 図を生成 | `@startuml` … `@enduml` |
@@ -113,6 +114,51 @@ Preview
 | `# 日本語見出し` | `#日本語見出し` |
 
 See also: FAQ の [見出しのアンカーが変わったのはなぜ？](#why-did-my-heading-anchors-change)
+
+#### Alerts
+
+GitHub 形式のアラート（`> [!NOTE]`、`> [!TIP]`、`> [!IMPORTANT]`、`> [!WARNING]`、`> [!CAUTION]`）を、GitHub Markdown と同様の色分けされた左ボーダー、タイトル、アイコン付きでレンダリングします。
+
+Markdown
+```md
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+```
+
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+
+```md
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+```
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+```md
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+```
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
+```md
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+```
+
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+
+```md
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
+```
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
 
 ### Content composition
 
@@ -402,6 +448,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
 ||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
+|[Alerts options](#alerts-options)|[markdown-pdf.alerts.enabled](#markdown-pdfalertsenabled)| |
 |[Sanitize options](#sanitize-options)|[markdown-pdf.sanitize](#markdown-pdfsanitize)| |
 
 ### Save options
@@ -774,6 +821,21 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
     ---
     ```
   - Default: {}
+
+### Alerts options
+
+#### `markdown-pdf.alerts.enabled`
+  - GitHub 形式のアラート（`> [!NOTE]`、`> [!TIP]`、`> [!IMPORTANT]`、`> [!WARNING]`、`> [!CAUTION]`）を有効にします。
+  - GitHub Markdown のスタイルと一致します。
+  - `false` に設定すると標準の引用（blockquote）としてレンダリングします。
+  - 単一ドキュメントだけでアラートを無効化したい場合は、YAML フロントマターでこの設定を上書きします:
+
+    ```yaml
+    ---
+    alerts: false
+    ---
+    ```
+  - boolean. Default: true
 
 ### Sanitize options
 

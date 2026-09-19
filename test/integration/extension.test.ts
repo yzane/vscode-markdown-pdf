@@ -77,6 +77,7 @@ const HTML_FEATURES: HtmlFeature[] = [
   { name: 'math' },
   { name: 'math-disabled' },
   { name: 'page-break' },
+  { name: 'alerts' },
 ];
 
 suite('Integration HTML Snapshot Tests', () => {

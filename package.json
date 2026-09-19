@@ -936,6 +936,11 @@
             "type": "string"
           },
           "markdownDescription": "User-defined KaTeX macros passed to the KaTeX renderer. Example: `{ \"\\\\RR\": \"\\\\mathbb{R}\" }`. See https://katex.org/docs/options.html for details."
+        },
+        "markdown-pdf.alerts.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GitHub-style alerts (> [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]). When set to false, they render as standard blockquotes."
         }
       }
     }
@@ -975,6 +980,7 @@
     "markdown-it": "^14.1.1",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
+    "markdown-it-github-alerts": "^1.0.1",
     "markdown-it-plantuml": "^1.4.1",
     "plantuml-encoder": "^1.4.0",
     "puppeteer-core": "^24.40.0"

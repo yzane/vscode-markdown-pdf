@@ -2145,4 +2145,21 @@ describe('utils', function () {
       assert.strictEqual(result, '');
     });
   });
+
+  describe('buildAlertsStyleTag', function () {
+    const baseDir = path.resolve(__dirname, '..', '..');
+
+    it('should return an inline <style> tag for alerts CSS', function () {
+      const result = utils.buildAlertsStyleTag(baseDir);
+      assert.match(result, /^\s*<style>[\s\S]*<\/style>\s*$/);
+      assert.match(result, /\.markdown-alert\s*\{/);
+      assert.match(result, /\.markdown-alert-note\s*\{/);
+    });
+
+    it('should return an empty string when alerts CSS is missing', function () {
+      const result = utils.buildAlertsStyleTag('/nonexistent-base-dir-for-test');
+      assert.strictEqual(result, '');
+    });
+  });
 });
+
