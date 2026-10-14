@@ -338,13 +338,25 @@ function convertMarkdownToHtml(
 
       // PlantUML
       // https://github.com/gmunguia/markdown-it-plantuml
+      const plantumlJarPath = utils.resolvePlantumlJarPath(
+        vscode.workspace.getConfiguration('markdown-pdf')['plantumlJarPath'] || '',
+        vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filename))?.uri.fsPath,
+      );
       const plantumlOptions = utils.buildPlantumlOptions({
         frontmatterOpenMarker: getFrontMatterString(matterParts.data, 'plantumlOpenMarker'),
         frontmatterCloseMarker: getFrontMatterString(matterParts.data, 'plantumlCloseMarker'),
         settingsOpenMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlOpenMarker'] || '',
         settingsCloseMarker: vscode.workspace.getConfiguration('markdown-pdf')['plantumlCloseMarker'] || '',
-        server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || ''
+        server: vscode.workspace.getConfiguration('markdown-pdf')['plantumlServer'] || '',
+        jarPath: plantumlJarPath,
       });
+      if (plantumlOptions.jarPath) {
+        plantumlOptions.generateSource = function (umlCode, pluginOptions) {
+          const diagramName = pluginOptions.diagramName || 'uml';
+          const source = '@start' + diagramName + '\n' + umlCode + '\n@end' + diagramName;
+          return utils.buildPlantumlImageSource(source, plantumlOptions.server, plantumlOptions.jarPath);
+        };
+      }
       md.use(markdownItPlantuml, plantumlOptions);
 
       // Math rendering via KaTeX
@@ -390,7 +402,7 @@ function convertMarkdownToHtml(
       md.renderer.rules.fence = function (tokens, idx, options, env, self) {
         const token = tokens[idx];
         if (token.info.trim().toLowerCase() === 'plantuml') {
-          return utils.buildPlantumlImgTag(token.content, plantumlOptions.server);
+          return utils.buildPlantumlImgTag(token.content, plantumlOptions.server, plantumlOptions.jarPath);
         }
         if (defaultFenceRenderer) {
           return defaultFenceRenderer(tokens, idx, options, env, self);

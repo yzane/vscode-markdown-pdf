@@ -31,7 +31,9 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## What's New
 
-Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
+### Unreleased
+
+- Add local PlantUML rendering with Java and a JAR ([details](#markdown-pdfplantumljarpath))
 
 ### 2.2.0
 
@@ -187,7 +189,7 @@ See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-inc
 
 #### PlantUML
 
-Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml). Two equivalent syntaxes are supported; both produce the same `<img>` tag and share the [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) setting.
+Render UML diagrams via [PlantUML](https://plantuml.com/) using [markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml). Two equivalent syntaxes are supported; both can be rendered by a local JAR or through the [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) setting.
 
 ##### Fenced code block
 
@@ -219,7 +221,9 @@ Preview (either form produces the same image)
 
 ![PlantUML](images/PlantUML.png)
 
-See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver).
+By default, diagrams are requested from the configured PlantUML server. To render them locally, set [markdown-pdf.plantumlJarPath](#markdown-pdfplantumljarpath) to a PlantUML JAR file and make sure `java` is available on `PATH`.
+
+See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver), [markdown-pdf.plantumlJarPath](#markdown-pdfplantumljarpath).
 
 #### Mermaid
 
@@ -400,6 +404,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
+||[markdown-pdf.plantumlJarPath](#markdown-pdfplantumljarpath)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
@@ -734,6 +739,12 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
     docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
     ```
     [plantuml/plantuml-server - Docker Hub](https://hub.docker.com/r/plantuml/plantuml-server/)
+
+#### `markdown-pdf.plantumlJarPath`
+  - Optional path to a local PlantUML JAR. When set, both PlantUML syntaxes are rendered locally with Java and the server is not used.
+  - Relative paths are resolved from the workspace containing the Markdown file. You can also use `${workspaceFolder}/plantuml.jar`.
+  - Default: empty
+  - Java must be available on `PATH`.
 
 ### markdown-it-include options
 
