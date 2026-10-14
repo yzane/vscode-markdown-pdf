@@ -29,7 +29,9 @@
 
 ## What's New
 
-バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
+### Unreleased
+
+- draw.io XMLから図を描画する機能を追加 ([詳細](#drawio))
 
 ### 2.2.0
 
@@ -219,6 +221,26 @@ Preview (either form produces the same image)
 
 See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
 
+#### draw.io
+
+Markdown内の `drawio` コードブロックにXMLを書くと、draw.io DesktopでSVGに変換して図を埋め込みます。
+
+~~~markdown
+```drawio
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Hello" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="20" width="120" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
+```
+~~~
+
+[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) にdraw.io Desktopの実行ファイルを指定してください。圧縮・非圧縮の `mxfile` と `mxGraphModel` に対応し、複数ページの場合は最初のページを描画します。SVGはHTML・PDF・PNG・JPEGに埋め込まれます。
+
 #### Mermaid
 
 [Mermaid](https://mermaid-js.github.io/mermaid/) によってフェンスドコードブロックから図をレンダリングします。Mermaid のライブラリは [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) で指定された URL から読み込まれます（既定値は CDN）。
@@ -399,6 +421,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
+|[draw.io options](#drawio-options)|[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath)|resource|
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
 ||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
@@ -737,6 +760,16 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 #### `markdown-pdf.markdown-it-include.enable`
   - markdown-it-include を有効にします
   - boolean. Default: true
+
+### draw.io options
+
+#### `markdown-pdf.drawioExecutablePath`
+  - draw.io Desktop実行ファイルのパスです。drawioコードブロックの描画に必要です。
+  - Default: empty
+  - Windowsの例: `C:\Program Files\draw.io\draw.io.exe`
+  - macOSの例: `/Applications/draw.io.app/Contents/MacOS/draw.io`
+  - Linuxの例: `/usr/bin/drawio`。DesktopのエクスポートにはGUI環境またはXvfbが必要です。
+  - HTML・PDF・PNG・JPEGに対応します。描画に失敗した場合はエクスポートを中止し、エラーを報告します。
 
 ### mermaid options
 

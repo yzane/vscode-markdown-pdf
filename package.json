@@ -924,6 +924,12 @@
           "default": "https://unpkg.com/mermaid/dist/mermaid.min.js",
           "description": "mermaid server."
         },
+        "markdown-pdf.drawioExecutablePath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Path to the draw.io Desktop executable used to render XML in drawio fenced code blocks."
+        },
         "markdown-pdf.math.enabled": {
           "type": "boolean",
           "default": true,
