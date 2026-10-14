@@ -6,6 +6,10 @@
 
 * Add the `markdown-pdf.plantumlJarPath` setting to render PlantUML diagrams locally with Java and a PlantUML JAR. The existing PlantUML server remains the default when the setting is empty
 
+### Fixes
+
+* Resolve local PlantUML `!include` paths from the Markdown file directory when rendering with a JAR
+
 ## 2.2.0 (2026/07/28)
 
 ### Breaking Changes

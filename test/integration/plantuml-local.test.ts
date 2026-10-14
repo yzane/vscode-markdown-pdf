@@ -29,6 +29,7 @@ suite('Local PlantUML JAR', function () {
     }
     assert.ok(fs.existsSync(jarPath), 'PLANTUML_TEST_JAR must point to an existing JAR');
     fs.mkdirSync(outputDirectory, { recursive: true });
+    fs.writeFileSync(path.join(outputDirectory, 'plantumlstyle.iuml'), 'skinparam backgroundColor #E8F5E9\n');
     const configuration = vscode.workspace.getConfiguration('markdown-pdf');
     for (const setting of settings) {
       originalSettings.set(setting, configuration.inspect(setting)?.globalValue);
@@ -48,6 +49,8 @@ suite('Local PlantUML JAR', function () {
 
   const body = 'participant "利用者" as User\nparticipant "サーバー" as Server\nUser -> Server: 日本語の要求\nServer --> User: 正常応答';
   const cases = [
+    { name: 'markers-include', source: '@startuml\n!include plantumlstyle.iuml\n' + body + '\n@enduml' },
+    { name: 'fence-include', source: '```plantuml\n@startuml\n!include plantumlstyle.iuml\n' + body + '\n@enduml\n```' },
     { name: 'markers', source: '@startuml\n' + body + '\n@enduml' },
     { name: 'fence', source: '```plantuml\n@startuml\n' + body + '\n@enduml\n```' },
     {
@@ -71,6 +74,7 @@ suite('Local PlantUML JAR', function () {
       assert.ok(match, 'PlantUML must be embedded as an SVG data URI');
       const svg = Buffer.from(match[1], 'base64').toString('utf8');
       assert.match(svg, /<svg\b/);
+      if (name.endsWith('-include')) assert.ok(svg.includes('#E8F5E9'), 'The relative include must apply its background style');
       assert.ok(svg.includes('日本語の要求'), 'Japanese labels must survive Java rendering');
       assert.ok(!html.includes('http://127.0.0.1:1/plantuml/svg/'), 'The server must not be used');
       fs.writeFileSync(path.join(outputDirectory, name + '.svg'), svg);

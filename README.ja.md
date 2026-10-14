@@ -741,6 +741,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
   - ローカルの PlantUML JAR ファイルのパスです。指定すると、2 つの PlantUML 記法を Java でローカル描画し、サーバーは使用しません。
   - 相対パスは Markdown ファイルを含むワークスペースから解決されます。`${workspaceFolder}/plantuml.jar` も使用できます。
   - Default: empty
+  - 相対パスの `!include` はMarkdownファイルのフォルダから解決します。
   - Java が `PATH` から実行できる必要があります。
 
 ### markdown-it-include options

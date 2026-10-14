@@ -19,10 +19,11 @@ describe('local PlantUML rendering', function () {
       assert.deepStrictEqual(args, ['-jar', jarPath, '-tsvg', '-pipe', '-charset', 'UTF-8']);
       assert.strictEqual(options.input, source);
       assert.strictEqual(options.encoding, 'utf8');
+      assert.strictEqual(options.cwd, directory);
       return { status: 0, stdout: svg, stderr: '' };
     });
     try {
-      const result = buildPlantumlImageSource(source, 'https://unused.example.com', jarPath);
+      const result = buildPlantumlImageSource(source, 'https://unused.example.com', jarPath, directory);
       assert.strictEqual(result, 'data:image/svg+xml;base64,' + Buffer.from(svg, 'utf8').toString('base64'));
       assert.strictEqual(spawn.mock.callCount(), 1);
     } finally {

@@ -744,6 +744,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
   - Optional path to a local PlantUML JAR. When set, both PlantUML syntaxes are rendered locally with Java and the server is not used.
   - Relative paths are resolved from the workspace containing the Markdown file. You can also use `${workspaceFolder}/plantuml.jar`.
   - Default: empty
+  - Relative `!include` paths are resolved from the Markdown file directory.
   - Java must be available on `PATH`.
 
 ### markdown-it-include options

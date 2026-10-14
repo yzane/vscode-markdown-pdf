@@ -828,7 +828,7 @@ export function generateTmpHtmlFilename(filename: string): string {
 }
 
 /** Builds an image source using a local PlantUML JAR or the configured server. */
-export function buildPlantumlImageSource(source: string, server: string, jarPath = ''): string {
+export function buildPlantumlImageSource(source: string, server: string, jarPath = '', workingDirectory?: string): string {
   if (jarPath.length === 0) {
     const encoded = plantumlEncoder.encode(source);
     return server + '/svg/' + encoded;
@@ -840,10 +840,11 @@ export function buildPlantumlImageSource(source: string, server: string, jarPath
 
   const result = spawnSync(
     'java',
-    ['-jar', jarPath, '-tsvg', '-pipe', '-charset', 'UTF-8'],
+    ['-jar', path.resolve(jarPath), '-tsvg', '-pipe', '-charset', 'UTF-8'],
     {
       encoding: 'utf8',
       input: source,
+      cwd: workingDirectory,
       maxBuffer: 20 * 1024 * 1024,
       windowsHide: process.platform === 'win32',
     },
@@ -873,8 +874,8 @@ export function buildPlantumlImageSource(source: string, server: string, jarPath
  * endpoint, alt="uml diagram") so that both the @startuml/@enduml path
  * and the ```plantuml fence path render equivalent diagrams.
  */
-export function buildPlantumlImgTag(source: string, server: string, jarPath = ''): string {
-  return '<img src="' + buildPlantumlImageSource(source, server, jarPath) + '" alt="uml diagram">';
+export function buildPlantumlImgTag(source: string, server: string, jarPath = '', workingDirectory?: string): string {
+  return '<img src="' + buildPlantumlImageSource(source, server, jarPath, workingDirectory) + '" alt="uml diagram">';
 }
 
 // Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per

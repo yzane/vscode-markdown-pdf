@@ -354,7 +354,7 @@ function convertMarkdownToHtml(
         plantumlOptions.generateSource = function (umlCode, pluginOptions) {
           const diagramName = pluginOptions.diagramName || 'uml';
           const source = '@start' + diagramName + '\n' + umlCode + '\n@end' + diagramName;
-          return utils.buildPlantumlImageSource(source, plantumlOptions.server, plantumlOptions.jarPath);
+          return utils.buildPlantumlImageSource(source, plantumlOptions.server, plantumlOptions.jarPath, path.dirname(filename));
         };
       }
       md.use(markdownItPlantuml, plantumlOptions);
@@ -402,7 +402,7 @@ function convertMarkdownToHtml(
       md.renderer.rules.fence = function (tokens, idx, options, env, self) {
         const token = tokens[idx];
         if (token.info.trim().toLowerCase() === 'plantuml') {
-          return utils.buildPlantumlImgTag(token.content, plantumlOptions.server, plantumlOptions.jarPath);
+          return utils.buildPlantumlImgTag(token.content, plantumlOptions.server, plantumlOptions.jarPath, path.dirname(filename));
         }
         if (defaultFenceRenderer) {
           return defaultFenceRenderer(tokens, idx, options, env, self);
