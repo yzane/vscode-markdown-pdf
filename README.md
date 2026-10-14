@@ -31,7 +31,9 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## What's New
 
-Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
+### Unreleased
+
+- Add opt-in relative file links for linked PDFs ([details](#markdown-pdfrelativefilelinks))
 
 ### 2.2.0
 
@@ -384,6 +386,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|resource|
 ||[markdown-pdf.orientation](#markdown-pdforientation)|resource|
 ||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|resource|
+||[markdown-pdf.relativeFileLinks](#markdown-pdfrelativefilelinks)|resource|
 ||[markdown-pdf.format](#markdown-pdfformat)|resource|
 ||[markdown-pdf.width](#markdown-pdfwidth)|resource|
 ||[markdown-pdf.height](#markdown-pdfheight)|resource|
@@ -588,6 +591,15 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ### PDF options
 
   - pdf only. [puppeteer page.pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md)
+
+#### `markdown-pdf.relativeFileLinks`
+  - Rewrites local PDF links in the generated PDF as relative file links
+  - Enable this when the generated PDF and linked PDF files will be kept in the same folder or moved together
+  - boolean. Default: false
+
+~~~javascript
+"markdown-pdf.relativeFileLinks": true
+~~~
 
 #### `markdown-pdf.displayHeaderFooter`
   - Enables header and footer display

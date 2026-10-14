@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleased
+
+### Changes
+
+* Add the opt-in `markdown-pdf.relativeFileLinks` setting to rewrite local PDF links as relative file links so linked PDFs can be moved together
+
 ## 2.2.0 (2026/07/28)
 
 ### Breaking Changes

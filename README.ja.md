@@ -29,7 +29,9 @@
 
 ## What's New
 
-バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
+### Unreleased
+
+- ローカルPDFへのリンクを相対パスに変換する設定を追加 ([詳細](#markdown-pdfrelativefilelinks))
 
 ### 2.2.0
 
@@ -382,6 +384,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.printBackground](#markdown-pdfprintbackground)|resource|
 ||[markdown-pdf.orientation](#markdown-pdforientation)|resource|
 ||[markdown-pdf.pageRanges](#markdown-pdfpageranges)|resource|
+||[markdown-pdf.relativeFileLinks](#markdown-pdfrelativefilelinks)|resource|
 ||[markdown-pdf.format](#markdown-pdfformat)|resource|
 ||[markdown-pdf.width](#markdown-pdfwidth)|resource|
 ||[markdown-pdf.height](#markdown-pdfheight)|resource|
@@ -585,6 +588,15 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### PDF options
 
   - pdf only. [puppeteer page.pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md)
+
+#### `markdown-pdf.relativeFileLinks`
+  - 生成されたPDF内のローカルPDFリンクを相対ファイルリンクに変換します
+  - 生成されたPDFとリンク先PDFを同じフォルダに置く場合や、一緒に移動する場合に有効にします
+  - boolean. Default: false
+
+~~~javascript
+"markdown-pdf.relativeFileLinks": true
+~~~
 
 #### `markdown-pdf.displayHeaderFooter`
   - ヘッダーとフッター表示を有効にします
