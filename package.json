@@ -909,6 +909,11 @@
           "default": "http://www.plantuml.com/plantuml",
           "description": "plantuml server"
         },
+        "markdown-pdf.plantumlJarPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a local PlantUML JAR. When set, PlantUML diagrams are rendered locally with Java."
+        },
         "markdown-pdf.StatusbarMessageTimeout": {
           "type": "number",
           "default": 10000,

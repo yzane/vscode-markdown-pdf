@@ -4,6 +4,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { spawnSync } from 'child_process';
 import yaml from 'js-yaml';
 import type { HLJSApi } from 'highlight.js';
 import plantumlEncoder from 'plantuml-encoder';
@@ -468,15 +469,43 @@ interface PlantumlConfig {
   settingsOpenMarker: string;
   settingsCloseMarker: string;
   server: string;
+  jarPath?: string;
 }
 
 /** Builds the options object passed to the markdown-it-plantuml plugin. */
-export function buildPlantumlOptions(config: PlantumlConfig): { openMarker: string; closeMarker: string; server: string } {
+export interface PlantumlOptions {
+  openMarker: string;
+  closeMarker: string;
+  server: string;
+  jarPath?: string;
+  generateSource?: (umlCode: string, pluginOptions: { imageFormat?: string; diagramName?: string }) => string;
+}
+
+export function buildPlantumlOptions(config: PlantumlConfig): PlantumlOptions {
   return {
     openMarker: config.frontmatterOpenMarker || config.settingsOpenMarker || '@startuml',
     closeMarker: config.frontmatterCloseMarker || config.settingsCloseMarker || '@enduml',
     server: config.server,
+    jarPath: config.jarPath,
   };
+}
+
+/** Resolves a PlantUML JAR setting relative to the workspace containing the Markdown file. */
+export function resolvePlantumlJarPath(jarPath: string, workspaceFolder?: string): string {
+  if (jarPath.length === 0) {
+    return '';
+  }
+
+  const workspaceFolderPlaceholder = /\$\{workspaceFolder\}/g;
+  const resolvedPath = workspaceFolder
+    ? jarPath.replace(workspaceFolderPlaceholder, workspaceFolder)
+    : jarPath;
+
+  if (workspaceFolder && !path.isAbsolute(resolvedPath)) {
+    return path.join(workspaceFolder, resolvedPath);
+  }
+
+  return workspaceFolder ? path.normalize(resolvedPath) : resolvedPath;
 }
 
 interface HtmlViewDataConfig {
@@ -798,15 +827,54 @@ export function generateTmpHtmlFilename(filename: string): string {
   return path.join(f.dir, f.name + '_tmp.html');
 }
 
+/** Builds an image source using a local PlantUML JAR or the configured server. */
+export function buildPlantumlImageSource(source: string, server: string, jarPath = ''): string {
+  if (jarPath.length === 0) {
+    const encoded = plantumlEncoder.encode(source);
+    return server + '/svg/' + encoded;
+  }
+
+  if (!fs.existsSync(jarPath)) {
+    throw new Error('PlantUML JAR not found: ' + jarPath);
+  }
+
+  const result = spawnSync(
+    'java',
+    ['-jar', jarPath, '-tsvg', '-pipe', '-charset', 'UTF-8'],
+    {
+      encoding: 'utf8',
+      input: source,
+      maxBuffer: 20 * 1024 * 1024,
+      windowsHide: process.platform === 'win32',
+    },
+  );
+
+  if (result.error) {
+    throw new Error('Unable to start Java for PlantUML: ' + result.error.message);
+  }
+
+  const stderr = result.stderr || '';
+  if (result.status !== 0) {
+    const details = stderr.toString().trim();
+    throw new Error('PlantUML JAR rendering failed' + (details ? ': ' + details : ''));
+  }
+
+  const svg = (result.stdout || '').toString();
+  if (!/<svg\b/i.test(svg)) {
+    throw new Error('PlantUML JAR did not return SVG output.');
+  }
+
+  return 'data:image/svg+xml;base64,' + Buffer.from(svg, 'utf8').toString('base64');
+}
+
 /**
  * Builds an <img> tag for a PlantUML source string. Produces the same
  * structural <img> format as markdown-it-plantuml (same server, /svg/
  * endpoint, alt="uml diagram") so that both the @startuml/@enduml path
  * and the ```plantuml fence path render equivalent diagrams.
  */
-export function buildPlantumlImgTag(source: string, server: string): string {
-  const encoded = plantumlEncoder.encode(source);
-  return '<img src="' + server + '/svg/' + encoded + '" alt="uml diagram">';
+export function buildPlantumlImgTag(source: string, server: string, jarPath = ''): string {
+  return '<img src="' + buildPlantumlImageSource(source, server, jarPath) + '" alt="uml diagram">';
 }
 
 // Sanitize mode for raw HTML in Markdown. 'gfm' removes dangerous tags per

@@ -1207,6 +1207,18 @@ describe('utils', function () {
       assert.strictEqual(result.server, 'https://custom.plantuml.server/svg');
     });
 
+    it('should pass the local JAR path through', function () {
+      const result = utils.buildPlantumlOptions({
+        frontmatterOpenMarker: undefined,
+        frontmatterCloseMarker: undefined,
+        settingsOpenMarker: '@startuml',
+        settingsCloseMarker: '@enduml',
+        server: 'http://plantuml.example.com',
+        jarPath: 'C:\\tools\\plantuml.jar',
+      });
+      assert.strictEqual(result.jarPath, 'C:\\tools\\plantuml.jar');
+    });
+
     it('should allow mixed frontmatter and settings overrides', function () {
       const result = utils.buildPlantumlOptions({
         frontmatterOpenMarker: '@startmindmap',
@@ -1217,6 +1229,24 @@ describe('utils', function () {
       });
       assert.strictEqual(result.openMarker, '@startmindmap');
       assert.strictEqual(result.closeMarker, '@enduml');
+    });
+  });
+
+  describe('resolvePlantumlJarPath', function () {
+    it('should resolve workspaceFolder placeholders', function () {
+      const workspaceFolder = path.resolve('test-workspace');
+      const result = utils.resolvePlantumlJarPath('${workspaceFolder}/plantuml.jar', workspaceFolder);
+      assert.strictEqual(result, path.join(workspaceFolder, 'plantuml.jar'));
+    });
+
+    it('should resolve relative paths from the workspace folder', function () {
+      const workspaceFolder = path.resolve('test-workspace');
+      const result = utils.resolvePlantumlJarPath('tools/plantuml.jar', workspaceFolder);
+      assert.strictEqual(result, path.join(workspaceFolder, 'tools', 'plantuml.jar'));
+    });
+
+    it('should return an empty path when no JAR is configured', function () {
+      assert.strictEqual(utils.resolvePlantumlJarPath(''), '');
     });
   });
 
@@ -2101,6 +2131,13 @@ describe('utils', function () {
     it('should not throw on empty input and still return an <img> tag', function () {
       const result = utils.buildPlantumlImgTag('', 'http://www.plantuml.com/plantuml');
       assert.match(result, /^<img src="http:\/\/www\.plantuml\.com\/plantuml\/svg\/[A-Za-z0-9_-]*" alt="uml diagram">$/);
+    });
+
+    it('should report a missing local JAR', function () {
+      assert.throws(
+        () => utils.buildPlantumlImageSource('@startuml\nAlice -> Bob\n@enduml\n', '', path.join('missing', 'plantuml.jar')),
+        /PlantUML JAR not found/,
+      );
     });
 
     it('should produce the same <img> tag shape as markdown-it-plantuml plugin', async function () {

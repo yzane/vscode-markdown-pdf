@@ -29,7 +29,9 @@
 
 ## What's New
 
-バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
+### Unreleased
+
+- ローカルのPlantUML JARによる図の描画を追加 ([詳細](#markdown-pdfplantumljarpath))
 
 ### 2.2.0
 
@@ -185,7 +187,7 @@ See also: [markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-inc
 
 #### PlantUML
 
-[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) で UML 図をレンダリングします。2 つの等価な記法をサポートし、いずれも同じ `<img>` タグを生成し、[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) 設定を共有します。
+[markdown-it-plantuml](https://github.com/gmunguia/markdown-it-plantuml) を使って [PlantUML](https://plantuml.com/) で UML 図をレンダリングします。2 つの等価な記法をサポートし、ローカル JAR または [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver) 経由で描画できます。
 
 ##### Fenced code block
 
@@ -217,7 +219,9 @@ Preview (either form produces the same image)
 
 ![PlantUML](images/PlantUML.png)
 
-See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
+既定では、設定された PlantUML サーバーに図を要求します。ローカルで描画する場合は、[markdown-pdf.plantumlJarPath](#markdown-pdfplantumljarpath) に PlantUML の JAR ファイルを指定し、`java` が `PATH` から実行できるようにしてください。
+
+See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver), [markdown-pdf.plantumlJarPath](#markdown-pdfplantumljarpath)
 
 #### Mermaid
 
@@ -398,6 +402,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 |[PlantUML options](#plantuml-options)|[markdown-pdf.plantumlOpenMarker](#markdown-pdfplantumlopenmarker)| |
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
+||[markdown-pdf.plantumlJarPath](#markdown-pdfplantumljarpath)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
@@ -731,6 +736,12 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
     docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
     ```
     [plantuml/plantuml-server - Docker Hub](https://hub.docker.com/r/plantuml/plantuml-server/)
+
+#### `markdown-pdf.plantumlJarPath`
+  - ローカルの PlantUML JAR ファイルのパスです。指定すると、2 つの PlantUML 記法を Java でローカル描画し、サーバーは使用しません。
+  - 相対パスは Markdown ファイルを含むワークスペースから解決されます。`${workspaceFolder}/plantuml.jar` も使用できます。
+  - Default: empty
+  - Java が `PATH` から実行できる必要があります。
 
 ### markdown-it-include options
 
