@@ -21,7 +21,7 @@ import { mathFencePlugin } from './markdown-it-math-fence';
 import { mathBracketsPlugin } from './markdown-it-math-brackets';
 import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
-import { renderDrawioImages } from './drawio-renderer';
+import { renderDrawioBlocks } from './drawio-renderer';
 import puppeteer from 'puppeteer-core';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
@@ -413,7 +413,7 @@ async function convertMarkdownToHtml(
       const tokens = md.parse(matterParts.content, environment);
       const drawioExecutablePath = vscode.workspace.getConfiguration('markdown-pdf', vscode.Uri.file(filename))
         .get<string>('drawioExecutablePath') || '';
-      await renderDrawioImages(tokens, filename, drawioExecutablePath);
+      await renderDrawioBlocks(tokens, drawioExecutablePath);
       const html = md.renderer.render(tokens, md.options, environment);
 
       // Show warning for missing include files

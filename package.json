@@ -928,7 +928,7 @@
           "type": "string",
           "default": "",
           "scope": "resource",
-          "description": "Path to the draw.io Desktop executable used to render local .drawio and .xml diagram images."
+          "description": "Path to the draw.io Desktop executable used to render XML in drawio fenced code blocks."
         },
         "markdown-pdf.math.enabled": {
           "type": "boolean",

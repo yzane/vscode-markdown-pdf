@@ -4,7 +4,7 @@
 
 ### Changes
 
-* Add local draw.io XML diagram rendering through image references to `.drawio` and `.xml` files, using the new `markdown-pdf.drawioExecutablePath` setting. Embed the first page as SVG in HTML, PDF, PNG, and JPEG exports
+* Add draw.io XML rendering in `drawio` fenced code blocks, using the new `markdown-pdf.drawioExecutablePath` setting to export locally with draw.io Desktop. Embed the first page as SVG in HTML, PDF, PNG, and JPEG exports
 
 ## 2.2.0 (2026/07/28)
 

@@ -225,13 +225,23 @@ See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver).
 
 #### draw.io
 
-Reference a local `.drawio` or `.xml` diagram using normal image syntax to render and embed it as SVG with draw.io Desktop.
+Put draw.io XML inside a `drawio` fenced code block to render and embed it as SVG with draw.io Desktop.
 
 ~~~markdown
-![Architecture](diagrams/architecture.drawio)
+```drawio
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Hello" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="20" width="120" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
+```
 ~~~
 
-Set [markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) to the draw.io Desktop executable. Compressed and uncompressed draw.io XML and `mxGraphModel` files are supported; the first page is rendered for multi-page diagrams. Relative paths are resolved from the Markdown file. SVGs are embedded in HTML, PDF, PNG, and JPEG exports. Remote URLs, inline XML code blocks, and page selection through queries or fragments are not supported.
+Set [markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) to the draw.io Desktop executable. Compressed and uncompressed `mxfile` and standalone `mxGraphModel` XML are supported; the first page is rendered for multi-page diagrams. SVGs are embedded in HTML, PDF, PNG, and JPEG exports.
 
 #### Mermaid
 
@@ -757,7 +767,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ### draw.io options
 
 #### `markdown-pdf.drawioExecutablePath`
-  - Path to the draw.io Desktop executable. Required when referencing draw.io XML diagrams as images.
+  - Path to the draw.io Desktop executable. Required for drawio fenced code blocks.
   - Default: empty
   - Windows example: `C:\Program Files\draw.io\draw.io.exe`
   - macOS example: `/Applications/draw.io.app/Contents/MacOS/draw.io`

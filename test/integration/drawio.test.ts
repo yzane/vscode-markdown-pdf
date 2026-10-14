@@ -42,12 +42,11 @@ suite('Local draw.io XML', function () {
   for (const fixture of ['drawio.drawio', 'drawio-compressed.drawio', 'drawio-model.xml']) {
     test(fixture + ': embeds Japanese SVG from XML', async function () {
       const name = path.parse(fixture).name;
-      const diagramPath = path.join(outputDirectory, fixture);
       const markdownPath = path.join(outputDirectory, name + '.md');
       const htmlPath = path.join(outputDirectory, name + '.html');
       if (fs.existsSync(htmlPath)) fs.unlinkSync(htmlPath);
-      fs.copyFileSync(path.join(fixturesDirectory, fixture), diagramPath);
-      fs.writeFileSync(markdownPath, '# draw.io XML\n\n![日本語の図](' + fixture + ')\n');
+      const xml = fs.readFileSync(path.join(fixturesDirectory, fixture), 'utf8');
+      fs.writeFileSync(markdownPath, '# draw.io XML\n\n```drawio\n' + xml + '\n```\n');
       const document = await vscode.workspace.openTextDocument(markdownPath);
       await vscode.window.showTextDocument(document);
       await vscode.commands.executeCommand('extension.markdown-pdf.html');

@@ -223,13 +223,23 @@ See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
 
 #### draw.io
 
-ローカルの `.drawio` または `.xml` ファイルを通常の画像記法で参照すると、draw.io DesktopでSVGに変換して埋め込みます。
+Markdown内の `drawio` コードブロックにXMLを書くと、draw.io DesktopでSVGに変換して図を埋め込みます。
 
 ~~~markdown
-![構成図](diagrams/architecture.drawio)
+```drawio
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Hello" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="20" y="20" width="120" height="60" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
+```
 ~~~
 
-[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) にdraw.io Desktopの実行ファイルを指定してください。圧縮・非圧縮のdraw.io XMLと `mxGraphModel` に対応し、複数ページの場合は最初のページを描画します。相対パスはMarkdownファイルから解決します。生成したSVGはHTML・PDF・PNG・JPEGに埋め込まれます。リモートURL、Markdown内のXMLコードブロック、クエリ文字列やフラグメントによるページ指定には対応していません。
+[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) にdraw.io Desktopの実行ファイルを指定してください。圧縮・非圧縮の `mxfile` と `mxGraphModel` に対応し、複数ページの場合は最初のページを描画します。SVGはHTML・PDF・PNG・JPEGに埋め込まれます。
 
 #### Mermaid
 
@@ -754,7 +764,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### draw.io options
 
 #### `markdown-pdf.drawioExecutablePath`
-  - draw.io Desktop実行ファイルのパスです。draw.io XMLを画像として参照する場合に必要です。
+  - draw.io Desktop実行ファイルのパスです。drawioコードブロックの描画に必要です。
   - Default: empty
   - Windowsの例: `C:\Program Files\draw.io\draw.io.exe`
   - macOSの例: `/Applications/draw.io.app/Contents/MacOS/draw.io`

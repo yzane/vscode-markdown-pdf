@@ -1,32 +1,12 @@
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
+
 import { execFile } from 'child_process';
 import type Token from 'markdown-it/lib/token.mjs';
 
-/** Resolves local draw.io image references without fetching remote URLs. */
-export function resolveDrawioReference(href: string, markdownPath: string): string | undefined {
-  let filename: string;
-  if (/^file:/i.test(href)) {
-    const uri = new URL(href);
-    if (uri.search || uri.hash) throw new Error('draw.io references do not support queries or fragments');
-    filename = fileURLToPath(uri);
-  } else {
-    if (/^[a-z][a-z\d+.-]*:/i.test(href) && !path.isAbsolute(href)) return undefined;
-    if (/[?#]/.test(href)) {
-      if (/\.(drawio|xml)(?:[?#]|$)/i.test(href)) {
-        throw new Error('draw.io references do not support queries or fragments');
-      }
-      return undefined;
-    }
-    filename = path.resolve(path.dirname(markdownPath), decodeURIComponent(href));
-  }
-  return /\.(drawio|xml)$/i.test(filename) ? filename : undefined;
-}
-
 /** Exports XML using the official Desktop renderer in an isolated temporary profile. */
-export async function renderDrawioXml(xml: string, executablePath: string, sourcePath?: string): Promise<string> {
+export async function renderDrawioXml(xml: string, executablePath: string): Promise<string> {
   if (!executablePath.trim()) {
     throw new Error('Set markdown-pdf.drawioExecutablePath to the draw.io Desktop executable to render draw.io XML');
   }
@@ -35,9 +15,9 @@ export async function renderDrawioXml(xml: string, executablePath: string, sourc
   }
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'markdown-pdf-drawio-'));
   try {
-    const inputPath = sourcePath || path.join(directory, 'diagram.drawio');
+    const inputPath = path.join(directory, 'diagram.drawio');
     const outputPath = path.join(directory, 'diagram.svg');
-    if (!sourcePath) await fs.writeFile(inputPath, xml, 'utf8');
+    await fs.writeFile(inputPath, xml, 'utf8');
     await new Promise<void>((resolve, reject) => {
       execFile(executablePath, [
         '--export', '--format', 'svg', '--output', outputPath,
@@ -59,21 +39,21 @@ export async function renderDrawioXml(xml: string, executablePath: string, sourc
   }
 }
 
-/** Replaces diagram image sources before synchronous Markdown rendering. */
-export async function renderDrawioImages(tokens: Token[], markdownPath: string, executablePath: string): Promise<void> {
+/** Renders drawio fences before synchronous Markdown rendering. */
+export async function renderDrawioBlocks(tokens: Token[], executablePath: string): Promise<void> {
   const cache = new Map<string, string>();
   async function visit(items: Token[]): Promise<void> {
     for (const token of items) {
-      if (token.type === 'image') {
-        const filename = resolveDrawioReference(token.attrGet('src') || '', markdownPath);
-        if (filename) {
-          let source = cache.get(filename);
-          if (!source) {
-            source = await renderDrawioXml(await fs.readFile(filename, 'utf8'), executablePath, filename);
-            cache.set(filename, source);
-          }
-          token.attrSet('src', source);
+      if (token.type === 'fence' && token.info.trim().toLowerCase() === 'drawio') {
+        const xml = token.content;
+        let source = cache.get(xml);
+        if (!source) {
+          source = await renderDrawioXml(xml, executablePath);
+          cache.set(xml, source);
         }
+        token.type = 'html_block';
+        token.tag = '';
+        token.content = '<p><img src="' + source + '" alt="draw.io diagram"></p>\n';
       }
       if (token.children) await visit(token.children);
     }
