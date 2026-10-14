@@ -21,6 +21,7 @@ import { mathFencePlugin } from './markdown-it-math-fence';
 import { mathBracketsPlugin } from './markdown-it-math-brackets';
 import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
+import { rewriteLocalPdfLinksToRelative } from './pdf-links';
 import puppeteer from 'puppeteer-core';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
@@ -608,6 +609,10 @@ function exportPdf(
           };
           const pdfOptions = utils.buildPdfOptions(pdfConfig);
           await page.pdf(pdfOptions);
+          if (vscode.workspace.getConfiguration('markdown-pdf', uri)['relativeFileLinks'] === true) {
+            const rewrittenCount = await rewriteLocalPdfLinksToRelative(exportFilename as string);
+            logger.logInfo('Rewrote ' + rewrittenCount + ' local PDF link(s) to relative file links.');
+          }
         }
 
         // generate png and jpeg

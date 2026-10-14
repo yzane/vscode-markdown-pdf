@@ -924,6 +924,11 @@
           "default": "https://unpkg.com/mermaid/dist/mermaid.min.js",
           "description": "mermaid server."
         },
+        "markdown-pdf.relativeFileLinks": {
+          "type": "boolean",
+          "default": false,
+          "description": "pdf only. Rewrite local PDF links as relative file links so linked PDFs can be moved together with the generated PDF."
+        },
         "markdown-pdf.math.enabled": {
           "type": "boolean",
           "default": true,
@@ -976,6 +981,7 @@
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-plantuml": "^1.4.1",
+    "pdf-lib": "^1.17.1",
     "plantuml-encoder": "^1.4.0",
     "puppeteer-core": "^24.40.0"
   }
