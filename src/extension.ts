@@ -21,6 +21,7 @@ import { mathFencePlugin } from './markdown-it-math-fence';
 import { mathBracketsPlugin } from './markdown-it-math-brackets';
 import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
+import { renderDrawioImages } from './drawio-renderer';
 import puppeteer from 'puppeteer-core';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
@@ -182,7 +183,7 @@ async function markdownPdf(option_type: string, isOnSave = false): Promise<void>
             sanitize: sanitizeMode,
           };
           logger.logInfo(diagnostics.buildStartDiagnostics(env, ctx, homeDir));
-          const converted = convertMarkdownToHtml(mdfilename, type, text, ctx, homeDir);
+          const converted = await convertMarkdownToHtml(mdfilename, type, text, ctx, homeDir);
           if (!converted) {
             // convertMarkdownToHtml already logged the failure and showed an error toast.
             // Skip this type instead of exporting a file with garbage content: makeHtml()
@@ -262,13 +263,13 @@ function getFrontMatterRecord(data: Record<string, unknown>, key: string): Recor
  * convert markdown to html (markdown-it)
  */
 // ctx/homeDir are used only in the catch block(s) to add diagnostic context to error logs.
-function convertMarkdownToHtml(
+async function convertMarkdownToHtml(
   filename: string,
   type: string,
   text: string,
   ctx: diagnostics.ConvertContext,
   homeDir: string
-): { html: string; report: utils.SanitizeReport } | undefined {
+): Promise<{ html: string; report: utils.SanitizeReport } | undefined> {
   const matterParts = utils.parseFrontMatter(text);
   let statusbarmessage: vscode.Disposable | undefined;
 
@@ -408,7 +409,12 @@ function convertMarkdownToHtml(
       }
 
       statusbarmessage.dispose();
-      const html = md.render(matterParts.content);
+      const environment = {};
+      const tokens = md.parse(matterParts.content, environment);
+      const drawioExecutablePath = vscode.workspace.getConfiguration('markdown-pdf', vscode.Uri.file(filename))
+        .get<string>('drawioExecutablePath') || '';
+      await renderDrawioImages(tokens, filename, drawioExecutablePath);
+      const html = md.renderer.render(tokens, md.options, environment);
 
       // Show warning for missing include files
       const includeErrorRe = /INCLUDE ERROR: (.+?)(?=<\/h1>|<\/p>|\n)/g;

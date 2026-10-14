@@ -31,7 +31,9 @@ This VS Code extension converts Markdown files to pdf, html, png or jpeg files.
 
 ## What's New
 
-Highlights of new features and improvements since v2. See [Breaking Changes](#breaking-changes) for changes that may affect existing behavior.
+### Unreleased
+
+- Add diagram rendering from draw.io XML ([details](#drawio))
 
 ### 2.2.0
 
@@ -221,6 +223,16 @@ Preview (either form produces the same image)
 
 See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver).
 
+#### draw.io
+
+Reference a local `.drawio` or `.xml` diagram using normal image syntax to render and embed it as SVG with draw.io Desktop.
+
+~~~markdown
+![Architecture](diagrams/architecture.drawio)
+~~~
+
+Set [markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) to the draw.io Desktop executable. Compressed and uncompressed draw.io XML and `mxGraphModel` files are supported; the first page is rendered for multi-page diagrams. Relative paths are resolved from the Markdown file. SVGs are embedded in HTML, PDF, PNG, and JPEG exports. Remote URLs, inline XML code blocks, and page selection through queries or fragments are not supported.
+
 #### Mermaid
 
 Render diagrams from fenced code blocks via [Mermaid](https://mermaid-js.github.io/mermaid/). The Mermaid library is loaded from the URL configured in [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) (defaults to a CDN).
@@ -401,6 +413,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
+|[draw.io options](#drawio-options)|[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath)|resource|
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
 ||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
@@ -740,6 +753,16 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 #### `markdown-pdf.markdown-it-include.enable`
   - Enable markdown-it-include.
   - boolean. Default: true
+
+### draw.io options
+
+#### `markdown-pdf.drawioExecutablePath`
+  - Path to the draw.io Desktop executable. Required when referencing draw.io XML diagrams as images.
+  - Default: empty
+  - Windows example: `C:\Program Files\draw.io\draw.io.exe`
+  - macOS example: `/Applications/draw.io.app/Contents/MacOS/draw.io`
+  - Linux example: `/usr/bin/drawio`. Desktop exports require a display session or Xvfb.
+  - Supports HTML, PDF, PNG, and JPEG. Rendering failures stop the export and report an error.
 
 ### mermaid options
 

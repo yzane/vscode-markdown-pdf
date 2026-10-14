@@ -29,7 +29,9 @@
 
 ## What's New
 
-バージョン 2 以降の主な新機能と改善点です。既存動作に影響する変更は [仕様変更](#仕様変更) を参照してください。
+### Unreleased
+
+- draw.io XMLから図を描画する機能を追加 ([詳細](#drawio))
 
 ### 2.2.0
 
@@ -219,6 +221,16 @@ Preview (either form produces the same image)
 
 See also: [markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)
 
+#### draw.io
+
+ローカルの `.drawio` または `.xml` ファイルを通常の画像記法で参照すると、draw.io DesktopでSVGに変換して埋め込みます。
+
+~~~markdown
+![構成図](diagrams/architecture.drawio)
+~~~
+
+[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath) にdraw.io Desktopの実行ファイルを指定してください。圧縮・非圧縮のdraw.io XMLと `mxGraphModel` に対応し、複数ページの場合は最初のページを描画します。相対パスはMarkdownファイルから解決します。生成したSVGはHTML・PDF・PNG・JPEGに埋め込まれます。リモートURL、Markdown内のXMLコードブロック、クエリ文字列やフラグメントによるページ指定には対応していません。
+
 #### Mermaid
 
 [Mermaid](https://mermaid-js.github.io/mermaid/) によってフェンスドコードブロックから図をレンダリングします。Mermaid のライブラリは [markdown-pdf.mermaidServer](#markdown-pdfmermaidserver) で指定された URL から読み込まれます（既定値は CDN）。
@@ -399,6 +411,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ||[markdown-pdf.plantumlCloseMarker](#markdown-pdfplantumlclosemarker)| |
 ||[markdown-pdf.plantumlServer](#markdown-pdfplantumlserver)| |
 |[markdown-it-include options](#markdown-it-include-options)|[markdown-pdf.markdown-it-include.enable](#markdown-pdfmarkdown-it-includeenable)| |
+|[draw.io options](#drawio-options)|[markdown-pdf.drawioExecutablePath](#markdown-pdfdrawioexecutablepath)|resource|
 |[mermaid options](#mermaid-options)|[markdown-pdf.mermaidServer](#markdown-pdfmermaidserver)| |
 |[math options](#math-options)|[markdown-pdf.math.enabled](#markdown-pdfmathenabled)| |
 ||[markdown-pdf.math.katex.macros](#markdown-pdfmathkatexmacros)| |
@@ -737,6 +750,16 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 #### `markdown-pdf.markdown-it-include.enable`
   - markdown-it-include を有効にします
   - boolean. Default: true
+
+### draw.io options
+
+#### `markdown-pdf.drawioExecutablePath`
+  - draw.io Desktop実行ファイルのパスです。draw.io XMLを画像として参照する場合に必要です。
+  - Default: empty
+  - Windowsの例: `C:\Program Files\draw.io\draw.io.exe`
+  - macOSの例: `/Applications/draw.io.app/Contents/MacOS/draw.io`
+  - Linuxの例: `/usr/bin/drawio`。DesktopのエクスポートにはGUI環境またはXvfbが必要です。
+  - HTML・PDF・PNG・JPEGに対応します。描画に失敗した場合はエクスポートを中止し、エラーを報告します。
 
 ### mermaid options
 
