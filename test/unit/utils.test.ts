@@ -930,6 +930,24 @@ describe('utils', function () {
       assert.strictEqual(result.landscape, true);
     });
 
+    it('should omit path when it is empty so a preview render returns a buffer', function () {
+      const result = utils.buildPdfOptions({
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'path'), false);
+      assert.strictEqual(result.format, 'A4');
+    });
+
     it('should set landscape false when orientation is not landscape', function () {
       const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
@@ -1285,7 +1303,7 @@ describe('utils', function () {
       assert.deepStrictEqual(result.margin, margin);
     });
 
-    it('should handle empty headerTemplate and footerTemplate', function () {
+    it('should replace an empty header or footer so Chromium does not print its defaults', function () {
       const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
         width: '',
@@ -1294,6 +1312,25 @@ describe('utils', function () {
         orientation: '',
         scale: 1,
         displayHeaderFooter: true,
+        headerTemplate: '',
+        footerTemplate: '  ',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(result.headerTemplate, '<div style="font-size: 9px;"></div>');
+      assert.strictEqual(result.footerTemplate, '<div style="font-size: 9px;"></div>');
+    });
+
+    it('should leave empty templates unchanged when the header and footer are hidden', function () {
+      const result = utils.buildPdfOptions({
+        path: '/out/test.pdf',
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
         headerTemplate: '',
         footerTemplate: '',
         printBackground: true,

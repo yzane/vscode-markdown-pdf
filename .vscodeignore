@@ -42,3 +42,9 @@ node_modules/**
 !node_modules/emoji-images/pngs/**
 !node_modules/highlight.js/styles/
 !node_modules/highlight.js/styles/**
+!node_modules/pdfjs-dist/build/pdf.min.mjs
+!node_modules/pdfjs-dist/build/pdf.worker.min.mjs
+!node_modules/pdfjs-dist/cmaps/
+!node_modules/pdfjs-dist/cmaps/**
+!node_modules/pdfjs-dist/standard_fonts/
+!node_modules/pdfjs-dist/standard_fonts/**

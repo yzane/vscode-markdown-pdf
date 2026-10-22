@@ -31,5 +31,9 @@ describe('.vscodeignore', function () {
   it('should re-include runtime asset packages', function () {
     assert.match(vscodeignore, /^!node_modules\/emoji-images\/pngs\/\*\*$/m);
     assert.match(vscodeignore, /^!node_modules\/highlight\.js\/styles\/\*\*$/m);
+    assert.match(vscodeignore, /^!node_modules\/pdfjs-dist\/build\/pdf\.min\.mjs$/m);
+    assert.match(vscodeignore, /^!node_modules\/pdfjs-dist\/build\/pdf\.worker\.min\.mjs$/m);
+    assert.match(vscodeignore, /^!node_modules\/pdfjs-dist\/cmaps\/\*\*$/m);
+    assert.match(vscodeignore, /^!node_modules\/pdfjs-dist\/standard_fonts\/\*\*$/m);
   });
 });

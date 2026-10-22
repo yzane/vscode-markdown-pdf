@@ -1,5 +1,11 @@
 # Change Log
 
+## Unreleased
+
+### Changes
+
+* Add `Markdown PDF: Export (pdf) with preview`. The command opens the current PDF page settings (paper size, custom width and height, orientation, margins, scale, header, page numbers, print background, and page ranges) beside a rendered PDF. Page numbers are the footer template. Export PDF writes the file, and Save as my defaults writes the chosen values back to Settings. `Markdown PDF: Export (pdf)` still exports immediately from Settings [#468](https://github.com/yzane/vscode-markdown-pdf/issues/468)
+
 ## 2.2.0 (2026/07/28)
 
 ### Breaking Changes

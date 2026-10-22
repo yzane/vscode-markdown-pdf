@@ -30,6 +30,7 @@
   "activationEvents": [
     "onCommand:extension.markdown-pdf.settings",
     "onCommand:extension.markdown-pdf.pdf",
+    "onCommand:extension.markdown-pdf.pdf.preview",
     "onCommand:extension.markdown-pdf.html",
     "onCommand:extension.markdown-pdf.png",
     "onCommand:extension.markdown-pdf.jpeg",
@@ -48,6 +49,11 @@
       {
         "command": "extension.markdown-pdf.pdf",
         "title": "Markdown PDF: Export (pdf)",
+        "group": "markdown-pdf"
+      },
+      {
+        "command": "extension.markdown-pdf.pdf.preview",
+        "title": "Markdown PDF: Export (pdf) with preview",
         "group": "markdown-pdf"
       },
       {
@@ -88,6 +94,10 @@
         },
         {
           "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.pdf.preview"
+        },
+        {
+          "when": "resourceLangId == markdown",
           "command": "extension.markdown-pdf.html"
         },
         {
@@ -119,23 +129,28 @@
         },
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.html",
+          "command": "extension.markdown-pdf.pdf.preview",
           "group": "markdown-pdf@3"
         },
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.png",
+          "command": "extension.markdown-pdf.html",
           "group": "markdown-pdf@4"
         },
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.jpeg",
+          "command": "extension.markdown-pdf.png",
           "group": "markdown-pdf@5"
         },
         {
           "when": "resourceLangId == markdown",
-          "command": "extension.markdown-pdf.all",
+          "command": "extension.markdown-pdf.jpeg",
           "group": "markdown-pdf@6"
+        },
+        {
+          "when": "resourceLangId == markdown",
+          "command": "extension.markdown-pdf.all",
+          "group": "markdown-pdf@7"
         }
       ]
     },
@@ -976,6 +991,7 @@
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
     "markdown-it-plantuml": "^1.4.1",
+    "pdfjs-dist": "^4.10.38",
     "plantuml-encoder": "^1.4.0",
     "puppeteer-core": "^24.40.0"
   }
