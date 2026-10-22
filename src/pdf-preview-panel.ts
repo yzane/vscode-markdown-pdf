@@ -62,7 +62,7 @@ export function openPdfPreviewPanel(host: PdfPreviewHost): void {
   ));
   const cMapUri = directoryUri(panel, host, 'cmaps');
   const fontUri = directoryUri(panel, host, 'standard_fonts');
-  panel.webview.html = previewHtml(panel.webview, pdfjsUri, workerUri, cMapUri, fontUri);
+  panel.webview.html = previewHtml(panel.webview, pdfjsUri, workerUri, cMapUri, fontUri, activeColorScheme());
 
   let currentForm = host.initialForm();
   let htmlDirty = true;
@@ -172,12 +172,33 @@ export function openPdfPreviewPanel(host: PdfPreviewHost): void {
     }, PREVIEW_DEBOUNCE_MS);
   };
 
+  const publishForm = function (form: pdfPageOptions.PdfPreviewForm): boolean {
+    currentForm = form;
+    const errors = pdfPageOptions.validatePreviewForm(form);
+    post({ type: 'validation', errors: errors });
+    if (pdfPageOptions.hasPreviewFieldErrors(errors)) {
+      if (timer) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      post({ type: 'status', state: 'error', message: 'Fix the highlighted fields before the preview can update.' });
+      return false;
+    }
+    return true;
+  };
+
+  const themeListener = vscode.window.onDidChangeActiveColorTheme(function () {
+    post({ type: 'theme', colorScheme: activeColorScheme() });
+  });
+
   const documentListener = vscode.workspace.onDidChangeTextDocument(function (event) {
     if (event.document.uri.toString() !== documentUri || event.contentChanges.length === 0) {
       return;
     }
     htmlDirty = true;
-    scheduleRender();
+    if (!pdfPageOptions.hasPreviewFieldErrors(pdfPageOptions.validatePreviewForm(currentForm))) {
+      scheduleRender();
+    }
   });
 
   panel.webview.onDidReceiveMessage(async function (message: { type?: string; form?: unknown }) {
@@ -187,7 +208,11 @@ export function openPdfPreviewPanel(host: PdfPreviewHost): void {
         form: currentForm,
         headerPresetHtml: pdfPageOptions.FILENAME_AND_DATE_HEADER,
         footerPresetHtml: pdfPageOptions.PAGE_NUMBER_FOOTER,
+        colorScheme: activeColorScheme(),
       });
+      if (!publishForm(currentForm)) {
+        return;
+      }
       post({ type: 'status', state: 'rendering', message: 'Rendering…' });
       void enqueue(async function () { await producePdf(); });
       return;
@@ -197,11 +222,16 @@ export function openPdfPreviewPanel(host: PdfPreviewHost): void {
       if (!form) {
         return;
       }
-      currentForm = form;
+      if (!publishForm(form)) {
+        return;
+      }
       scheduleRender();
       return;
     }
     if (message.type === 'export') {
+      if (!publishForm(currentForm)) {
+        return;
+      }
       if (timer) {
         clearTimeout(timer);
         timer = undefined;
@@ -228,6 +258,9 @@ export function openPdfPreviewPanel(host: PdfPreviewHost): void {
       return;
     }
     if (message.type === 'saveDefaults') {
+      if (!publishForm(currentForm)) {
+        return;
+      }
       try {
         await host.saveDefaults(currentForm);
         vscode.window.showInformationMessage('Markdown PDF: saved the preview options as your defaults.');
@@ -246,6 +279,7 @@ export function openPdfPreviewPanel(host: PdfPreviewHost): void {
       clearTimeout(timer);
     }
     documentListener.dispose();
+    themeListener.dispose();
     void closeBrowser(browser);
     browser = undefined;
     page = undefined;
@@ -281,12 +315,21 @@ async function closeBrowser(browser: Awaited<ReturnType<typeof puppeteer.launch>
   }
 }
 
+function activeColorScheme(): 'light' | 'dark' {
+  const kind = vscode.window.activeColorTheme.kind;
+  if (kind === vscode.ColorThemeKind.Light || kind === vscode.ColorThemeKind.HighContrastLight) {
+    return 'light';
+  }
+  return 'dark';
+}
+
 function previewHtml(
   webview: vscode.Webview,
   pdfjsUri: vscode.Uri,
   workerUri: vscode.Uri,
   cMapUri: string,
-  fontUri: string
+  fontUri: string,
+  colorScheme: 'light' | 'dark'
 ): string {
   const nonce = createNonce();
   const csp = [
@@ -309,7 +352,7 @@ function previewHtml(
   }).join('');
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="color-scheme: ${colorScheme}">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${csp}">
@@ -322,7 +365,11 @@ function previewHtml(
   h2 { margin: 0 0 8px; font-size: 1.05em; font-weight: 600; }
   p.note { margin: 0 0 12px; opacity: 0.85; font-size: 0.92em; }
   label { display: block; margin: 8px 0 4px; }
-  input[type="text"], input[type="number"], select, textarea { width: 100%; box-sizing: border-box; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); padding: 4px 6px; font: inherit; }
+  input[type="text"], input[type="number"], textarea { width: 100%; box-sizing: border-box; color: var(--vscode-input-foreground); background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); padding: 4px 6px; font: inherit; }
+  select, select option { width: 100%; box-sizing: border-box; color: var(--vscode-dropdown-foreground); background-color: var(--vscode-dropdown-background); border: 1px solid var(--vscode-dropdown-border, transparent); padding: 4px 6px; font: inherit; }
+  input.invalid, textarea.invalid, select.invalid { border-color: var(--vscode-inputValidation-errorBorder); background-color: var(--vscode-inputValidation-errorBackground); color: var(--vscode-inputValidation-errorForeground, var(--vscode-input-foreground)); }
+  .field-error { color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground)); font-size: 0.85em; margin: 2px 0 0; }
+  input:disabled, textarea:disabled, select:disabled { opacity: 0.55; }
   textarea { min-height: 72px; resize: vertical; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .check { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
@@ -377,11 +424,12 @@ function previewHtml(
     </div>
     <label for="scale">Scale</label>
     <input id="scale" type="number" min="0.1" max="2" step="0.1">
-    <label class="check"><input id="printBackground" type="checkbox"> Print background</label>
+    <label class="check"><input id="printBackground" type="checkbox"> Print background graphics</label>
+    <p class="note">Includes background colors and images from the Markdown. Turn this off to print the text on a plain white page.</p>
     <label for="pageRanges">Page ranges</label>
     <input id="pageRanges" type="text" placeholder="e.g. 1-5, 8" spellcheck="false">
-    <label class="check"><input id="displayHeaderFooter" type="checkbox"> Header and footer</label>
-    <p class="note">Page numbers are the footer template. 1 / N uses pageNumber and totalPages. Header and footer classes also include title, url, and date.</p>
+    <label class="check"><input id="displayHeaderFooter" type="checkbox"> Show header and footer</label>
+    <p class="note">Turn this off to hide both, and to lock the choices below. None hides only the header or only the page numbers. Page numbers use pageNumber and totalPages. Header and footer HTML can also use title, url, and date.</p>
     <label for="footerChoice">Page numbers</label>
     <select id="footerChoice">
       <option value="none">None</option>
@@ -432,13 +480,14 @@ function previewHtml(
     }
 
     function readForm() {
-      const scale = Number(field('scale').value);
+      const scaleText = field('scale').value.trim();
+      const scale = Number(scaleText);
       return {
         format: field('format').value,
         width: field('width').value,
         height: field('height').value,
         orientation: field('orientation').value,
-        scale: Number.isFinite(scale) && scale > 0 ? scale : 1,
+        scale: scaleText !== '' && Number.isFinite(scale) ? scale : null,
         displayHeaderFooter: field('displayHeaderFooter').checked,
         headerChoice: field('headerChoice').value,
         headerCustom: field('headerCustom').value,
@@ -472,7 +521,36 @@ function previewHtml(
       field('displayHeaderFooter').checked = form.displayHeaderFooter === true;
       field('printBackground').checked = form.printBackground === true;
       updateCustomVisibility();
+      updateHeaderFooterEnabled();
       applying = false;
+    }
+
+    function updateHeaderFooterEnabled() {
+      const enabled = field('displayHeaderFooter').checked;
+      field('headerChoice').disabled = !enabled;
+      field('footerChoice').disabled = !enabled;
+      field('headerCustom').disabled = !enabled;
+      field('footerCustom').disabled = !enabled;
+    }
+
+    const validatedFields = ['width','height','marginTop','marginBottom','marginLeft','marginRight','scale','pageRanges','headerCustom','footerCustom'];
+    for (const id of validatedFields) {
+      const note = document.createElement('p');
+      note.id = id + '-error';
+      note.className = 'field-error';
+      note.hidden = true;
+      field(id).insertAdjacentElement('afterend', note);
+    }
+
+    function showErrors(errors) {
+      for (const id of validatedFields) {
+        const message = errors && errors[id] ? errors[id] : '';
+        field(id).classList.toggle('invalid', Boolean(message));
+        field(id).setAttribute('aria-invalid', message ? 'true' : 'false');
+        const note = document.getElementById(id + '-error');
+        note.textContent = message;
+        note.hidden = !message;
+      }
     }
 
     function postOptions() {
@@ -503,7 +581,10 @@ function previewHtml(
       field(id).addEventListener('input', postOptions);
       field(id).addEventListener('change', postOptions);
     }
-    field('displayHeaderFooter').addEventListener('change', postOptions);
+    field('displayHeaderFooter').addEventListener('change', () => {
+      updateHeaderFooterEnabled();
+      postOptions();
+    });
     field('printBackground').addEventListener('change', postOptions);
     document.getElementById('export').addEventListener('click', () => vscode.postMessage({ type: 'export' }));
     document.getElementById('saveDefaults').addEventListener('click', () => vscode.postMessage({ type: 'saveDefaults' }));
@@ -543,7 +624,16 @@ function previewHtml(
       if (message.type === 'init') {
         headerPresetHtml = message.headerPresetHtml || '';
         footerPresetHtml = message.footerPresetHtml || '';
+        if (message.colorScheme) document.documentElement.style.colorScheme = message.colorScheme;
         applyForm(message.form);
+        return;
+      }
+      if (message.type === 'theme' && message.colorScheme) {
+        document.documentElement.style.colorScheme = message.colorScheme;
+        return;
+      }
+      if (message.type === 'validation') {
+        showErrors(message.errors || {});
         return;
       }
       if (message.type === 'status') {

@@ -382,8 +382,11 @@ function previewOutputPath(document: vscode.TextDocument): string | undefined {
 
 async function savePdfPreviewDefaults(uri: vscode.Uri, form: pdfPageOptions.PdfPreviewForm): Promise<void> {
   const config = vscode.workspace.getConfiguration('markdown-pdf', uri);
-  const target = vscode.workspace.getWorkspaceFolder(uri)
-    ? vscode.ConfigurationTarget.WorkspaceFolder
+  // Workspace, not Workspace Folder: scale is a window setting, and Folder
+  // Settings reject anything that is not resource-scoped. The page settings are
+  // resource-scoped and can be stored in the workspace file alongside scale.
+  const target = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0
+    ? vscode.ConfigurationTarget.Workspace
     : vscode.ConfigurationTarget.Global;
   const options = pdfPageOptions.formToPdfConfig(form);
   await config.update('format', options.format, target);

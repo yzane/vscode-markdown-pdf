@@ -366,6 +366,19 @@ export interface PdfConfig {
   margin: { top: string; right: string; bottom: string; left: string };
 }
 
+// Chromium substitutes its own header and footer (date, title, page number) when
+// displayHeaderFooter is true and a template is empty. A blank element with an
+// explicit font-size is accepted as the template and prints nothing.
+const BLANK_PRINT_TEMPLATE = '<div style="font-size: 9px;"></div>';
+
+function printTemplate(template: string, displayHeaderFooter: boolean): string {
+  const transformed = transformTemplate(template || '');
+  if (displayHeaderFooter && transformed.trim() === '') {
+    return BLANK_PRINT_TEMPLATE;
+  }
+  return transformed;
+}
+
 /** Builds the options object passed to Puppeteer's page.pdf() call. */
 export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
   let formatOption: string = '';
@@ -377,8 +390,8 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
   const options: Record<string, unknown> = {
     scale: config.scale,
     displayHeaderFooter: config.displayHeaderFooter,
-    headerTemplate: transformTemplate(config.headerTemplate || ''),
-    footerTemplate: transformTemplate(config.footerTemplate || ''),
+    headerTemplate: printTemplate(config.headerTemplate, config.displayHeaderFooter),
+    footerTemplate: printTemplate(config.footerTemplate, config.displayHeaderFooter),
     printBackground: config.printBackground,
     landscape: config.orientation === 'landscape',
     pageRanges: config.pageRanges,

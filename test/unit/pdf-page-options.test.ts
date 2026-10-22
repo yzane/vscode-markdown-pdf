@@ -129,6 +129,55 @@ describe('pdf page options', function () {
     assert.strictEqual(parsed.orientation, 'portrait');
   });
 
+  it('should accept lengths, open page ranges, and an empty custom size', function () {
+    const errors = pdfPageOptions.validatePreviewForm(sampleForm({
+      width: '',
+      height: '',
+      pageRanges: '1-5, 8, 11-13',
+      marginTop: '1.5cm',
+      scale: 0.1,
+    }));
+    assert.deepStrictEqual(errors, {});
+    const openEnded = pdfPageOptions.validatePreviewForm(sampleForm({ pageRanges: '1,4-' }));
+    assert.deepStrictEqual(openEnded, {});
+  });
+
+  it('should highlight a margin or size that has no unit', function () {
+    const errors = pdfPageOptions.validatePreviewForm(sampleForm({ marginLeft: '1', width: '10cm' }));
+    assert.strictEqual(errors.marginLeft, 'Use a number and a unit: mm, cm, in, or px.');
+    assert.match(errors.height || '', /both width and height/);
+    assert.strictEqual(errors.width, undefined);
+  });
+
+  it('should reject a scale outside 0.1 to 2 and a reversed page range', function () {
+    assert.ok(pdfPageOptions.validatePreviewForm(sampleForm({ scale: 0 })).scale);
+    assert.ok(pdfPageOptions.validatePreviewForm(sampleForm({ scale: 2.5 })).scale);
+    assert.ok(pdfPageOptions.validatePreviewForm(sampleForm({ scale: Number.NaN })).scale);
+    assert.strictEqual(pdfPageOptions.validatePreviewForm(sampleForm({ scale: 2 })).scale, undefined);
+    assert.ok(pdfPageOptions.validatePreviewForm(sampleForm({ pageRanges: '5-2' })).pageRanges);
+    assert.ok(pdfPageOptions.validatePreviewForm(sampleForm({ pageRanges: 'abc' })).pageRanges);
+  });
+
+  it('should require custom header HTML only while the header and footer are shown', function () {
+    const shown = pdfPageOptions.validatePreviewForm(sampleForm({
+      headerChoice: 'custom',
+      headerCustom: '   ',
+    }));
+    assert.ok(shown.headerCustom);
+    const hidden = pdfPageOptions.validatePreviewForm(sampleForm({
+      displayHeaderFooter: false,
+      headerChoice: 'custom',
+      headerCustom: '',
+    }));
+    assert.strictEqual(hidden.headerCustom, undefined);
+  });
+
+  it('should treat a null scale from the preview as invalid', function () {
+    const parsed = pdfPageOptions.parsePreviewForm(sampleForm({ scale: null as unknown as number }));
+    assert.ok(parsed);
+    assert.ok(pdfPageOptions.hasPreviewFieldErrors(pdfPageOptions.validatePreviewForm(parsed)));
+  });
+
   it('should read missing settings as the export defaults', function () {
     const options = pdfPageOptions.readPdfPageOptions({});
     assert.strictEqual(options.format, 'A4');

@@ -169,8 +169,8 @@ export function resolveFooterTemplate(form: PdfPreviewForm): string {
 /** Turns the preview form into PDF options. A header preset does not change the footer, and the reverse. */
 export function formToPdfConfig(form: PdfPreviewForm): Omit<PdfConfig, 'path'> {
   return {
-    width: form.width || '',
-    height: form.height || '',
+    width: form.width.trim(),
+    height: form.height.trim(),
     format: form.format || 'A4',
     orientation: form.orientation === 'landscape' ? 'landscape' : 'portrait',
     scale: asScale(form.scale),
@@ -178,12 +178,12 @@ export function formToPdfConfig(form: PdfPreviewForm): Omit<PdfConfig, 'path'> {
     headerTemplate: resolveHeaderTemplate(form),
     footerTemplate: resolveFooterTemplate(form),
     printBackground: form.printBackground === true,
-    pageRanges: form.pageRanges || '',
+    pageRanges: form.pageRanges.trim(),
     margin: {
-      top: form.marginTop || '',
-      right: form.marginRight || '',
-      bottom: form.marginBottom || '',
-      left: form.marginLeft || '',
+      top: form.marginTop.trim(),
+      right: form.marginRight.trim(),
+      bottom: form.marginBottom.trim(),
+      left: form.marginLeft.trim(),
     },
   };
 }
@@ -200,6 +200,100 @@ function isString(value: unknown): value is string {
   return typeof value === 'string';
 }
 
+const LENGTH_PATTERN = /^(\d+(\.\d+)?)(mm|cm|in|px)$/i;
+const LENGTH_HINT = 'Use a number and a unit: mm, cm, in, or px.';
+
+export interface PreviewFieldErrors {
+  width?: string;
+  height?: string;
+  marginTop?: string;
+  marginRight?: string;
+  marginBottom?: string;
+  marginLeft?: string;
+  scale?: string;
+  pageRanges?: string;
+  headerCustom?: string;
+  footerCustom?: string;
+}
+
+function isValidPageRanges(value: string): boolean {
+  const pieces = value.split(',');
+  for (let i = 0; i < pieces.length; i++) {
+    const piece = pieces[i].trim();
+    const match = /^(\d+)(?:-(\d+)?)?$/.exec(piece);
+    if (!match) {
+      return false;
+    }
+    const start = Number(match[1]);
+    if (start < 1) {
+      return false;
+    }
+    if (match[2]) {
+      const end = Number(match[2]);
+      if (end < start) {
+        return false;
+      }
+    }
+  }
+  return pieces.length > 0;
+}
+
+/** Field errors for the preview form. An empty object means the form can be rendered. */
+export function validatePreviewForm(form: PdfPreviewForm): PreviewFieldErrors {
+  const errors: PreviewFieldErrors = {};
+  const width = form.width.trim();
+  const height = form.height.trim();
+  if (width !== '' && !LENGTH_PATTERN.test(width)) {
+    errors.width = LENGTH_HINT;
+  }
+  if (height !== '' && !LENGTH_PATTERN.test(height)) {
+    errors.height = LENGTH_HINT;
+  }
+  if ((width === '') !== (height === '')) {
+    const pairHint = 'Set both width and height, or leave both empty to use the paper size.';
+    if (width === '') {
+      errors.width = pairHint;
+    }
+    if (height === '') {
+      errors.height = pairHint;
+    }
+  }
+
+  const margins: Array<keyof Pick<PreviewFieldErrors, 'marginTop' | 'marginRight' | 'marginBottom' | 'marginLeft'>> = [
+    'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+  ];
+  for (let i = 0; i < margins.length; i++) {
+    const key = margins[i];
+    if (!LENGTH_PATTERN.test(form[key].trim())) {
+      errors[key] = LENGTH_HINT;
+    }
+  }
+
+  if (!Number.isFinite(form.scale) || form.scale < 0.1 || form.scale > 2) {
+    errors.scale = 'Scale must be between 0.1 and 2.';
+  }
+
+  const pageRanges = form.pageRanges.trim();
+  if (pageRanges !== '' && !isValidPageRanges(pageRanges)) {
+    errors.pageRanges = 'Use pages like 1-5, 8, 11-13.';
+  }
+
+  if (form.displayHeaderFooter) {
+    if (form.headerChoice === 'custom' && form.headerCustom.trim() === '') {
+      errors.headerCustom = 'Enter header HTML, or choose another header.';
+    }
+    if (form.footerChoice === 'custom' && form.footerCustom.trim() === '') {
+      errors.footerCustom = 'Enter footer HTML, or choose another page-number style.';
+    }
+  }
+
+  return errors;
+}
+
+export function hasPreviewFieldErrors(errors: PreviewFieldErrors): boolean {
+  return Object.keys(errors).length > 0;
+}
+
 /** Accepts a webview message payload, or returns undefined when the shape is not a form. */
 export function parsePreviewForm(value: unknown): PdfPreviewForm | undefined {
   if (!value || typeof value !== 'object') {
@@ -210,7 +304,7 @@ export function parsePreviewForm(value: unknown): PdfPreviewForm | undefined {
   const width = form.width;
   const height = form.height;
   const orientation = form.orientation;
-  const scale = form.scale;
+  const rawScale = form.scale;
   const displayHeaderFooter = form.displayHeaderFooter;
   const headerChoice = form.headerChoice;
   const headerCustom = form.headerCustom;
@@ -234,7 +328,15 @@ export function parsePreviewForm(value: unknown): PdfPreviewForm | undefined {
   if (!isHeaderChoice(headerChoice) || !isFooterChoice(footerChoice)) {
     return undefined;
   }
-  if (typeof scale !== 'number' || typeof displayHeaderFooter !== 'boolean' || typeof printBackground !== 'boolean') {
+  if (typeof displayHeaderFooter !== 'boolean' || typeof printBackground !== 'boolean') {
+    return undefined;
+  }
+  let scale: number;
+  if (rawScale === null || (typeof rawScale === 'number' && Number.isNaN(rawScale))) {
+    scale = Number.NaN;
+  } else if (typeof rawScale === 'number' && Number.isFinite(rawScale)) {
+    scale = rawScale;
+  } else {
     return undefined;
   }
   return {
