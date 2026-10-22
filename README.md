@@ -317,10 +317,13 @@ If you are behind a proxy, set the `http.proxy` option in settings.json and rest
 1. Type `export` and select below
    * `markdown-pdf: Export (settings.json)`
    * `markdown-pdf: Export (pdf)`
+   * `markdown-pdf: Export (pdf) with preview`
    * `markdown-pdf: Export (html)`
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
    * `markdown-pdf: Export (all: pdf, html, png, jpeg)`
+
+`Export (pdf) with preview` opens the [PDF options](#pdf-options) beside a rendered PDF. Export PDF writes the file. Save as my defaults stores the chosen values in Settings. `Export (pdf)` still writes the file immediately.
 
 To collect environment information for a bug report, run `Markdown PDF: Output Diagnostics`. See [How do I troubleshoot a failed export?](#how-do-i-troubleshoot-a-failed-export) in the FAQ.
 
@@ -332,6 +335,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 1. Right click and select below
    * `markdown-pdf: Export (settings.json)`
    * `markdown-pdf: Export (pdf)`
+   * `markdown-pdf: Export (pdf) with preview`
    * `markdown-pdf: Export (html)`
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
@@ -588,6 +592,7 @@ To collect environment information for a bug report, run `Markdown PDF: Output D
 ### PDF options
 
   - pdf only. [puppeteer page.pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md)
+  - `Markdown PDF: Export (pdf) with preview` edits these options beside a rendered PDF. Page numbers are not a separate setting: the `1 / N` choice writes [markdown-pdf.footerTemplate](#markdown-pdffootertemplate). The preview does not change Settings unless you choose **Save as my defaults**. `Markdown PDF: Export (pdf)` still exports immediately using Settings.
 
 #### `markdown-pdf.displayHeaderFooter`
   - Enables header and footer display

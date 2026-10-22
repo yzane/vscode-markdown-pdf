@@ -22,6 +22,8 @@ import { mathBracketsPlugin } from './markdown-it-math-brackets';
 import { renderMath } from './math-renderer';
 import { markdownItInclude } from './markdown-it-include';
 import puppeteer from 'puppeteer-core';
+import * as pdfPageOptions from './pdf-page-options';
+import * as pdfPreview from './pdf-preview-panel';
 
 const EXTENSION_ROOT = path.join(__dirname, '..');
 let INSTALL_CHECK = false;
@@ -96,6 +98,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const commands = [
     vscode.commands.registerCommand('extension.markdown-pdf.settings', async function () { await markdownPdf('settings'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.pdf', async function () { await markdownPdf('pdf'); }),
+    vscode.commands.registerCommand('extension.markdown-pdf.pdf.preview', openPdfPreview),
     vscode.commands.registerCommand('extension.markdown-pdf.html', async function () { await markdownPdf('html'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.png', async function () { await markdownPdf('png'); }),
     vscode.commands.registerCommand('extension.markdown-pdf.jpeg', async function () { await markdownPdf('jpeg'); }),
@@ -238,6 +241,165 @@ function isMarkdownPdfOnSaveExclude(): boolean | undefined {
   } catch (error) {
     reportError({ operation: GENERIC_ERROR_MSG, where: 'isMarkdownPdfOnSaveExclude()', error });
   }
+}
+
+function readPdfSettings(uri: vscode.Uri): pdfPageOptions.PdfPageSettings {
+  const config = vscode.workspace.getConfiguration('markdown-pdf', uri);
+  const margin = config['margin'] || {};
+  return {
+    width: config['width'] || '',
+    height: config['height'] || '',
+    format: config['format'] || 'A4',
+    orientation: config['orientation'] || '',
+    scale: config['scale'],
+    displayHeaderFooter: config['displayHeaderFooter'],
+    headerTemplate: config['headerTemplate'] || '',
+    footerTemplate: config['footerTemplate'] || '',
+    printBackground: config['printBackground'],
+    pageRanges: config['pageRanges'] || '',
+    margin: {
+      top: margin['top'] || '',
+      right: margin['right'] || '',
+      bottom: margin['bottom'] || '',
+      left: margin['left'] || '',
+    },
+  };
+}
+
+function reportChromiumUnavailable(reason: chromiumResolver.ChromiumFailureReason, where: string): string {
+  let operation: string;
+  let action: diagnostics.ErrorActionSpec;
+  switch (reason) {
+    case 'autodownload-disabled':
+      operation = AUTO_DOWNLOAD_DISABLED_MSG;
+      action = { kind: 'settings', query: '@id:markdown-pdf.chromium.autoDownload', label: 'Open Settings' };
+      break;
+    case 'network':
+      operation = 'Could not download Chromium (network error). '
+        + 'If you are behind a proxy, set http.proxy and restart VS Code.';
+      action = { kind: 'settings', query: '@id:http.proxy', label: 'Open Settings' };
+      break;
+    case 'download-failed':
+      operation = 'Could not obtain Chromium. See the setup guide.';
+      action = { kind: 'url', url: 'https://github.com/yzane/vscode-markdown-pdf#chromium', label: 'Learn More' };
+      break;
+  }
+  reportError({ operation: operation, where: where, action: action });
+  return operation;
+}
+
+async function openPdfPreview(): Promise<void> {
+  try {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      logger.logWarn('Export aborted: no active editor.');
+      vscode.window.showWarningMessage('No active Editor!');
+      return;
+    }
+
+    const mode = editor.document.languageId;
+    if (mode != 'markdown') {
+      logger.logWarn('Export aborted: active document is not markdown (languageId=' + mode + ').');
+      vscode.window.showWarningMessage('It is not a markdown mode!');
+      return;
+    }
+
+    const uri = editor.document.uri;
+    const mdfilename = uri.fsPath;
+    if (!utils.isExistsPath(mdfilename)) {
+      if (editor.document.isUntitled) {
+        logger.logWarn('Export aborted: document is untitled (unsaved).');
+        vscode.window.showWarningMessage('Please save the file!');
+        return;
+      }
+      logger.logWarn('Export aborted: cannot resolve a local file path for ' + uri.toString());
+      vscode.window.showWarningMessage(
+        'Cannot determine the file path. Virtual or remote workspaces (e.g. Azure DevOps) are not supported. Save the file to a local folder.'
+      );
+      return;
+    }
+
+    if (!extensionContext) {
+      reportError({ operation: GENERIC_ERROR_MSG, where: 'openPdfPreview()' });
+      return;
+    }
+
+    const document = editor.document;
+    pdfPreview.openPdfPreviewPanel({
+      extensionUri: extensionContext.extensionUri,
+      document: document,
+      buildHtml: function () { return buildPreviewHtml(document); },
+      resolveChromium: function () {
+        const cacheDir = getExtensionCacheDir();
+        const userExecPath = vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '';
+        return chromiumResolver.resolveChromiumPath(userExecPath, cacheDir, {
+          autoDownload: getAutoDownload(),
+        });
+      },
+      reportChromiumUnavailable: function (reason) { return reportChromiumUnavailable(reason, 'openPdfPreview()'); },
+      outputPath: function () { return previewOutputPath(document); },
+      initialForm: function () { return pdfPageOptions.settingsToForm(readPdfSettings(document.uri)); },
+      saveDefaults: function (form) { return savePdfPreviewDefaults(document.uri, form); },
+      reportFailure: function (operation, error) {
+        reportError({ operation: operation, where: 'openPdfPreview()', error: error, classify: true });
+      },
+      statusTimeoutMs: function () {
+        const value = vscode.workspace.getConfiguration('markdown-pdf')['StatusbarMessageTimeout'];
+        return typeof value === 'number' ? value : 10000;
+      },
+    });
+  } catch (error) {
+    reportError({ operation: EXPORT_FAILED_MSG, where: 'openPdfPreview()', error: error });
+  }
+}
+
+function buildPreviewHtml(document: vscode.TextDocument): string | undefined {
+  const uri = document.uri;
+  const mdfilename = uri.fsPath;
+  const homeDir = os.homedir();
+  const sanitizeMode = (vscode.workspace.getConfiguration('markdown-pdf')['sanitize'] || 'gfm') as utils.SanitizeMode;
+  const ctx: diagnostics.ConvertContext = {
+    sourceFile: mdfilename,
+    outputType: 'pdf',
+    executablePath: vscode.workspace.getConfiguration('markdown-pdf')['executablePath'] || '',
+    autoDownload: getAutoDownload(),
+    outputDirectory: vscode.workspace.getConfiguration('markdown-pdf')['outputDirectory'] || '',
+    sanitize: sanitizeMode,
+  };
+  logger.logInfo(diagnostics.buildStartDiagnostics(collectEnvironment(), ctx, homeDir));
+  const converted = convertMarkdownToHtml(mdfilename, 'pdf', document.getText(), ctx, homeDir);
+  if (!converted) {
+    return;
+  }
+  return makeHtml(converted.html, uri, ctx, homeDir);
+}
+
+function previewOutputPath(document: vscode.TextDocument): string | undefined {
+  const ext = path.extname(document.uri.fsPath);
+  const filename = document.uri.fsPath.replace(ext, '.pdf');
+  return getOutputDir(filename, document.uri);
+}
+
+async function savePdfPreviewDefaults(uri: vscode.Uri, form: pdfPageOptions.PdfPreviewForm): Promise<void> {
+  const config = vscode.workspace.getConfiguration('markdown-pdf', uri);
+  const target = vscode.workspace.getWorkspaceFolder(uri)
+    ? vscode.ConfigurationTarget.WorkspaceFolder
+    : vscode.ConfigurationTarget.Global;
+  const options = pdfPageOptions.formToPdfConfig(form);
+  await config.update('format', options.format, target);
+  await config.update('width', options.width, target);
+  await config.update('height', options.height, target);
+  await config.update('orientation', options.orientation, target);
+  await config.update('scale', options.scale, target);
+  await config.update('displayHeaderFooter', options.displayHeaderFooter, target);
+  await config.update('headerTemplate', options.headerTemplate, target);
+  await config.update('footerTemplate', options.footerTemplate, target);
+  await config.update('printBackground', options.printBackground, target);
+  await config.update('pageRanges', options.pageRanges, target);
+  await config.update('margin.top', options.margin.top, target);
+  await config.update('margin.right', options.margin.right, target);
+  await config.update('margin.bottom', options.margin.bottom, target);
+  await config.update('margin.left', options.margin.left, target);
 }
 
 function getFrontMatterBoolean(data: Record<string, unknown>, key: string): boolean | null | undefined {
@@ -532,30 +694,7 @@ function exportPdf(
           autoDownload: getAutoDownload()
         });
         if (!resolution.ok) {
-          switch (resolution.reason) {
-            case 'autodownload-disabled':
-              reportError({
-                operation: AUTO_DOWNLOAD_DISABLED_MSG,
-                where: 'exportPdf()',
-                action: { kind: 'settings', query: '@id:markdown-pdf.chromium.autoDownload', label: 'Open Settings' },
-              });
-              break;
-            case 'network':
-              reportError({
-                operation: 'Could not download Chromium (network error). '
-                  + 'If you are behind a proxy, set http.proxy and restart VS Code.',
-                where: 'exportPdf()',
-                action: { kind: 'settings', query: '@id:http.proxy', label: 'Open Settings' },
-              });
-              break;
-            case 'download-failed':
-              reportError({
-                operation: 'Could not obtain Chromium. See the setup guide.',
-                where: 'exportPdf()',
-                action: { kind: 'url', url: 'https://github.com/yzane/vscode-markdown-pdf#chromium', label: 'Learn More' },
-              });
-              break;
-          }
+          reportChromiumUnavailable(resolution.reason, 'exportPdf()');
           return;
         }
         const launchOptions = {
@@ -587,24 +726,9 @@ function exportPdf(
         // generate pdf
         // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
         if (type == 'pdf') {
-          const pdfConfig = {
+          const pdfConfig: utils.PdfConfig = {
+            ...pdfPageOptions.readPdfPageOptions(readPdfSettings(uri)),
             path: exportFilename as string,
-            width: vscode.workspace.getConfiguration('markdown-pdf', uri)['width'] || '',
-            height: vscode.workspace.getConfiguration('markdown-pdf', uri)['height'] || '',
-            format: vscode.workspace.getConfiguration('markdown-pdf', uri)['format'] || 'A4',
-            orientation: vscode.workspace.getConfiguration('markdown-pdf', uri)['orientation'] || '',
-            scale: vscode.workspace.getConfiguration('markdown-pdf', uri)['scale'],
-            displayHeaderFooter: vscode.workspace.getConfiguration('markdown-pdf', uri)['displayHeaderFooter'],
-            headerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['headerTemplate'] || '',
-            footerTemplate: vscode.workspace.getConfiguration('markdown-pdf', uri)['footerTemplate'] || '',
-            printBackground: vscode.workspace.getConfiguration('markdown-pdf', uri)['printBackground'],
-            pageRanges: vscode.workspace.getConfiguration('markdown-pdf', uri)['pageRanges'] || '',
-            margin: {
-              top: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['top'] || '',
-              right: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['right'] || '',
-              bottom: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['bottom'] || '',
-              left: vscode.workspace.getConfiguration('markdown-pdf', uri)['margin']['left'] || ''
-            },
           };
           const pdfOptions = utils.buildPdfOptions(pdfConfig);
           await page.pdf(pdfOptions);

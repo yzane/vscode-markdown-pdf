@@ -315,10 +315,13 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 1. `export` と入力し以下を選択します
    * `markdown-pdf: Export (settings.json)`
    * `markdown-pdf: Export (pdf)`
+   * `markdown-pdf: Export (pdf) with preview`
    * `markdown-pdf: Export (html)`
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
    * `markdown-pdf: Export (all: pdf, html, png, jpeg)`
+
+`Export (pdf) with preview` は [PDF options](#pdf-options) を、描画された PDF の横に開きます。Export PDF でファイルを書き出します。Save as my defaults で選んだ値を設定に保存します。`Export (pdf)` はこれまでどおり、すぐにファイルを書き出します。
 
 不具合報告用の環境情報を収集するには `Markdown PDF: Output Diagnostics` を実行します。FAQ の [エクスポート失敗時のトラブルシューティング方法は？](#how-do-i-troubleshoot-a-failed-export) を参照してください。
 
@@ -330,6 +333,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 1. 右クリックして以下を選択します
    * `markdown-pdf: Export (settings.json)`
    * `markdown-pdf: Export (pdf)`
+   * `markdown-pdf: Export (pdf) with preview`
    * `markdown-pdf: Export (html)`
    * `markdown-pdf: Export (png)`
    * `markdown-pdf: Export (jpeg)`
@@ -585,6 +589,7 @@ Markdown PDF は PDF/PNG/JPEG エクスポートに Chromium ベースのブラ�
 ### PDF options
 
   - pdf only. [puppeteer page.pdf options](https://github.com/puppeteer/puppeteer/blob/main/docs/api/puppeteer.pdfoptions.md)
+  - `Markdown PDF: Export (pdf) with preview` は、これらのオプションを描画された PDF の横で編集します。ページ番号は独立した設定ではなく、`1 / N` を選ぶと [markdown-pdf.footerTemplate](#markdown-pdffootertemplate) に書き込まれます。**Save as my defaults** を選ばない限り、プレビューは設定を変更しません。`Markdown PDF: Export (pdf)` は、これまでどおり設定の値ですぐに書き出します。
 
 #### `markdown-pdf.displayHeaderFooter`
   - ヘッダーとフッター表示を有効にします

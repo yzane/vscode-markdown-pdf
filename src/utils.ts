@@ -351,8 +351,8 @@ export function buildStyleTags(options: BuildStyleTagsOptions): string {
   return style;
 }
 
-interface PdfConfig {
-  path: string;
+export interface PdfConfig {
+  path?: string;
   width: string;
   height: string;
   format: string;
@@ -373,8 +373,8 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
     formatOption = config.format || 'A4';
   }
 
-  return {
-    path: config.path,
+  // Omit path for a preview render so page.pdf() returns a buffer instead of writing a file.
+  const options: Record<string, unknown> = {
     scale: config.scale,
     displayHeaderFooter: config.displayHeaderFooter,
     headerTemplate: transformTemplate(config.headerTemplate || ''),
@@ -388,6 +388,10 @@ export function buildPdfOptions(config: PdfConfig): Record<string, unknown> {
     margin: config.margin,
     timeout: 0,
   };
+  if (config.path) {
+    options.path = config.path;
+  }
+  return options;
 }
 
 interface ImageConfig {

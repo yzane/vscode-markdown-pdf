@@ -930,6 +930,24 @@ describe('utils', function () {
       assert.strictEqual(result.landscape, true);
     });
 
+    it('should omit path when it is empty so a preview render returns a buffer', function () {
+      const result = utils.buildPdfOptions({
+        width: '',
+        height: '',
+        format: 'A4',
+        orientation: '',
+        scale: 1,
+        displayHeaderFooter: false,
+        headerTemplate: '',
+        footerTemplate: '',
+        printBackground: true,
+        pageRanges: '',
+        margin: { top: '', right: '', bottom: '', left: '' },
+      });
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'path'), false);
+      assert.strictEqual(result.format, 'A4');
+    });
+
     it('should set landscape false when orientation is not landscape', function () {
       const result = utils.buildPdfOptions({
         path: '/out/test.pdf',
