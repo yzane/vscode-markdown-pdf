@@ -408,7 +408,14 @@ function previewHtml(
   <script type="module" nonce="${nonce}">
     const vscode = acquireVsCodeApi();
     const config = ${config};
-    const pdfjs = await import(config.pdfjs);
+    document.getElementById('controls').addEventListener('submit', (event) => event.preventDefault());
+    let pdfjs;
+    try {
+      pdfjs = await import(config.pdfjs);
+    } catch (error) {
+      document.getElementById('status').textContent = 'Failed to load the PDF viewer. ' + (error && error.message ? error.message : String(error));
+      throw error;
+    }
     pdfjs.GlobalWorkerOptions.workerSrc = config.worker;
 
     const ids = ['format','width','height','orientation','marginTop','marginBottom','marginLeft','marginRight','scale','pageRanges','footerChoice','footerCustom','headerChoice','headerCustom'];
