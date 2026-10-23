@@ -5,6 +5,7 @@ declare module 'markdown-it-plantuml' {
     openMarker?: string;
     closeMarker?: string;
     server?: string;
+    generateSource?: (umlCode: string, pluginOptions: { imageFormat?: string; diagramName?: string }) => string;
   }
 
   const markdownItPlantuml: MarkdownIt.PluginWithOptions<PlantumlOptions>;
